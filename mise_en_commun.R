@@ -1,0 +1,544 @@
+path_data=choose.files(caption = "chosse your data file")# choisir le fichier concerner 
+au_name <- readline(prompt="Nom de Variable 'Nom_auteur': ")#authFullName_s
+ti_name <- readline(prompt="Nom de Variable 'Titre_publication': ")#en_title_s
+date_name <- readline(prompt="Nom de colonne 'date_publication': ")#defenseDate_s producedDate_s
+ths<-read.csv(path_data, sep = ";",header = TRUE,stringsAsFactors = FALSE)
+dim(ths)
+if(sum(duplicated(ths[c(au_name,ti_name)]))>0) ths<-ths[-(which(duplicated(ths[c(au_name,ti_name)])==TRUE)),]
+dim(ths)
+
+token="SYZW1C1o9mDDfOWXUSh7Jrq0MMqvleL2is0pnTNQ"
+
+source("C:/Users/moroguij/Documents/R_programs/functions_analyses.R")
+library(plyr)
+
+ths$position_name=1
+
+res_data_nasa_ads=extraction_data_api_nasa_ads(data_pub=ths,ti_name=ti_name,au_name=au_name,token=token,pas=8,value_same_min_accept=0.95,value_same_min_ask = 0.85,type="all")
+res_arxiv=extraction_data_api_arxiv(data_pub=ths,ti_name=ti_name,au_name=au_name,pas=8,value_same_min_accept=0.95,value_same_min_ask = 0.85,type = "all")
+res_pumed=extract_data_api_pumed(data_pub=ths,ti_name,au_name,pas=8,value_same_min_accept=0.85, value_same_min_ask=0.95,type="all")
+
+View(as.data.frame(res_data_nasa_ads$dataframe_citation))
+
+names(res_pumed$dataframe_ref_accept)
+res_pumed$error_querry_publi
+result$response$docs$bibcode
+
+View(result$res_accept)
+
+resdt=res_data_nasa_ads$dataframe_publi_found
+
+ads_data=res_data_nasa_ads$dataframe_citation_accept
+arxi_data=res_arxiv$res_citation_accept
+pumed_data=res_pumed$dataframe_citation_accept
+names(arxi_data)
+dim(ads_data)
+dim(arxi_data)
+
+data_merge=as.data.frame(rbind.fill(ads_data,arxi_data),stringsAsFactors = FALSE)
+test=as.data.frame(rbind.fill(data_merge,pumed_data),stringsAsFactors = FALSE)
+#verifier les doublon 
+
+
+dim(test)
+names(test)
+
+#____________________repéré les doulons ___________________________________________
+dup<-duplicated2(test[,c("cited title","cited auth","citing title","citing auth")])
+
+d1<-duplicated2(arxi_data[,c("cited title","cited auth","citing title","citing auth")])
+d2<-duplicated2(pumed_data[,c("cited title","cited auth","citing title","citing auth")])
+d3<-duplicated2(ads_data[,c("cited title","cited auth","citing title","citing auth")])
+
+sum((d1))
+sum((d2))
+sum((d3))
+# pour l'instant on les laisse, il faut rajouter la date 
+view(ads_data[d3,])
+View(duplicated2(ads_data[,c("cited title","cited auth","citing title","citing auth")]))
+View(ads_data[ads_data$`cited identifier`=="2018NatMa..17..605Y",])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+t=(duplicated2(res_cit[,c("bibcode")]))
+
+res_cit[t,c("bibcode","titre")]  
+
+
+
+#____________________________________________________________
+setwd("~/R_programs")
+
+
+
+
+
+
+
+
+
+
+path_journal="data/journal_classification.csv"
+journal_table_ref=read.csv(path_journal, sep = ";",header = TRUE,stringsAsFactors = FALSE)
+journal_table_ref$Source_title<-gsub("\\s*\\([^\\)]+\\)","",journal_table_ref$Source_title)
+journal_table_ref$Source_title<-gsub("[(#$%*,.:;<=>@^_`{|}~.)]","",journal_table_ref$Source_title)
+
+
+
+journal_data=test$`citing journal`
+#test$`citing journal`
+names(journal_table_ref)
+
+
+
+names(test)
+
+
+
+
+
+
+
+
+dom<-find_journal_domaine(test$`cited journal`,test$`cited issn`,test$`cited essn`,journal_table_ref)
+dom_length<-sapply(1:length(dom), FUN=function(x) length(unlist(dom[x])))
+table(dom_length)
+unique(dom)
+
+test$cited_journal_domaine=dom
+
+dom2<-find_journal_domaine(test$`citing journal`,test$`citing issn`,test$`citing issn`,journal_table_ref)
+
+
+test$citing_journal_domaine=dom2
+names(test)
+names(arxi_data)
+
+is.na(test) <- test == "NULL"
+View(test[c("cited_journal_domaine","cited subject","citing_journal_domaine","citing subject")])
+tbc<-as.data.frame((table(unlist(test$cited_journal_domaine),unlist(test$citing_journal_domaine))),stringsAsFactors = FALSE)
+names(tbc)<-c("cited", "citing", "freq")
+
+View(tbc)
+
+#travaille ref___________________________________________
+
+
+
+arxi_data=res_arxiv$res_reference_accept
+ads_data=res_data_nasa_ads$dataframe_ref
+pumed_data=res_pumed$dataframe_ref_accept
+names(ads_data)
+names(arxi_data)
+dim(ads_data)
+dim(arxi_data)
+dim(pumed_data)
+data_merge=as.data.frame(rbind.fill(ads_data,arxi_data),stringsAsFactors = FALSE)
+test=as.data.frame(rbind.fill(data_merge,pumed_data),stringsAsFactors = FALSE)
+#verifier les doublon 
+#verifier les doublon 
+
+find_journal_domaine<-function(journal_data,issn,essn,journal_table_ref){
+  
+  
+  
+  
+  dom=sapply(1:length(journal_data),FUN=function(x){
+    if(!is.na(journal_data[x]) && !is.null(issn[x]) ) {
+      if(issn[x]!="" && !is.na(issn[x]) ){
+        ind=which(issn[x]==journal_table_ref$issn) 
+        return((journal_table_ref$SubField_English[ind]))
+      }
+    }
+  })
+  
+  dom2=sapply(1:length(journal_data),FUN=function(x){
+    if(!is.na(journal_data[x]) && !is.null(essn[x]) && is.null(unlist(dom[x]))){
+      if(essn[x]!=""&& !is.na(essn[x])){
+        ind=which(essn[x]==journal_table_ref$essn) 
+        return((journal_table_ref$SubField_English[ind]))
+      }
+    }
+  })
+  
+  dom3=sapply(1:length(journal_data),FUN=function(x){
+    #print("first")
+    if(!is.na(journal_data[x]) && is.null(unlist(dom2[x]))){ 
+      tp=grep(paste0("^",tolower(trimws(gsub("[(#$%*,.:;<=>@^_`{|}~.)]","",gsub("\\s*\\([^\\)]+\\)","",journal_data[x])))),"$"),tolower(trimws(journal_table_ref$Source_title)),perl = TRUE)
+      
+      if(length(tp)>0){
+        return((journal_table_ref$SubField_English[tp]))
+      }
+    }
+    
+    
+  })
+  
+  
+  
+  
+  dom4=sapply(1:length(journal_data),FUN=function(x){
+    #print("2")
+    if(!is.na(journal_data[x]) && is.null(unlist(dom[x]))){
+      tp=grep(paste0("^",tolower(trimws(gsub("[(#$%*,.:;<=>@^_`{|}~.)]","",gsub("\\s*\\([^\\)]+\\)","",journal_data[x]))))),tolower(trimws(journal_table_ref$Source_title)),perl = TRUE)
+      if(length(tp)>0){
+        return((journal_table_ref$SubField_English[tp]))
+      }
+    }else {
+      return(unlist(dom3[x]))
+    }
+    
+    
+  })
+  
+  dom5=sapply(1:length(journal_data),FUN=function(x){
+    #print("2")
+    if(!is.na(journal_data[x]) && is.null(unlist(dom2[x]))){
+      tp=grep(paste0(tolower(trimws(gsub("[(#$%*,.:;<=>@^_`{|}~.)]","",gsub("\\s*\\([^\\)]+\\)","",journal_data[x]))))),tolower(trimws(journal_table_ref$Source_title)),perl = TRUE)
+      if(length(tp)>0){
+        return((journal_table_ref$SubField_English[tp]))
+      }
+    }else {
+      return(unlist(dom4[x]))
+    }
+    
+    
+    
+  })
+  
+  
+  #traiiter le pluri danns le if et le esle !!!
+  
+  
+  dom_length<-sapply(1:length(dom3), FUN=function(x) length(unlist(dom3[x])))
+  ind<-which(dom_length>1)
+  
+  length(dom_length)
+  table(dom_length)
+  
+  temp<-sapply(ind, function(x){
+    cat<-names(table(dom3[x]))
+    if(length(cat)==1) return(cat) else return(NA)
+  })
+  
+  dom3[ind]<-temp
+  return(dom3)
+  
+}
+
+
+dom<-find_journal_domaine(test$`refering journal`,test$`refering issn`,test$`refering essn`,journal_table_ref)
+dom_length<-sapply(1:length(dom), FUN=function(x) length(unlist(dom[x])))
+table(dom_length)
+unique(dom)
+
+test$refering_journal_domaine=dom
+
+dom2<-find_journal_domaine(test$`refered journal`,test$`refered issn`,test$`refered essn`,journal_table_ref)
+dom_length<-sapply(1:length(dom2), FUN=function(x) length(unlist(dom2[x])))
+table(dom_length)
+unique(dom2)
+
+
+test$refered_journal_domaine=dom2
+names(test)
+names(arxi_data)
+
+is.na(test) <- test == "NULL"
+#View(test[c("cited_journal_domaine","cited subject","citing_journal_domaine","citing subject")])
+tbc<-as.data.frame((table(unlist(test$refering_journal_domaine),unlist(test$refered_journal_domaine))),stringsAsFactors = FALSE)
+names(tbc)<-c("refering", "refered", "freq")
+
+
+# typeof(test$`citing journal`)
+# write.csv(tbc,"donnee references.csv")
+
+View(tbc)
+names(test)
+
+#.premisse du graph ________________________________________________
+
+
+
+
+ 
+wei<-tbc$freq[tbc$freq!=0]
+  
+  
+  
+ind1=which(is.na(test$refering_journal_domaine))
+ind2=which(is.na(test$refered_journal_domaine))
+  
+ind_tot=unique(c(ind1,ind2))  
+data_ss_na=test[-ind_tot,]
+part1=unique(unlist(data_ss_na$refering_journal_domaine))
+part2=unique(unlist(data_ss_na$refered_journal_domaine))
+
+
+to=unlist(data_ss_na$refering_journal_domaine)
+from=unlist(data_ss_na$refered_journal_domaine)
+term=unique(c(from,to))
+wei=table(c(from,to))
+# for(i in(1:length(keywords))){
+#   if(length(keywords[[i]])>1){
+#     for(j in(1:length(keywords[[i]]))){
+#       if(length(keywords[[i]])>j){
+#         add_from=rep(keywords[[i]][j],length(keywords[[i]])-j)
+#         add_to=c(keywords[[i]][(j+1):length(keywords[[i]])])
+#         from=c(from,add_from)
+#         to=c(to,add_to)
+#       }
+#     }
+#   }
+# }
+
+if(length(term)!=0){  
+  edge_list <- tibble(from = from, to = to)
+  
+  node_list <- tibble(id = term)
+} else{
+  edge_list <- tibble(from = "no data as been found", to = "no data as been found")
+  
+  node_list <- tibble(id = "no data as been found")
+  
+  wei=table(c("no data as been found"))
+}
+data_edge <- edge_list %>%  
+  group_by(from, to) %>%
+  dplyr::summarise(weight = n()) %>% 
+  ungroup()
+
+
+
+
+
+
+
+
+
+
+c_igraph <- graph_from_data_frame(d = data_edge[,c(1,2)], vertices = node_list, directed = TRUE)%>%
+                                    set_edge_attr("width", value =sqrt(data_edge$weight))%>%
+                                    set_vertex_attr("weight", value =sqrt(wei))%>%
+                                    set_vertex_attr("size", value =sqrt(wei))%>%
+                                    set_vertex_attr("label.cex", value =1)
+V(c_igraph)$group="node(keyword)"
+
+
+visIgraph(c_igraph, idToLabel = TRUE, layout = "layout_nicely",
+          physics = FALSE, smooth = FALSE, type = "square",
+          randomSeed = NULL)
+V(c_igraph)$group="node(keyword)"
+#if(length(which(data_edge["to"]==data_edge["from"])!=0)) data_edge<-data_edge[-(which(data_edge["to"]==data_edge["from"])),]
+
+# t_read=read_lines(path_tester,skip = 1)
+# head(t_read,10)
+# tap=read.table(path_tester, header = TRUE, sep = "\t", dec = ".")
+# t_split=strsplit(t_read,"[\\]")
+# write.csv(tap,"tableauUGA.CSV")
+# dim(tap)
+
+observeEvent(input$file2,{
+  library(bibliometrix)
+  suppressWarnings(reactive_values$data_wos <-convert2df(readFiles(input$file2$datapath),dbsource = "wos",format = "bibtex"))
+  # print(names(reactive_values$data_wos))
+  #[c(2,4),c("TI","AU","DE","SC","PY")]
+  output$table_wos <- renderDataTable({
+    # validate(
+    #   need(reactive_values$data_wos, "No bibtext data"),
+    #   need(!is.null(reactive_values$data_wos), "")
+    # )
+    
+    table_data=datatable(df_flatten(reactive_values$data_wos), options = list(scrollX = TRUE, columnDefs = list(list(
+      targets = "_all" ,render = JS(
+        "function(data, type, row, meta) {",
+        "return type === 'display' && data.length > 70 ?",
+        "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
+        "}")
+    ))))
+    
+    
+  })
+  # 
+  
+  
+  reactive_values$show_wos_valid<-TRUE
+})
+observeEvent(input$valid_wos, {
+  print("validation du wos")
+  if(input$file2$datapath %in% reactive_values$privious_datapath_wos){
+    showModal(modalDialog(
+      title = "Invalid path",
+      "This file as been analysed already ",
+      easyClose = TRUE,
+      footer = NULL
+    ))
+    reactive_values$ok_analyse=FALSE
+  }else{
+    reactive_values$privious_datapath_wos=c(reactive_values$privious_datapath_wos,input$file2$datapath)
+    reactive_values$ok_analyse=TRUE
+  }
+  if( reactive_values$ok_analyse==TRUE){
+    if(is.null(reactive_values$df_global)==TRUE) {
+      print("je passe dans le wos ")
+      
+      reactive_values$df_global=reactive_values$data_wos[,c("TI","AU","DE","SC","PY")]
+      names(reactive_values$df_global)<-c('titre','auteur','keywords','domain','date')
+    }else{
+      temp=reactive_values$data_wos[,c("TI","AU","DE","SC","PY")]
+      temp["year"]<-NA
+      names(temp)<-c('titre','auteur','keywords','domain','date','year')
+      reactive_values$df_global=rbind(reactive_values$df_global,temp)
+      #browser()
+      
+    }
+    reactive_values$df_global[["keywords"]]=gsub(";",",",reactive_values$df_global[["keywords"]])
+    reactive_values$valide_wos=TRUE
+  }
+})
+observeEvent(input$ads_ref_accept,{
+  output$table_data_ref1 <- renderDataTable({
+    # validate(
+    #   need(reactive_values$data_wos, "No bibtext data"),
+    #   need(!is.null(reactive_values$data_wos), "")
+    # )
+    
+    table_data=datatable(df_flatten(res_data_nasa_ads$dataframe_ref), options = list(scrollX = TRUE, columnDefs = list(list(
+      targets = "_all" ,render = JS(
+        "function(data, type, row, meta) {",
+        "return type === 'display' && data.length > 70 ?",
+        "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
+        "}")
+    ))))
+    
+    
+  })
+})
+
+observeEvent(input$ads_cit_accept,{
+  output$table_data_ref1 <- renderDataTable({
+    # validate(
+    #   need(reactive_values$data_wos, "No bibtext data"),
+    #   need(!is.null(reactive_values$data_wos), "")
+    # )
+    
+    table_data=datatable(df_flatten(res_data_nasa_ads$dataframe_citation_accept), options = list(scrollX = TRUE, columnDefs = list(list(
+      targets = "_all" ,render = JS(
+        "function(data, type, row, meta) {",
+        "return type === 'display' && data.length > 70 ?",
+        "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
+        "}")
+    ))))
+    
+    
+  })
+})
+
+
+###############################arxvie ------------------------
+observeEvent(input$arxiv_ref_accept,{
+  output$table_data_ref2 <- renderDataTable({
+    # validate(
+    #   need(reactive_values$data_wos, "No bibtext data"),
+    #   need(!is.null(reactive_values$data_wos), "")
+    # )
+    test=df_flatten(res_arxiv$res_reference_accept)
+    table_data=datatable(test, options = list(scrollX = TRUE, columnDefs = list(list(
+      targets = "_all" ,render = JS(
+        "function(data, type, row, meta) {",
+        "return type === 'display' && data.length > 70 ?",
+        "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
+        "}")
+    ))))
+    
+    
+  })
+})
+
+observeEvent(input$arxiv_cit_accept,{
+  output$table_data_ref2 <- renderDataTable({
+    # validate(
+    #   need(reactive_values$data_wos, "No bibtext data"),
+    #   need(!is.null(reactive_values$data_wos), "")
+    # )
+    #test=df_flatten(res_arxiv$res_citation_accept)
+    table_data=datatable(df_flatten(res_arxiv$res_citation_accept), options = list(scrollX = TRUE, columnDefs = list(list(
+      targets = "_all" ,render = JS(
+        "function(data, type, row, meta) {",
+        "return type === 'display' && data.length > 70 ?",
+        "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
+        "}")
+    ))))
+    
+    
+  })
+})
+
+observeEvent(input$pubmed_ref_accept,{
+  output$table_data_ref3 <- renderDataTable({
+    # validate(
+    #   need(reactive_values$data_wos, "No bibtext data"),
+    #   need(!is.null(reactive_values$data_wos), "")
+    # )
+    #test=df_flatten(res_arxiv$res_citation_accept)
+    table_data=datatable(df_flatten(res_pumed$dataframe_ref_accept), options = list(scrollX = TRUE, columnDefs = list(list(
+      targets = "_all" ,render = JS(
+        "function(data, type, row, meta) {",
+        "return type === 'display' && data.length > 70 ?",
+        "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
+        "}")
+    ))))
+    
+    
+  })
+})
+
+observeEvent(input$pubmed_cit_accept,{
+  output$table_data_ref3 <- renderDataTable({
+    
+    table_data=datatable(df_flatten(res_pumed$dataframe_citation_accept), options = list(scrollX = TRUE, columnDefs = list(list(
+      targets = "_all" ,render = JS(
+        "function(data, type, row, meta) {",
+        "return type === 'display' && data.length > 70 ?",
+        "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
+        "}")
+    ))))
+    
+    
+  })
+})
+#citing subject fait planté 
+
+# tabPanel("ArXiv",actionButton("arxiv_ref_accept", "Show references"),
+#          actionButton("arxiv_cit_accept", "Show citations"),
+#          dataTableOutput("table_data_ref2")),
+# tabPanel("Pubmed",actionButton("pubmed_ref_accept", "Show references"),
+#          actionButton("pubmed_cit_accept", "Show citations"),
+#          dataTableOutput("table_data_ref3"))
+# 
+
+
+# actionButton("ads_ref_accept", "Show references"),
+# actionButton("ads_cit_accept", "Show citations"),
+# dataTableOutput("table_data_ref")
+# 
+# observeEvent(input$contain_ref,{
+#     if(input$contain_ref==TRUE) reactive_values$show_ref <- TRUE else reactive_values$show_ref <- FALSE
+# })
+# 
+# observeEvent(input$contain_cit,{
+#   if(input$contain_cit==TRUE) reactive_values$show_cit <- TRUE else reactive_values$show_cit <- FALSE
+# })
+# 
+
