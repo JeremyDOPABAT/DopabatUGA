@@ -6,10 +6,6 @@
 #
 #    http://shiny.rstudio.com/
 ##reset("title_selection")
-setwd("~/R_programs/interface_shiny/test")
-setwd('..')
-setwd('..')
-getwd()
 source("functions_analyses.R")
 
 
@@ -245,6 +241,7 @@ ui <-dashboardPage(skin = "red",
                            tabPanel("ADS",actionButton("ads_ref_accept", "Show references"),
                         actionButton("ads_cit_accept", "Show citations"),
                         actionButton("ads_error", "Show error(s)"),
+                        actionButton("ads_cit_ask","Show publication found with doute"),
                         dataTableOutput("table_data_ref1")),
                         tabPanel("ArXiv",actionButton("arxiv_ref_accept", "Show references"),
                                  actionButton("arxiv_cit_accept", "Show citations"),
@@ -480,7 +477,7 @@ server <- function(input, output, session) {
        #primary_domaine<-reactive_values$df_csv["primaryDomain_s"]
        domainall<-reactive_values$df_global[["domain"]]
        
-       dict_lang="en_GB"#on se fixe d'abord en anglais , différent selon dico 
+       dict_lang="en_GB"#on se fixe d'abord en anglais , diff?rent selon dico 
        lang<-"en"
        
        
@@ -719,7 +716,7 @@ server <- function(input, output, session) {
                    
                       
                       
-                      if(my_i!=iter){# si on est pas sur la dernière date
+                      if(my_i!=iter){# si on est pas sur la derni?re date
                         index_year<-((year>=min(year,na.rm = TRUE)+(my_i-1)*as.numeric(input$intervalyear)) &(year<min(year,na.rm = TRUE)+my_i*as.numeric(input$intervalyear)))
                         add_brack="["
                         
@@ -946,7 +943,7 @@ server <- function(input, output, session) {
   
 
     
-# tavaillle sur l'interdiciplinarité _______________________________________________________________
+# tavaillle sur l'interdiciplinarit? _______________________________________________________________
     observeEvent(input$ads,{
       if(input$ads==TRUE){
         reactive_values$show_token_ads <- TRUE
@@ -1169,6 +1166,27 @@ server <- function(input, output, session) {
       })
     })
     
+    observeEvent(input$ads_cit_ask,{
+      output$table_data_ref1 <- renderDataTable({
+        table_to_show=res_data_nasa_ads$dataframe_publi_found[(res_data_nasa_ads$dataframe_publi_found$check_title_pct<value_same_min_accept) &(res_data_nasa_ads$dataframe_publi_found$check_title_pct>=value_same_min_ask),]
+        btns <- shinyInput(actionButton, nrow(table_to_show),  "btn", label = "Show modal")
+        df_flatten(cbind(Pick = btns, table_to_show))
+        
+      }, options = list(orderClasses = TRUE, lengthMenu = c(5, 25, 50), pageLength = 25, 
+                        preDrawCallback = JS("function() { 
+                                         Shiny.unbindAll(this.api().table().node()); }"), 
+                        drawCallback = JS("function() { 
+                                      Shiny.bindAll(this.api().table().node()); } "),
+                        scrollX = TRUE, columnDefs = list(list(
+                          targets = "_all" ,render = JS(
+                            "function(data, type, row, meta) {",
+                            "return type === 'display' && data.length > 140 ?",
+                            "'<span title=\"' + data + '\">' + data.substr(0, 140) + '...</span>' : data;",
+                            "}")
+                        ))), 
+      escape = F)
+      
+    })
     
   ###############################arxvie ------------------------
     observeEvent(input$arxiv_ref_accept,{
@@ -1281,7 +1299,7 @@ server <- function(input, output, session) {
       })
     })
     
-    #citing subject fait planté 
+    #citing subject fait plant? 
     
     # tabPanel("ArXiv",actionButton("arxiv_ref_accept", "Show references"),
     #          actionButton("arxiv_cit_accept", "Show citations"),

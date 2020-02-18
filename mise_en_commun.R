@@ -9,7 +9,7 @@ dim(ths)
 
 token="SYZW1C1o9mDDfOWXUSh7Jrq0MMqvleL2is0pnTNQ"
 
-source("C:/Users/moroguij/Documents/R_programs/functions_analyses.R")
+source("functions_analyses.R")
 library(plyr)
 
 ths$position_name=1
@@ -43,7 +43,7 @@ test=as.data.frame(rbind.fill(data_merge,pumed_data),stringsAsFactors = FALSE)
 dim(test)
 names(test)
 
-#____________________repéré les doulons ___________________________________________
+#____________________rep?r? les doulons ___________________________________________
 dup<-duplicated2(test[,c("cited title","cited auth","citing title","citing auth")])
 
 d1<-duplicated2(arxi_data[,c("cited title","cited auth","citing title","citing auth")])
@@ -518,7 +518,7 @@ observeEvent(input$pubmed_cit_accept,{
     
   })
 })
-#citing subject fait planté 
+#citing subject fait plant? 
 
 # tabPanel("ArXiv",actionButton("arxiv_ref_accept", "Show references"),
 #          actionButton("arxiv_cit_accept", "Show citations"),
