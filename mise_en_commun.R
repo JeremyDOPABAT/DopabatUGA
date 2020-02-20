@@ -14,9 +14,12 @@ library(plyr)
 
 ths$position_name=1
 
-res_data_nasa_ads=extraction_data_api_nasa_ads(data_pub=ths,ti_name=ti_name,au_name=au_name,token=token,pas=8,value_same_min_accept=0.95,value_same_min_ask = 0.85,type="all")
+res_data_nasa_ads=extraction_data_api_nasa_ads(data_pub=ths,ti_name=ti_name,au_name=au_name,token=token,pas=8,value_same_min_accept=0.95,value_same_min_ask = 0,type="all")
 res_arxiv=extraction_data_api_arxiv(data_pub=ths,ti_name=ti_name,au_name=au_name,pas=8,value_same_min_accept=0.95,value_same_min_ask = 0.85,type = "all")
 res_pumed=extract_data_api_pumed(data_pub=ths,ti_name,au_name,pas=8,value_same_min_accept=0.85, value_same_min_ask=0.95,type="all")
+View(res_data_nasa_ads$dataframe_publi_found)
+dim(res_data_nasa_ads$dataframe_citation_ask)
+dim(res_data_nasa_ads$dataframe_publi_found[(res_data_nasa_ads$dataframe_publi_found$check_title_pct<value_same_min_accept) &(res_data_nasa_ads$dataframe_publi_found$check_title_pct>=value_same_min_ask),])
 
 View(as.data.frame(res_data_nasa_ads$dataframe_citation))
 
@@ -349,175 +352,6 @@ V(c_igraph)$group="node(keyword)"
 # write.csv(tap,"tableauUGA.CSV")
 # dim(tap)
 
-observeEvent(input$file2,{
-  library(bibliometrix)
-  suppressWarnings(reactive_values$data_wos <-convert2df(readFiles(input$file2$datapath),dbsource = "wos",format = "bibtex"))
-  # print(names(reactive_values$data_wos))
-  #[c(2,4),c("TI","AU","DE","SC","PY")]
-  output$table_wos <- renderDataTable({
-    # validate(
-    #   need(reactive_values$data_wos, "No bibtext data"),
-    #   need(!is.null(reactive_values$data_wos), "")
-    # )
-    
-    table_data=datatable(df_flatten(reactive_values$data_wos), options = list(scrollX = TRUE, columnDefs = list(list(
-      targets = "_all" ,render = JS(
-        "function(data, type, row, meta) {",
-        "return type === 'display' && data.length > 70 ?",
-        "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
-        "}")
-    ))))
-    
-    
-  })
-  # 
-  
-  
-  reactive_values$show_wos_valid<-TRUE
-})
-observeEvent(input$valid_wos, {
-  print("validation du wos")
-  if(input$file2$datapath %in% reactive_values$privious_datapath_wos){
-    showModal(modalDialog(
-      title = "Invalid path",
-      "This file as been analysed already ",
-      easyClose = TRUE,
-      footer = NULL
-    ))
-    reactive_values$ok_analyse=FALSE
-  }else{
-    reactive_values$privious_datapath_wos=c(reactive_values$privious_datapath_wos,input$file2$datapath)
-    reactive_values$ok_analyse=TRUE
-  }
-  if( reactive_values$ok_analyse==TRUE){
-    if(is.null(reactive_values$df_global)==TRUE) {
-      print("je passe dans le wos ")
-      
-      reactive_values$df_global=reactive_values$data_wos[,c("TI","AU","DE","SC","PY")]
-      names(reactive_values$df_global)<-c('titre','auteur','keywords','domain','date')
-    }else{
-      temp=reactive_values$data_wos[,c("TI","AU","DE","SC","PY")]
-      temp["year"]<-NA
-      names(temp)<-c('titre','auteur','keywords','domain','date','year')
-      reactive_values$df_global=rbind(reactive_values$df_global,temp)
-      #browser()
-      
-    }
-    reactive_values$df_global[["keywords"]]=gsub(";",",",reactive_values$df_global[["keywords"]])
-    reactive_values$valide_wos=TRUE
-  }
-})
-observeEvent(input$ads_ref_accept,{
-  output$table_data_ref1 <- renderDataTable({
-    # validate(
-    #   need(reactive_values$data_wos, "No bibtext data"),
-    #   need(!is.null(reactive_values$data_wos), "")
-    # )
-    
-    table_data=datatable(df_flatten(res_data_nasa_ads$dataframe_ref), options = list(scrollX = TRUE, columnDefs = list(list(
-      targets = "_all" ,render = JS(
-        "function(data, type, row, meta) {",
-        "return type === 'display' && data.length > 70 ?",
-        "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
-        "}")
-    ))))
-    
-    
-  })
-})
-
-observeEvent(input$ads_cit_accept,{
-  output$table_data_ref1 <- renderDataTable({
-    # validate(
-    #   need(reactive_values$data_wos, "No bibtext data"),
-    #   need(!is.null(reactive_values$data_wos), "")
-    # )
-    
-    table_data=datatable(df_flatten(res_data_nasa_ads$dataframe_citation_accept), options = list(scrollX = TRUE, columnDefs = list(list(
-      targets = "_all" ,render = JS(
-        "function(data, type, row, meta) {",
-        "return type === 'display' && data.length > 70 ?",
-        "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
-        "}")
-    ))))
-    
-    
-  })
-})
-
-
-###############################arxvie ------------------------
-observeEvent(input$arxiv_ref_accept,{
-  output$table_data_ref2 <- renderDataTable({
-    # validate(
-    #   need(reactive_values$data_wos, "No bibtext data"),
-    #   need(!is.null(reactive_values$data_wos), "")
-    # )
-    test=df_flatten(res_arxiv$res_reference_accept)
-    table_data=datatable(test, options = list(scrollX = TRUE, columnDefs = list(list(
-      targets = "_all" ,render = JS(
-        "function(data, type, row, meta) {",
-        "return type === 'display' && data.length > 70 ?",
-        "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
-        "}")
-    ))))
-    
-    
-  })
-})
-
-observeEvent(input$arxiv_cit_accept,{
-  output$table_data_ref2 <- renderDataTable({
-    # validate(
-    #   need(reactive_values$data_wos, "No bibtext data"),
-    #   need(!is.null(reactive_values$data_wos), "")
-    # )
-    #test=df_flatten(res_arxiv$res_citation_accept)
-    table_data=datatable(df_flatten(res_arxiv$res_citation_accept), options = list(scrollX = TRUE, columnDefs = list(list(
-      targets = "_all" ,render = JS(
-        "function(data, type, row, meta) {",
-        "return type === 'display' && data.length > 70 ?",
-        "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
-        "}")
-    ))))
-    
-    
-  })
-})
-
-observeEvent(input$pubmed_ref_accept,{
-  output$table_data_ref3 <- renderDataTable({
-    # validate(
-    #   need(reactive_values$data_wos, "No bibtext data"),
-    #   need(!is.null(reactive_values$data_wos), "")
-    # )
-    #test=df_flatten(res_arxiv$res_citation_accept)
-    table_data=datatable(df_flatten(res_pumed$dataframe_ref_accept), options = list(scrollX = TRUE, columnDefs = list(list(
-      targets = "_all" ,render = JS(
-        "function(data, type, row, meta) {",
-        "return type === 'display' && data.length > 70 ?",
-        "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
-        "}")
-    ))))
-    
-    
-  })
-})
-
-observeEvent(input$pubmed_cit_accept,{
-  output$table_data_ref3 <- renderDataTable({
-    
-    table_data=datatable(df_flatten(res_pumed$dataframe_citation_accept), options = list(scrollX = TRUE, columnDefs = list(list(
-      targets = "_all" ,render = JS(
-        "function(data, type, row, meta) {",
-        "return type === 'display' && data.length > 70 ?",
-        "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
-        "}")
-    ))))
-    
-    
-  })
-})
 #citing subject fait plant? 
 
 # tabPanel("ArXiv",actionButton("arxiv_ref_accept", "Show references"),
