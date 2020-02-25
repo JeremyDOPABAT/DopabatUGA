@@ -1,0 +1,372 @@
+(0)   GARCH in spinor field - Pincak, Richard et al. Int.J.Geom.Meth.Mod.Phys. 16 (2019) no.07, 1950099
+ davantage
+
+(0)   Collisional Dynamics of Polaronic Clouds Immersed in a Fermi Sea - Tajima, Hiroyuki et al. arXiv:1912.12832 [cond-mat.quant-gas]
+(0)   Spin-dipole mode in a trapped Fermi gas near unitarity - Tajima, Hiroyuki et al. Phys.Rev. A101 (2020) no.1, 013610 arXiv:1909.11425 [cond-mat.quant-gas]
+ davantage
+
+[1] 	Average entropy of a subsystem - Page, Don N. Phys.Rev.Lett. 71 (1993) 1291-1294 gr-qc/9305007 ALBERTA-THY-22-93
+[2] 	Introduction to quantum fields in curved space-time and the Hawking effect - Jacobson, Ted gr-qc/0308048
+[3] 	The Information paradox: A Pedagogical introduction - Mathur, Samir D. Class.Quant.Grav. 26 (2009) 224001 arXiv:0909.1038 [hep-th]
+[4] 	Jerusalem Lectures on Black Holes and Quantum Information - Harlow, Daniel Rev.Mod.Phys. 88 (2016) 015002 arXiv:1409.1231 [hep-th]
+[5] 	Information Loss - Unruh, William G. et al. Rept.Prog.Phys. 80 (2017) no.9, 092002 arXiv:1703.02140 [hep-th]
+[6] 	The Black Hole information problem: past, present, and future - Marolf, Donald Rept.Prog.Phys. 80 (2017) no.9, 092001 arXiv:1703.02143 [gr-qc]
+[7] 	The Stretched horizon and black hole complementarity - Susskind, Leonard et al. Phys.Rev. D48 (1993) 3743-3761 hep-th/9306069 SU-ITP-93-15
+[8] 	String theory and the principles of black hole complementarity - Susskind, Leonard Phys.Rev.Lett. 71 (1993) 2367-2368 hep-th/9307168 SU-ITP-93-18
+[9] 	Strings, black holes and Lorentz contraction - Susskind, Leonard Phys.Rev. D49 (1994) 6606-6611 hep-th/9308139 SU-ITP-93-21
+[10] 	Quantum phase transitions and the breakdown of classical general relativity - Chapline, G. et al. Int.J.Mod.Phys. A18 (2003) 3587-3590 gr-qc/0012094
+[11] 	Eternal black holes in anti-de Sitter - Maldacena, Juan Martin JHEP 0304 (2003) 021 hep-th/0106112 NSF-ITP-01-59
+[12] 	Gravitational condensate stars: An alternative to black holes - Mazur, Pawel O. et al. gr-qc/0109035 LA-UR-01-5067
+[13] 	Winterberg, F.. 2001. Gamma Ray Bursters and Lorentzian Relativity. Z.Naturforsch.,A56,889-892
+[14] 	The Black hole final state - Horowitz, Gary T. et al. JHEP 0402 (2004) 008 hep-th/0310281
+[15] 	Information loss in black holes - Hawking, S.W. Phys.Rev. D72 (2005) 084013 hep-th/0507171 DAMTP-2005-66
+[16] 	The Inside story: Quasilocal tachyons and black holes - Horowitz, Gary T. et al. Phys.Rev. D73 (2006) 064016 hep-th/0601032 SLAC-PUB-11616, SU-ITP-06-01
+[17] 	The Fuzzball proposal for black holes: An Elementary review - Mathur, Samir D. Fortsch.Phys. 53 (2005) 793-827 hep-th/0502050
+[18] 	Black hole information, unitarity, and nonlocality - Giddings, Steven B. Phys.Rev. D74 (2006) 106005 hep-th/0605196
+[19] 	Fuzzballs and the information paradox: A Summary and conjectures - Mathur, Samir D. arXiv:0810.4525 [hep-th]
+[20] 	Models for unitary black hole disintegration - Giddings, Steven B. Phys.Rev. D85 (2012) 044038 arXiv:1108.2015 [hep-th]
+[21] 	Holographic Shell Model: Stack Data Structure inside Black Holes? - Davidson, Aharon Int.J.Mod.Phys. D23 (2014) 1450041 arXiv:1108.2650 [gr-qc]
+[22] 	Nonviolent nonlocality - Giddings, Steven B. Phys.Rev. D88 (2013) 064023 arXiv:1211.7070 [hep-th]
+[23] 	Black Holes: Complementarity or Firewalls? - Almheiri, Ahmed et al. JHEP 1302 (2013) 062 arXiv:1207.3123 [hep-th]
+[24] 	Comments on black holes I: The possibility of complementarity - Mathur, Samir D. et al. JHEP 1401 (2014) 034 arXiv:1208.2005 [hep-th]
+[25] 	An Infalling Observer in AdS/CFT - Papadodimas, Kyriakos et al. JHEP 1310 (2013) 212 arXiv:1211.6767 [hep-th] HRI-ST-1107, ICTS-2012-10
+[26] 	Black Hole Entanglement and Quantum Error Correction - Verlinde, Erik et al. JHEP 1310 (2013) 107 arXiv:1211.6913 [hep-th]
+[27] 	Complementarity Endures: No Firewall for an Infalling Observer - Nomura, Yasunori et al. JHEP 1303 (2013) 059 arXiv:1207.6626 [hep-th] UCB-PTH-12-12
+[28] 	Passing through the Firewall - Verlinde, Erik et al. arXiv:1306.0515 [hep-th]
+[29] 	The flaw in the firewall argument - Mathur, Samir D. et al. Nucl.Phys. B884 (2014) 566-611 arXiv:1306.5488 [hep-th]
+[30] 	Nonviolent information transfer from black holes: A field theory parametrization - Giddings, Steven B. Phys.Rev. D88 (2013) no.2, 024018 arXiv:1302.2613 [hep-th]
+[31] 	Cool horizons for entangled black holes - Maldacena, Juan et al. Fortsch.Phys. 61 (2013) 781-811 arXiv:1306.0533 [hep-th]
+[32] 	Backdraft: String Creation in an Old Schwarzschild Black Hole - Silverstein, Eva arXiv:1402.1486 [hep-th] SU-ITP-14-02, SLAC-PUB-15905
+[33] 	Planck stars - Rovelli, Carlo et al. Int.J.Mod.Phys. D23 (2014) no.12, 1442026 arXiv:1401.6562 [gr-qc]
+[34] 	Quantum-gravity effects outside the horizon spark black to white hole tunneling - Haggard, Hal M. et al. Phys.Rev. D92 (2015) no.10, 104020 arXiv:1407.0989 [gr-qc]
+[35] 	Stringy Horizons - Giveon, Amit et al. JHEP 1506 (2015) 064 arXiv:1502.03633 [hep-th]
+[36] 	Soft Hair on Black Holes - Hawking, Stephen W. et al. Phys.Rev.Lett. 116 (2016) no.23, 231301 arXiv:1601.00921 [hep-th]
+[37] 	Planck star tunneling time: An astrophysically relevant observable from background-free quantum gravity - Christodoulou, Marios et al. Phys.Rev. D94 (2016) no.8, 084035 arXiv:1605.05268 [gr-qc]
+[38] 	Stringy Information and Black Holes - Giveon, Amit et al. arXiv:1912.06538 [hep-th]
+[39] 	Hawking's information puzzle: a solution realized in loop quantum cosmology - Amadei, Lautaro et al. arXiv:1911.00306 [gr-qc]
+[40] 	An Apologia for Firewalls - Almheiri, Ahmed et al. JHEP 1309 (2013) 018 arXiv:1304.6483 [hep-th]
+[41] 	Gauge/Gravity Duality and the Black Hole Interior - Marolf, Donald et al. Phys.Rev.Lett. 111 (2013) 171301 arXiv:1307.4706 [hep-th]
+[42] 	Entanglement Wedge Reconstruction and the Information Paradox - Penington, Geoffrey arXiv:1905.08255 [hep-th]
+[43] 	The entropy of bulk quantum fields and the entanglement wedge of an evaporating black hole - Almheiri, Ahmed et al. JHEP 1912 (2019) 063 arXiv:1905.08762 [hep-th]
+[44] 	The Page curve of Hawking radiation from semiclassical geometry - Almheiri, Ahmed et al. arXiv:1908.10996 [hep-th]
+[45] 	Islands outside the horizon - Almheiri, Ahmed et al. arXiv:1910.11077 [hep-th]
+[46] 	Entanglement islands in higher dimensions - Almheiri, Ahmed et al. arXiv:1911.09666 [hep-th]
+[47] 	Information Flow in Black Hole Evaporation - Chen, Hong Zhe et al. arXiv:1911.03402 [hep-th]
+[48] 	Replica Wormholes and the Entropy of Hawking Radiation - Almheiri, Ahmed et al. arXiv:1911.12333 [hep-th]
+[49] 	Replica wormholes and the black hole interior - Penington, Geoff et al. arXiv:1911.11977 [hep-th]
+[50] 	Aspects of Holographic Entanglement Entropy - Ryu, Shinsei et al. JHEP 0608 (2006) 045 hep-th/0605073 NSF-KITP-06-31, KUNS-2021
+[51] 	Holographic derivation of entanglement entropy from AdS/CFT - Ryu, Shinsei et al. Phys.Rev.Lett. 96 (2006) 181602 hep-th/0603001 NSF-KITP-06-11
+[52] 	A Covariant holographic entanglement entropy proposal - Hubeny, Veronika E. et al. JHEP 0707 (2007) 062 arXiv:0705.0016 [hep-th] DCPT-07-13, KUNS-2069
+[53] 	Quantum corrections to holographic entanglement entropy - Faulkner, Thomas et al. JHEP 1311 (2013) 074 arXiv:1307.2892 [hep-th]
+[54] 	Entropy, Extremality, Euclidean Variations, and the Equations of Motion - Dong, Xi et al. JHEP 1801 (2018) 081 arXiv:1705.08453 [hep-th]
+[55] 	Black Holes as Red Herrings: Topological Fluctuations and the Loss of Quantum Coherence - Coleman, Sidney R. Nucl.Phys. B307 (1988) 867-882 HUTP-88/A008
+[56] 	Loss of Incoherence and Determination of Coupling Constants in Quantum Gravity - Giddings, Steven B. et al. Nucl.Phys. B307 (1988) 854-866 HUTP-88/A006
+[57] 	Baby Universes, Third Quantization and the Cosmological Constant - Giddings, Steven B. et al. Nucl.Phys. B321 (1989) 481-508 HUTP-88/A036
+[58] 	Wormholes in AdS - Maldacena, Juan Martin et al. JHEP 0402 (2004) 053 hep-th/0401024 ITFA-2003-57
+[59] 	Gauge theory correlators from noncritical string theory - Gubser, S.S. et al. Phys.Lett. B428 (1998) 105-114 hep-th/9802109 PUPT-1767
+[60] 	Anti-de Sitter space and holography - Witten, Edward Adv.Theor.Math.Phys. 2 (1998) 253-291 hep-th/9802150 IASSNS-HEP-98-15
+[61] 	Action Integrals and Partition Functions in Quantum Gravity - Gibbons, G.W. et al. Phys.Rev. D15 (1977) 2752-2756 PRINT-76-0995 (CAMBRIDGE)
+[62] 	JT gravity as a matrix integral - Saad, Phil et al. arXiv:1903.11115 [hep-th]
+[63] 	Euclidean wormholes in string theory - Arkani-Hamed, Nima et al. JHEP 0712 (2007) 018 arXiv:0705.2768 [hep-th]
+[64] 	Quantum Coherence Down the Wormhole - Hawking, S.W. Phys.Lett. B195 (1987) 337 Print-87-0842 (CAMBRIDGE)
+[65] 	Wormholes in Space-Time - Hawking, S.W. Phys.Rev. D37 (1988) 904-910
+[66] 	Axion Induced Topology Change in Quantum Gravity and String Theory - Giddings, Steven B. et al. Nucl.Phys. B306 (1988) 890-907 HUTP-87-A067
+[67] 	Disruption of Quantum Coherence upon a Change in Spatial Topology in Quantum Gravity - Lavrelashvili, George V. et al. JETP Lett. 46 (1987) 167-169, Pisma Zh.Eksp.Teor.Fiz. 46 (1987) 134-136
+[68] 	Wave Function of the Universe - Hartle, J.B. et al. Phys.Rev. D28 (1983) 2960-2975, Adv.Ser.Astrophys.Cosmol. 3 (1987) 174-189 PRINT-83-0937 (CAMBRIDGE)
+[69] 	Wave functions constructed from an invariant sum over histories satisfy constraints - Halliwell, Jonathan J. et al. Phys.Rev. D43 (1991) 1170-1194 NSF-ITP-90-97
+[70] 	Dirac, P.A.M.. 1964. Lectures on Quantum Mechanics. Belfor Graduate School of Science, Yeshiva University, New York.
+[71] 	Rieffel induction as generalized quantum Marsden-Weinstein reduction - Landsman, N.P. hep-th/9305088 DAMTP-93-22
+[72] 	Quantum observables and recollapsing dynamics - Marolf, Donald Class.Quant.Grav. 12 (1995) 1199-1220 gr-qc/9404053 CGPG-94-4-5
+[73] 	Quantization of diffeomorphism invariant theories of connections with local degrees of freedom - Ashtekar, Abhay et al. J.Math.Phys. 36 (1995) 6456-6493 gr-qc/9504018 UCSBTH-95-7
+[74] 	Group averaging and refined algebraic quantization: Where are we now? - Marolf, Donald gr-qc/0011112 SU-GP-11-2
+[75] 	On correspondence of BRST-BFV, Dirac and refined algebraic quantizations of constrained systems - Shvedov, Oleg Yu. Annals Phys. 302 (2002) 2-21 hep-th/0111270
+[76] 	Path integrals and instantons in quantum gravity: Minisuperspace models - Marolf, Donald Phys.Rev. D53 (1996) 6979-6990 gr-qc/9602019 UCSBTH-96-01
+[77] 	'Sum over surfaces' form of loop quantum gravity - Reisenberger, Michael P et al. Phys.Rev. D56 (1997) 3490-3508 gr-qc/9612035
+[78] 	Comparing formulations of generalized quantum mechanics for reparametrization - invariant systems - Hartle, James B. et al. Phys.Rev. D56 (1997) 6247-6257 gr-qc/9703021 UCSBTH-96-15, NSF-ITP-96-59
+[79] 	Quantum Field Theory in Terms of Vacuum Expectation Values - Wightman, A.S. Phys.Rev. 101 (1956) 860-866
+[80] 	Streater, R.F.. 2016. PCT, spin and statistics, and all that. Princeton University Press.
+[81] 	Axioms For Euclidean Green's Functions - Osterwalder, Konrad et al. Commun.Math.Phys. 31 (1973) 83-112
+[82] 	Eigenbranes in Jackiw-Teitelboim gravity - Blommaert, Andreas et al. arXiv:1911.11603 [hep-th]
+[83] 	Wormholes, Emergent Gauge Fields, and the Weak Gravity Conjecture - Harlow, Daniel JHEP 1601 (2016) 122 arXiv:1510.07911 [hep-th]
+[84] 	On the construction of charged operators inside an eternal black hole - Guica, Monica et al. SciPost Phys. 3 (2017) no.2, 016 arXiv:1511.05627 [hep-th]
+[85] 	The Factorization Problem in Jackiw-Teitelboim Gravity - Harlow, Daniel et al. arXiv:1804.01081 [hep-th]
+[86] 	A semiclassical ramp in SYK and in gravity - Saad, Phil et al. arXiv:1806.06840 [hep-th]
+[87] 	JT Gravity and the Ensembles of Random Matrix Theory - Stanford, Douglas et al. arXiv:1907.03363 [hep-th]
+[88] 	Notes on topological string theory and 2-D quantum gravity - Dijkgraaf, Robbert et al. PUPT-1217, IASSNS-HEP-90-80
+[89] 	Möbius, A.F.. Theorie der elementaren verwandtschaft, Berichte über die Verhandlungen der Königlich Sächsischen Gesellschaft der Wissenschaften, Mathematisch-physikalische Klasse 15 (1863) 19-57.
+[90] 	Jordan, C.. Sur la déformation des surfaces., Journal de mathématiques pures et appliquées (1866) 105-109.
+[91] 	Complex wishart distribution. - Wikipedia. https://en.wikipedia.org/wiki/Complex_Wishart_distribution
+[92] 	Graczyk, P.. 2003. The complex wishart distribution and the symmetric group, The. Annals Statist.,31,287-309
+[93] 	Conformal symmetry and its breaking in two dimensional Nearly Anti-de-Sitter space - Maldacena, Juan et al. PTEP 2016 (2016) no.12, 12C104 arXiv:1606.01857 [hep-th]
+[94] 	An investigation of AdS2
+backreaction and holography - Engelsöy, Julius et al. JHEP 1607 (2016) 139 arXiv:1606.03438 [hep-th]
+[95] 	Fermionic Localization of the Schwarzian Theory - Stanford, Douglas et al. JHEP 1710 (2017) 008 arXiv:1703.04612 [hep-th]
+[96] 	Bulk reconstruction and the Hartle-Hawking wavefunction - Jafferis, Daniel Louis arXiv:1703.01519 [hep-th]
+[97] 	String theory and black hole complementarity - Polchinski, Joseph hep-th/9507094 NSF-ITP-95-63
+[98] 	Breakdown of Predictability in Gravitational Collapse - Hawking, S.W. Phys.Rev. D14 (1976) 2460-2473
+[99] 	A Possible resolution of the black hole information puzzle - Polchinski, Joseph et al. Phys.Rev. D50 (1994) 7403-7409 hep-th/9407008 UCSB-TH-94-20
+[100] 	Quantum Mechanics of the Googolplexus - Fischler, W. et al. Nucl.Phys. B327 (1989) 157-177 SLAC-PUB-4957, UTTG-03-89
+[101] 	Wormholes in Space-time and the Constants of Nature - Preskill, John Nucl.Phys. B323 (1989) 141-186 CALT-68-1521
+[102] 	Black Holes and Random Matrices - Cotler, Jordan S. et al. JHEP 1705 (2017) 118, Erratum: JHEP 1809 (2018) 002 arXiv:1611.04650 [hep-th] SU-ITP-16-19, SU-ITP-16/19, YITP-16-124
+[103] 	Pure states in the SYK model and nearly-AdS2
+gravity - Kourkoulou, Ioanna et al. arXiv:1707.02325 [hep-th]
+[104] 	Black hole complementarity versus locality - Lowe, David A. et al. Phys.Rev. D52 (1995) 6997-7010 hep-th/9506138 NSF-ITP-95-47, UCSBTH-95-12, SU-ITP-95-13
+[105] 	The Trouble with de Sitter space - Goheer, Naureen et al. JHEP 0307 (2003) 056 hep-th/0212209
+[106] 	Geometric Microstates for the Three Dimensional Black Hole? - Maloney, Alexander arXiv:1508.04079 [hep-th]
+[107] 	Holographic Quantum Error Correction and the Projected Black Hole Interior - Almheiri, Ahmed arXiv:1810.02055 [hep-th]
+[108] 	Bag-of-gold spacetimes, Euclidean wormholes, and inflation from domain walls in AdS/CFT - Fu, Zicao et al. JHEP 1911 (2019) 040 arXiv:1909.02505 [hep-th]
+[109] 	Quantum Maximin Surfaces - Akers, Chris et al. arXiv:1912.02799 [hep-th]
+[110] 	Emergent unitarity in de Sitter from matrix integrals - Cotler, Jordan et al. arXiv:1911.12358 [hep-th]
+[111] 	Holography from Conformal Field Theory - Heemskerk, Idse et al. JHEP 0910 (2009) 079 arXiv:0907.0151 [hep-th] NSF-KITP-09-110
+[112] 	Generalized gravitational entropy - Lewkowycz, Aitor et al. JHEP 1308 (2013) 090 arXiv:1304.4926 [hep-th]
+[113] 	A model with no firewall - Mathur, Samir D. arXiv:1506.04342 [hep-th]
+[114] 	Nonviolent unitarization: basic postulates to soft quantum structure of black holes - Giddings, Steven B. JHEP 1712 (2017) 047 arXiv:1701.08765 [hep-th]
+[115] 	Resolving the black hole causality paradox - Mathur, Samir D. Gen.Rel.Grav. 51 (2019) no.2, 24 arXiv:1703.03042 [hep-th]
+[116] 	Holographic duality from random tensor networks - Hayden, Patrick et al. JHEP 1611 (2016) 009 arXiv:1601.01694 [hep-th]
+[117] 	Space-time random tensor networks and holographic duality - Qi, Xiao-Liang et al. arXiv:1801.05289 [hep-th]
+[118] 	Comments on quantum gravity and entanglement - Van Raamsdonk, Mark arXiv:0907.2939 [hep-th]
+[119] 	Building up spacetime with quantum entanglement - Van Raamsdonk, Mark Gen.Rel.Grav. 42 (2010) 2323-2329, Int.J.Mod.Phys. D19 (2010) 2429-2435 arXiv:1005.3035 [hep-th]
+[120] 	Eternal Black Holes and Superselection in AdS/CFT - Marolf, Donald et al. Class.Quant.Grav. 30 (2013) 025001 arXiv:1210.3590 [hep-th]
+[121] 	Pulling Out the Island with Modular Flow - Chen, Yiming arXiv:1912.02210 [hep-th]
+[122] 	Firewalls from double purity - Bousso, Raphael Phys.Rev. D88 (2013) no.8, 084035 arXiv:1308.2665 [hep-th]
+[123] 	Violations of the Equivalence Principle by a Nonlocally Reconstructed Vacuum at the Black Hole Horizon - Bousso, Raphael Phys.Rev.Lett. 112 (2014) no.4, 041102 arXiv:1308.3697 [hep-th]
+[124] 	Violations of the Born rule in cool state-dependent horizons - Marolf, Donald et al. JHEP 1601 (2016) 008 arXiv:1506.01337 [hep-th]
+[125] 	Black holes, black rings and their microstates - Bena, Iosif et al. Lect.Notes Phys. 755 (2008) 1-92 hep-th/0701216 SPHT-T07-008
+[126] 	Black Holes as Effective Geometries - Balasubramanian, Vijay et al. Class.Quant.Grav. 25 (2008) 214004 arXiv:0811.0263 [hep-th] ITFA-2008-43, UPR-T-1199
+[127] 	The fuzzball proposal for black holes - Skenderis, Kostas et al. Phys.Rept. 467 (2008) 117-171 arXiv:0804.0552 [hep-th] ITFA-2008-12
+[128] 	Modave Lectures on Fuzzballs and Emission from the D1-D5 System - Chowdhury, Borun D. et al. arXiv:1001.1444 [hep-th]
+[129] 	Resolving the Structure of Black Holes: Philosophizing with a Hammer - Bena, Iosif et al. arXiv:1311.4538 [hep-th] IPHT-T13-258
+[130] 	Boundary unitarity and the black hole information paradox - Jacobson, Ted Int.J.Mod.Phys. D22 (2013) 1342002 arXiv:1212.6944 [hep-th]
+[131] 	Diffeomorphism invariance and the black hole information paradox - Jacobson, Ted et al. Phys.Rev. D100 (2019) no.4, 046002 arXiv:1904.04434 [gr-qc] 
+
+[1] 	Michieletto, D., Orlandini, E., Marenduzzo, D.. 2017. doi:10.1038/s41598-017-13916-w Sci.Rep.,7,14642
+[2] 	Current density and conductivity through modified gravity in the graphene with defects - Sepehri, Alireza et al. Int.J.Mod.Phys. D26 (2017) no.09, 1750094 arXiv:1607.01499 [gr-qc]
+[3] 	Localization for Wilson Loops in Chern-Simons Theory - Beasley, Chris Adv.Theor.Math.Phys. 17 (2013) no.1, 1-240 arXiv:0911.2687 [hep-th] YITP-SB-09-26
+[4] 	Capozziello, S., Pincak, R., Kanjamapornkul, K., Saridakis, E.. 2018. Annals Phys.,530,1700271
+[5] 	The Chern–Simons current in time series of knots and links in proteins - Capozziello, Salvatore et al. Annals Phys. 393 (2018) 413-446 arXiv:1804.11193 [physics.gen-ph]
+[6] 	Anomaly on Superspace of Time Series Data - Capozziello, Salvatore et al. Z.Naturforsch. A72 (2017) 1077 arXiv:1801.03769 [physics.gen-ph]
+[7] 	Balzin, E.. 2017. Appl. Cat. Structures, 25, 917. doi:10.1007/s10485-017-9483-1
+[8] 	Tyurin, D. N.. 32. doi:10.1016/j.jcta.2017.08.015 J.Comb.Theory Ser.,A2018,154
+[9] 	Gauge field strings duality and the loop equation - Polyakov, Alexander M. et al. Nucl.Phys. B581 (2000) 116-134 hep-th/0002106 PUPT-1917
+[10] 	Beasley, C.. 2014. JHEP,2014,001
+[11] 	Abelian Chern-Simons theory - Manoliu, Mihaela J.Math.Phys. 39 (1998) 170-206 dg-ga/9610001
+[12] 	Martin, C., Trampetic, J., You, J.. JHEP,2016,2016
+[13] 	Fivebranes and Knots - Witten, Edward arXiv:1101.3216 [hep-th]
+[14] 	Watabe, T., Kishino, H., Okuhara, Y., Kitazoe, Y.. 2006. Genetics, 172, 1385. doi:10.1534/genetics.105.051508
+[15] 	Jiang, X., Feyertag, F., Robertson, D.. 2017. doi:10.1371/journal.pone.0185790 PLoS One,12,e0185790
+[16] 	Sander, O., Sing, T., Sommer, I., Low, A., Cheung, P., Harrigan, P., Lengauer, T., Domingues, F.. 2007. PLoS Comput. Biol., 3, 0555. doi:10.1371/journal.pcbi.0030058
+[17] 	Catasti, P., Fontenot, J., Bradbury, E., Gupta, G.. 1995. doi:10.1074/jbc.270.5.2224 J.Biol.Chem.,270,2224
+[18] 	Moghadam, H.. 2018. Ghalami-Choobar, B.
+[19] 	Wilk, T., Gross, I., Gowen, B., Rutten, T., De Haas, F., Welker, R., Kräusslich, H. G., Boulanger, P., Fuller, S.. 2001. doi:10.1128/JVI.75.2.759-771.2001 J.Virology,75,759
+[20] 	Briggs, J., Riches, J., Glass, B., Bartonova, V., Zanetti, G., Kräusslich, H. G.. 2009. doi:10.1073/pnas.0903535106 Proc.Nat.Acad.Sci.,106,11090
+[21] 	Quantum Field Theory and the Jones Polynomial - Witten, Edward Commun.Math.Phys. 121 (1989) 351-399 IASSNS-HEP-88-33
+[22] 	Musolino, C., Sant'Antonio, E., Penna, G., Alonci, A., Russo, S., Granata, A., Allegra, A., Eur. J.. 2010. Haematol., 84, 463.
+[23] 	Issa, J. P.. 2010. Hematol. Oncol. Clin. North Am., 24, 317. doi:10.1016/j.hoc.2010.02.007
+[24] 	Lehrmann, H., Pritchard, L.. 2002. Harel-Bellan, A., Adv. Cancer Res., 86, 41. doi:10.1016/S0065-230X(02)86002-X
+[25] 	Lachner, M., Jenuwein, T.. 2002. Curr. Opin. Cell Biol., 14, 286. doi:10.1016/S0955-0674(02)00335-6
+[26] 	Shen, Z., Asa, S., Ezzat, S.. 2018. Mol. Cell. Endocrinol., 461, 188. doi:10.1016/j.mce.2017.09.013
+[27] 	MacRae, I., Zhou, K.. 2006. Li, F., Repic, A., Brooks, A., Cande, W., Adams, P., Doudna, J. doi:10.1126/science.1121638 Science,311,195
+[28] 	Bernstein, E., Caudy, A., Hammond, S., Hannon, G.. 2001. doi:10.1038/35053110 Nature,409,363
+[29] 	Khovanov Homology And Gauge Theory - Witten, Edward arXiv:1108.3103 [math.GT]
+[30] 	Gravity from local Poincare gauge invariance - Capozziello, S. et al. Int.J.Geom.Meth.Mod.Phys. 6 (2009) 1-24
+[31] 	Simpkins, J.. 2010. Yi, K., Yang, S. H., Dykens, J. doi:10.1016/j.bbagen.2009.11.013
+[32] 	Che, R., Yuan, Y., Huang, S., Zhang, A.. 2014. Am. J. Physiol: Renal Physiol., 306, F367. doi:10.1152/ajprenal.00571.2013
+[33] 	Schuster, W., Hiesel, R., Brennicke, A.. 1993. Semin. Cell Dev. Biol., 4, 279. doi:10.1006/scel.1993.1033
+[34] 	Teixeira, M.. 2018. Py, B., Bosc, C., Laubreton, D., Moutin, M. J., Marvel, J., Flamant, F., Markossian, S. doi:10.1038/s41598-017-18826-5 Sci.Rep.,8,474
+[35] 	McKilliam, R., Quinn, B., Clarkson, I., Moran, B., Vellambi, B.. 1962. doi:10.1109/TSP.2014.2306178 IEEE Trans.Signal Process.,2014,62
+[36] 	Khovanskii, A., Monin, L.. 2017. doi:10.17323/1609-4514-2017-17-4-717-740 Moscow Math.J.,17,717
+[37] 	Bultheel, A.. 2017. Cruz-Barroso, R., Lasarow, A. SIGMA,13,090
+[38] 	Gastineau, S., Moreland, G.. 2017. doi:10.1007/s10801-017-0764-4 J.Algebr.Comb.,46,549
+[39] 	Huang, N.. Hu, K., Yang, A., Chang, H. C., Jia, D., Liang, W. K., Yeh, J., Kao, C. L., Juan, C. H., Peng, C., Meijer, J., Wang, Y. H., Long, S. doi:10.1098/rsta.2015.0206 Phil.Trans.Roy.Soc.Lond.,A2016,374
+[40] 	The Affine Structure of Gravitational Theories: Symplectic Groups and Geometry - Capozziello, Salvatore et al. Int.J.Geom.Meth.Mod.Phys. 11 (2014) no.10, 1450081 arXiv:1401.6555 [gr-qc]
+[41] 	Kanjamapornkul, K., Pincák, R.. 2016. Math.Methods Appl.Sci.,39,4463
+[42] 	Kanjamapornkul, K., Pincák, R., Bartoš, E.. 2016. doi:10.1016/j.physa.2016.06.078 Physica,A462,117
+[43] 	Support Spinor Machine - Kanjamapornkul, Kabin et al. Digital Signal Processing 70 (2017) 59-72 arXiv:1709.03943 [cs.LG]
+[44] 	On knot invariants related to some statistical mechanical models - Jones, V.F.R. Pacific J.Math. 137 (1989) 311-334
+[45] 	Nakamura, T., Cech, T.. 1998. doi:10.1016/S0092-8674(00)81123-X Cell,92,587
+[46] 	Bioorg. Med.. 2018. Xu, Y. doi:10.1016/j.bmcl.2018.06.021
+
+[1] 	Theory of superconductivity - Bardeen, John et al. Phys.Rev. 108 (1957) 1175-1204
+[2] 	Schrieffer, J.R.. Theory of Superconductivity - 1964. Addison-Wesley New York.
+[3] 	At this stage, readers may simply regard this regime as the region with a very weak pairing interaction. In Sec. 2.4, we will specify this region, as well as the strong-coupling BEC regime, more clearly.
+[4] 	Possible Pairing without Superconductivity at Low Carrier Concentrations in Bulk and Thin-Film Superconducting Semiconductors - Eagles, D.M. Phys.Rev. 186 (1969) 456-463
+[5] 	Leggett, A.J.. Modern Trends in the Theory of Condensed Matter - 1980. Berlin: Springer-Verlag.
+[6] 	Bose condensation in an attractive fermion gas: From weak to strong coupling superconduct ivity - Nozieres, P. et al. J.Low.Temp.Phys. 59 (1985) 195
+[7] 	Randeria, M.. Bose–Einstein Condensation - 1995. New York: Cambridge University Press.
+[8] 	Crossover from BCS to Bose superconductivity: Transition temperature and time-dependent Ginzburg-Landau theory - Sa de Melo, C.A.R. et al. Phys.Rev.Lett. 71 (1993) 3202-3205
+[9] 	Maxwell, E.. 1950. Phys.Rev.,78,477
+[10] 	Morel, P.. 1962. Phys.Rev.,125,1263
+[11] 	Observation of Resonance Condensation of Fermionic Atom Pairs - Regal, C.A. et al. Phys.Rev.Lett. 92 (2004) 040403 cond-mat/0401554 [cond-mat.stat-mech]
+[12] 	Timmermans, E.. 2001. Phys.Lett.,A285,228
+[13] 	Many-body physics with ultracold gases - Bloch, Immanuel et al. Rev.Mod.Phys. 80 (2008) 885-964 arXiv:0704.3011 [cond-mat.other]
+[14] 	Theory of ultracold atomic Fermi gases - Giorgini, Stefano et al. Rev.Mod.Phys. 80 (2008) 1215-1274 arXiv:0706.3360 [cond-mat.other]
+[15] 	Chin, C.. 2010. Rev.Mod.Phys.,82,1225
+[16] 	Condensation of Pairs of Fermionic Atoms near a Feshbach Resonance - Zwierlein, M.W. et al. Phys.Rev.Lett. 92 (2004) 120403 cond-mat/0403049 [cond-mat.soft]
+[17] 	Collective Excitations of a Degenerate Gas at the BEC-BCS Crossover - Bartenstein, M. et al. Phys.Rev.Lett. 92 (2004) 203201 cond-mat/0403716 [cond-mat.other]
+[18] 	Evidence for Superfluidity in a Resonantly Interacting Fermi Gas - Kinast, J. et al. Phys.Rev.Lett. 92 (2004) 150402 cond-mat/0403540 [cond-mat.soft]
+[19] 	Feynman, R.P.. Statistical Mechanics - 1972. Benjamin London.
+[20] 	Pethick, C.J.. Bose–Einstein Condensation in Dilute Gases - 2008. Cambridge University Press UK.
+[21] 	Pitaevskii, L.. Bose–Einstein Condensation and Superfluidity - 2018. Oxford University Press New York.
+[22] 	Measurement of Sound Velocity in a Fermi Gas near a Feshbach Resonance - Joseph, J. et al. Phys.Rev.Lett. 98 (2007) 170401
+[23] 	Hoinka, S.. 2017. Nature Phys.,13,943
+[24] 	Miller, D.E.. 2007. Phys.Rev.Lett.,99,070402
+[25] 	Schunck, C.H.. 2007. Phys.Rev.Lett.,98,050404
+[26] 	Kasahara, S.. 2014. Proc.Nat.Acad.Sci.,111,16309
+[27] 	Hanaguri, T.. 2019. Phys.Rev.Lett.,122,077001
+[28] 	Slaus, I.. 1989. Phys.Rept.,173,257
+[29] 	Low-density neutron matter - Gezerlis, Alexandros et al. Phys.Rev. C81 (2010) 025803 arXiv:0911.3907 [nucl-th]
+[30] 	Neutron Matter from Low to High Density - Gandolfi, Stefano et al. Ann.Rev.Nucl.Part.Sci. 65 (2015) 303-328 arXiv:1501.05675 [nucl-th] LA-UR-15-20320
+[31] 	Revealing of thick neutron skins in nuclei - Tanihata, I. et al. Phys.Lett. B289 (1992) 261-266 RIKEN-AF-NP-123
+[32] 	Observation of a ?
+-Wave One-Neutron Halo Configuration in Mg37
+- Kobayashi, N. et al. Phys.Rev.Lett. 112 (2014) no.24, 242501
+[33] 	Bound electron pairs in a degenerate Fermi gas - Cooper, Leon N. Phys.Rev. 104 (1956) 1189-1190
+[34] 	Abrikosov, A.A.. Methods of Quantum Field Theory in Statistical Physics - 1963. Dover New York.
+[35] 	Resonance Superfluidity in a Quantum Degenerate Fermi Gas - Holland, M. et al. Phys.Rev.Lett. 87 (2001) 120406 cond-mat/0103479 [cond-mat.soft]
+[36] 	BCS-BEC Crossover in a Gas of Fermi Atoms with a Feshbach Resonance - Ohashi, Y. et al. Phys.Rev.Lett. 89 (2002) 130402 cond-mat/0201262 [cond-mat.soft]
+[37] 	Vonsovsky, S.V.. Superconductivity of Transition Metals - 1982. Springer New York.
+[38] 	Gap Energy and Long Range Order in the Boson - Fermion Model of Superconductivity - Friedberg, R. et al. Phys.Rev. B40 (1989) 6745-6762 CU-TP-431
+[39] 	Kostyrko, T.. 1996. Phys.Rev.,B54,13105
+[40] 	Ranninger, J.. Bose–Einstein Condensation - 1995. New York: Cambridge University Press.
+[41] 	Regal, C.A.. 2003. Phys.Rev.Lett.,90,230404
+[42] 	Precursor of Superfluidity in a Strongly Interacting Fermi Gas with Negative Effective Range - Tajima, Hiroyuki Phys.Rev. A97 (2018) no.4, 043613 arXiv:1802.00919 [cond-mat.quant-gas]
+[43] 	Hazlett, E.L.. 2012. Phys.Rev.Lett.,108,045304
+[44] 	Molecular Probe of Pairing in the BEC-BCS Crossover - Partridge, G.B. et al. Phys.Rev.Lett. 95 (2005) 020404 cond-mat/0505353 [cond-mat.other]
+[45] 	Measurement of the Interaction Energy near a Feshbach Resonance in a Li-6 Fermi Gas - Bourdel, T. et al. Phys.Rev.Lett. 91 (2003) 020402 cond-mat/0303079 [cond-mat.stat-mech]
+[46] 	Rickayzen, G.. Green’s Functions and Condensed Matter - 1984. Academic Press London.
+[47] 	Ohashi, Y.. 2003. Phys.Rev.,A67,063612
+[48] 	Wong, K.Y.M.. 1988. Phys.Rev.,B37,5644
+[49] 	Ohashi, Y.. 1997. J.Phys.Soc.Jap.,66,2437
+[50] 	Ground-State Energy and Excitation Spectrum of a System of Interacting Bosons - Hugenholtz, N.M. et al. Phys.Rev. 116 (1959) 489-506
+[51] 	Höfer, M.. 2015. Phys.Rev.Lett.,115,265302
+[52] 	Pagano, G.. 2015. Phys.Rev.Lett.,115,265301
+[53] 	Zhang, R.. 2015. Phys.Rev.Lett.,115,135301
+[54] 	Cheng, Y.. 2016. Phys.Rev.,A93,042708
+[55] 	Xu, J.. 2016. Phys.Rev.,A94,033609
+[56] 	He, L.. 2016. Phys.Rev.,A94,043624
+[57] 	Iskin, M.. 2017. Phys.Rev.,A95,013618
+[58] 	Wang, S.. 2017. Phys.Rev.,A95,043634
+[59] 	Deng, T.-S.. 2018. Phys.Rev.,A97,013635
+[60] 	Strongly interacting Sarma superfluid near orbital Feshbach resonances - Zou, Peng et al. Phys.Rev. A97 (2018) no.4, 043616 arXiv:1802.02703 [cond-mat.quant-gas]
+[61] 	Mondal, S.. 2018. J.Phys.Soc.Jap.,87,084302
+[62] 	Mondal, S.. 2018. J.Phys.Soc.Jap.,87,094301
+[63] 	Miesner, H.-J.. 1998. Science,279,1005
+[64] 	Köhl, M.. 2002. Phys.Rev.Lett.,88,080402
+[65] 	Ashcoft, N.W.. Solid State Physics - 1976. Holt, Rinehart, and Winston New York.
+[66] 	Plasmons, Gauge Invariance, and Mass - Anderson, Philip W. Phys.Rev. 130 (1963) 439-442
+[67] 	Properties of a Fermi liquid at the superfluid transition in the crossover region between BCS superconductivity and Bose-Einstein condensation - Haussmann, R. Phys.Rev. B49 (1994) 12975-12983
+[68] 	Strong-coupling limit in the evolution from BCS superconductivity to Bose-Einstein condensation - Pieri, P. et al. Phys.Rev. B61 (2000) 15370-15381 cond-mat/9811166 [cond-mat.supr-con]
+[69] 	Weakly Bound Dimers of Fermionic Atoms - Petrov, D.S. et al. Phys.Rev.Lett. 93 (2004) 090404 cond-mat/0309010 [cond-mat.stat-mech]
+[70] 	Scattering properties of weakly bound dimers of fermionic atoms - Petrov, D.S. et al. Phys.Rev. A71 (2005) 012708 cond-mat/0407579 [cond-mat.stat-mech] NSF-KITP-04-88
+[71] 	Ohashi, Y.. 2005. J.Phys.Soc.Jap.,74,2659
+[72] 	Horikoshi, M.. 2017. Phys.Rev.,X7,041004
+[73] 	Strong-coupling corrections to ground-state properties of a superfluid Fermi gas - Tajima, Hiroyuki et al. Phys.Rev. A95 (2017) no.4, 043625 arXiv:1704.01032 [cond-mat.quant-gas]
+[74] 	Schmid, A.. 1968. Phys.Kond.Mater.,8,129
+[75] 	Kulik, I.O.. 1981. J.Low.Temp.Phys.,43,591
+[76] 	Excitation of Higgs Mode in Superfluid Fermi Gas in BCS–BEC Crossover - Tokimoto, Jun et al. J.Phys.Soc.Jap. 88 (2019) no.2, 023601 arXiv:1810.09110 [cond-mat.quant-gas]
+[77] 	Matsunaga, R.. 2013. Phys.Rev.Lett.,111,057002
+[78] 	Matsunaga, R.. 2014. Science,345,1145
+[79] 	Méasson, M.-A.. 2014. Phys.Rev.,B89,060503
+[80] 	Higgs mode in a strongly interacting fermionic superfluid - Behrle, A. et al. Nature Phys. 14 (2018) no.8, 781-785 arXiv:1912.01867 [cond-mat.quant-gas]
+[81] 	Conservation Laws and Correlation Functions - Baym, Gordon et al. Phys.Rev. 124 (1961) 287-299
+[82] 	Neutron matter model - Baker, George A. Phys.Rev. C60 (1999) 054311
+[83] 	Universal Thermodynamics of Degenerate Quantum Gases in the Unitarity Limit - Ho, Tin-Lun Phys.Rev.Lett. 92 (2004) 090402 cond-mat/0309109
+[84] 	Virial Theorem and Universality in a Unitary Fermi Gas - Thomas, J.E. et al. Phys.Rev.Lett. 95 (2005) 120402 cond-mat/0503620
+[85] 	Hu, H.. 2007. Nature Phys.,3,469
+[86] 	Hu, H.. 2010. New J.Phys.,12,063038
+[87] 	Ku, M.J.H.. 2012. Science,335,563
+[88] 	Superfluid Fermi Gases with Large Scattering Length - Carlson, J. et al. Phys.Rev.Lett. 91 (2003) 050401 physics/0303094 [physics.atom-ph]
+[89] 	Equation of State of a Fermi Gas in the BEC-BCS Crossover: A Quantum Monte Carlo Study - Astrakharchik, G.E. et al. Phys.Rev.Lett. 93 (2004) 200404 cond-mat/0406113 [cond-mat.soft]
+[90] 	Next-to-next-to-leading-order epsilon expansion for a Fermi gas at infinite scattering length - Arnold, Peter Brockway et al. Phys.Rev. A75 (2007) 043605 cond-mat/0608477 [cond-mat.other] INT-PUB-06-12
+[91] 	Thermodynamics of the BCS-BEC crossover - Haussmann, R. et al. Phys.Rev. A75 (2007) 023610 cond-mat/0608282 [cond-mat.stat-mech]
+[92] 	The BCS–BEC crossover: From ultra-cold Fermi gases to nuclear systems - Strinati, Giancarlo Calvanese et al. Phys.Rept. 738 (2018) 1-76 arXiv:1802.05997 [cond-mat.quant-gas]
+[93] 	Tan, S.. 2008. Annals Phys.,323,2952
+[94] 	Tan, S.. 2008. Annals Phys.,323,2971
+[95] 	The Equation of State of a Low-Temperature Fermi Gas with Tunable Interactions - Navon, N. et al. Science 328 (2010) no.5979, 729-732 arXiv:1004.1465 [cond-mat.quant-gas]
+[96] 	Precise determination of the structure factor and contact in a unitary Fermi gas - Hoinka, Sascha et al. Phys.Rev.Lett. 110 (2013) no.5, 055305 arXiv:1209.3830 [cond-mat.quant-gas]
+[97] 	Sagi, Y.. 2015. Phys.Rev.Lett.,114,075301
+[98] 	Laurent, S.. 2017. Phys.Rev.Lett.,118,103403
+[99] 	C. Carcy, S. Hoinka, M.G. Lingham, P. Dyke, C.C.N. Kuhn, H. Hu, C.J. Vale. arXiv:1902.07853
+[100] 	B. Mukherjee, P.B. Patel, Z. Yan, R.J. Fletcher, J. Struck, M.W. Zwierlein. arXiv:1902.08548
+[101] 	Viscosity and scale invariance in the unitary Fermi gas - Enss, Tilman et al. Annals Phys. 326 (2011) 770-796 arXiv:1008.0007 [cond-mat.quant-gas]
+[102] 	Universal contact of strongly interacting fermions at finite temperatures - Hu, Hui et al. New J.Phys. 13 (2011) 035007 arXiv:1011.3845 [cond-mat.quant-gas]
+[103] 	Numerical study of the unitary Fermi gas across the superfluid transition - Goulko, Olga et al. Phys.Rev. A93 (2016) no.5, 053604 arXiv:1507.08230 [cond-mat.quant-gas] DAMTP-2015-38
+[104] 	Contact and Momentum Distribution of the Unitary Fermi Gas - Rossi, R. et al. Phys.Rev.Lett. 121 (2018) no.13, 130406 arXiv:1303.6245 [cond-mat.quant-gas]
+[105] 	Correlated fermions in nuclei and ultracold atomic gases - Hen, O. et al. Phys.Rev. C92 (2015) no.4, 045205 arXiv:1407.8175 [nucl-ex]
+[106] 	Concept of Off-Diagonal Long-Range Order and the Quantum Phases of Liquid He and of Superconductors - Yang, C.N. Rev.Mod.Phys. 34 (1962) 694-704
+[107] 	Salasnich, L.. 2005. Phys.Rev.,A72,023621
+[108] 	Cooper pairing above the critical temperature in a unitary Fermi gas - Wlazlowski, Gabriel et al. Phys.Rev.Lett. 110 (2013) no.9, 090401 arXiv:1212.1503 [cond-mat.quant-gas]
+[109] 	Renormalization Group Theory for the Imbalanced Fermi Gas - Gubbels, K.B. et al. Phys.Rev.Lett. 100 (2008) 140407 arXiv:0711.2963 [cond-mat.stat-mech]
+[110] 	Boettcher, I.. 2012. Nucl.Phys.,B228,63
+[111] 	Tan contact and universal high momentum behavior of the fermion propagator in the BCS-BEC crossover - Boettcher, Igor et al. Phys.Rev. A87 (2013) no.2, 023606 arXiv:1209.5641 [cond-mat.quant-gas]
+[112] 	Fermionic Functional Renormalization Group Approach to Superfluid Phase Transition - Tanizaki, Yuya et al. PTEP 2014 (2014) no.4, 043I01 arXiv:1310.5800 [cond-mat.quant-gas] RIKEN-QHP-93
+[113] 	Klimin, S.N.. 2015. Eur.Phys.J.,B88,122
+[114] 	Liu, X.-J.. 2010. Phys.Rev.,A82,043626
+[115] 	Hu, H.. 2011. Phys.Rev.,A83,063610
+[116] 	Perali, A.. 2002. Phys.Rev.,B66,024510
+[117] 	Hu, H.. 2008. Phys.Rev.,A77,061605
+[118] 	Chen, Q.. 2005. Phys.Rept.,412,1
+[119] 	Thouless, D.J.. 1960. Annals Phys.,10,553
+[120] 	Haussmann, R.. Self-consistent Quantum-field Theory and Bosonization for Strongly Correlated Electron Systems - 1999. Springer Berlin.
+[121] 	Kashimura, T.. 2012. Phys.Rev.,A86,043622
+[122] 	Tajima, H.. 2016. Phys.Rev.,A93,013610
+[123] 	Pini, M.. 2019. Phys.Rev.,B99,094502
+[124] 	Liu, X.-J.. 2006. Europhys.Lett.,75,364
+[125] 	Hanai, R.. 2013. Phys.Rev.,A88,053621
+[126] 	Hanai, R.. 2014. Phys.Rev.,A90,043622
+[127] 	Fukushima, N.. 2007. Phys.Rev.,A75,033609
+[128] 	Hu, H.. 2006. Europhys.Lett.,74,574
+[129] 	Keeling, J.. 2005. Phys.Rev.,B72,115320
+[130] 	Shi, H.. 1998. Phys.Rept.,304,1
+[131] 	Renormalization group theory of the three-dimensional dilute Bose gas - Bijlsma, M. et al. Phys.Rev. A54 (1996) 5085-5103 cond-mat/9607188
+[132] 	van Wyk, P.. 2016. Phys.Rev.,A93,013621
+[133] 	Quantum Monte Carlo approaches to nuclear and atomic physics - Carlson, J. et al. PTEP 2012 (2012) 01A209 arXiv:1210.6659 [nucl-th]
+[134] 	Scalapino, E.. 1986. Phys.Rev.,B34,8190
+[135] 	Nakajima, S.. 1973. Prog.Theor.Phys.,50,1101
+[136] 	Gorkov, L.P.. 1961. Sov.Phys.—JETP,13,1018
+[137] 	Pisani, L.. 2018. Phys.Rev.,B97,014528
+[138] 	Renner, C.. 1998. Phys.Rev.Lett.,80,149
+[139] 	Bobroff, J.. 1997. Phys.Rev.Lett.,78,3757
+[140] 	Doping a Mott insulator: Physics of high-temperature superconductivity - Lee, Patrick A. et al. Rev.Mod.Phys. 78 (2006) 17-85
+[141] 	Scanning tunneling spectroscopy of high-temperature superconductors - Fischer, Oystein et al. Rev.Mod.Phys. 79 (2007) 353-419 cond-mat/0610672 [cond-mat.supr-con]
+[142] 	Pairing and spin gap in the normal state of short coherence length superconductors - Randeria, Mohit et al. Phys.Rev.Lett. 69 (1992) 2001-2004
+[143] 	Jankó, B.. 1997. Phys.Rev.,B56,11407
+[144] 	Yanase, Y.. 2001. J.Phys.Soc.Jap.,70,1659
+[145] 	Pines, D.. 1997. Z.Phys.,B103,129
+[146] 	Kampf, A.. 1990. Phys.Rev.,B41,6399
+[147] 	Chakravarty, S.. 2001. Phys.Rev.,B63,094503
+[148] 	Precritical pair fluctuations and formation of a pseudogap in low density nuclear matter - Schnell, A. et al. Phys.Rev.Lett. 83 (1999) 1926-1929 nucl-th/9902038
+[149] 	Lattice Calculation of Thermal Properties of Low-Density Neutron Matter with NN Effective Field Theory - Abe, T. et al. Phys.Rev. C79 (2009) 054002 arXiv:0708.2523 [nucl-th] MAP-334
+[150] 	Precursor of color superconductivity in hot quark matter - Kitazawa, M. et al. Phys.Rev. D65 (2002) 091504 nucl-th/0111022
+[151] 	Pseudogap of color superconductivity in heated quark matter - Kitazawa, M. et al. Phys.Rev. D70 (2004) 056003 hep-ph/0309026
+[152] 	Impact of medium effects on the cooling of nonsuperfluid and superfluid neutron stars - Schaab, C. et al. Astron.Astrophys. 321 (1997) 591 astro-ph/9605188
+[153] 	Page, D.. Novel Superfluids, Vol. 2 - 2014. Oxford University Press UK.
+[154] 	Vidberg, H.J.. 1977. J.Low.Temp.Phys.,29,179
+[155] 	Tsuchiya, S.. 2009. Phys.Rev.,A80,033613
+[156] 	Uniform spin susceptibility and spin-gap phenomenon in the BCS-BEC-crossover regime of an ultracold Fermi gas - Tajima, Hiroyuki et al. Phys.Rev. A89 (2014) no.3, 033617 arXiv:1312.1035 [cond-mat.quant-gas]
+[157] 	The pseudogap regime in the unitary Fermi gas - Jensen, S. et al. Eur.Phys.J.ST 227 (2019) no.15-16, 2241-2261 arXiv:1807.03913 [cond-mat.quant-gas] INT-PUB-18-036
+[158] 	Sanner, C.. 2011. Phys.Rev.Lett.,106,010402
+[159] 	Törma, P.. 2000. Phys.Rev.Lett.,85,487
+[160] 	He, Y.. 2005. Phys.Rev.,A72,011602
+[161] 	Stewart, J.T.. 2008. Nature,454,744
+[162] 	Gaebler, J.P.. 2010. Nature Phys.,6,569
+[163] 	Drake, T.E.. 2012. Phys.Rev.,A86,031601
+[164] 	Sagi, Y.. 2012. Phys.Rev.Lett.,109,220402
+[165] 	Ota, M.. 2017. Phys.Rev.,A95,053623
+[166] 	Ho, T.-L.. 2010. Nature Phys.,6,131
+[167] 	Mukherjee, B.. 2017. Phys.Rev.Lett.,118,123401
+[168] 	Strongly paired fermions: Cold atoms and neutron matter - Gezerlis, Alexandros et al. Phys.Rev. C77 (2008) 032801 arXiv:0711.3006 [nucl-th] LA-UR-07-7894
+[169] 	Gezerlis, A.. Neutron Star Crust - 2012. Nova Science Publishers New York.
+[170] 	Spatial structure of neutron Cooper pair in low density uniform matters - Matsuo, Masayuki Phys.Rev. C73 (2006) 044309 nucl-th/0512021
+[171] 	Cold Atom Quantum Simulator for Dilute Neutron Matter - Horikoshi, Munekazu et al. Int.J.Mod.Phys. E28 (2019) no.01n02, 1930001 arXiv:1901.00985 [cond-mat.quant-gas]
+[172] 	Construction of high quality N N potential models - Stoks, V.G.J. et al. Phys.Rev. C49 (1994) 2950-2962 nucl-th/9406039 THEF-NYM-93-05
+[173] 	Pairing in nuclear systems: From neutron stars to finite nuclei - Dean, D.J. et al. Rev.Mod.Phys. 75 (2003) 607-656 nucl-th/0210033
+[174] 	van Wyk, P.. 2018. Phys.Rev.,A97,013601
+[175] 	Yosida, K.. Theory of Magnetism - 1996. Springer-Verlag Berlin.
+[176] 	Hot and cold, nuclear and neutron matter - Friedman, B. et al. Nucl.Phys. A361 (1981) 502-520
+[177] 	The Equation of state of nucleon matter and neutron star structure - Akmal, A. et al. Phys.Rev. C58 (1998) 1804-1828 nucl-th/9804027
+[178] 	Gandolfi, S.. 2014. Europhys.J.,A50,10
+[179] 	Renormalization group approach to neutron matter: Quasiparticle interactions, superfluid gaps and the equation of state - Schwenk, Achim et al. Nucl.Phys. A713 (2003) 191-216 nucl-th/0207004
+[180] 	Equation of state of low-density neutron matter and the S(0)-1 pairing gap - Gandolfi, S. et al. Phys.Rev. C80 (2009) 045802 arXiv:0907.1588 [nucl-th]
+[181] 	Pines, D.. 1980. Prog.Theor.Phys.Suppl.,69,376 
+

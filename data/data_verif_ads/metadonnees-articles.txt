@@ -1,0 +1,79 @@
+@ARTICLE{2020MNRAS.493L..44J,
+       author = {{Javanmardi}, Behnam and {Kroupa}, Pavel},
+        title = "{A correlation between the number of satellites and the bulge-to-total baryonic mass ratio extending beyond the Local Group}",
+      journal = {\mnras},
+     keywords = {methods: data analysis, galaxies: bulges, galaxies: dwarf, Local Group, cosmology: observations, dark matter, Astrophysics - Astrophysics of Galaxies},
+         year = "2020",
+        month = "Mar",
+       volume = {493},
+       number = {1},
+        pages = {L44-L48},
+          doi = {10.1093/mnrasl/slaa001},
+archivePrefix = {arXiv},
+       eprint = {2001.02680},
+ primaryClass = {astro-ph.GA},
+       adsurl = {https://ui.adsabs.harvard.edu/abs/2020MNRAS.493L..44J},
+      adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+}
+
+@ARTICLE{2019PhRvD..99j3017X,
+       author = {{Xia}, Cheng-Jun and {Maruyama}, Toshiki and {Yasutake}, Nobutoshi and
+         {Tatsumi}, Toshitaka},
+        title = "{Constraining quark-hadron interface tension in the multimessenger era}",
+      journal = {\prd},
+     keywords = {High Energy Physics - Phenomenology, Astrophysics - High Energy Astrophysical Phenomena},
+         year = "2019",
+        month = "May",
+       volume = {99},
+       number = {10},
+          eid = {103017},
+        pages = {103017},
+          doi = {10.1103/PhysRevD.99.103017},
+archivePrefix = {arXiv},
+       eprint = {1902.08766},
+ primaryClass = {hep-ph},
+       adsurl = {https://ui.adsabs.harvard.edu/abs/2019PhRvD..99j3017X},
+      adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+}
+
+@ARTICLE{2018MNRAS.481L.136S,
+       author = {{Shu}, Yiping and {Marques-Chaves}, Rui and {Evans}, N. Wyn and
+         {P{\'e}rez-Fournon}, Ismael},
+        title = "{SDSS J0909+4449: A large-separation strongly lensed quasar at z ̃ 2.8 with three images}",
+      journal = {\mnras},
+     keywords = {gravitational lensing: strong, quasars: individual: SDSS J0909+4449, Astrophysics - Astrophysics of Galaxies},
+         year = "2018",
+        month = "Nov",
+       volume = {481},
+       number = {1},
+        pages = {L136-L140},
+          doi = {10.1093/mnrasl/sly174},
+archivePrefix = {arXiv},
+       eprint = {1809.07337},
+ primaryClass = {astro-ph.GA},
+       adsurl = {https://ui.adsabs.harvard.edu/abs/2018MNRAS.481L.136S},
+      adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+}
+
+@ARTICLE{2014A&A...567A.124H,
+       author = {{Hareter}, M. and {Papar{\'o}}, M. and {Weiss}, W. and
+         {Garc{\'\i}a Hern{\'a}ndez}, A. and {Borkovits}, T. and {Lampens}, P. and
+         {Rainer}, M. and {De Cat}, P. and {Marcos-Arenal}, P. and {Vos}, J. and
+         {Poretti}, E. and {Baglin}, A. and {Michel}, E. and {Baudin}, F. and
+         {Catala}, C.},
+        title = "{HD 51844: An Am {\ensuremath{\delta}} Scuti in a binary showing periastron brightening}",
+      journal = {\aap},
+     keywords = {binaries: spectroscopic, stars: variables: {\ensuremath{\delta}}Scuti, stars: abundances, stars: individual: HD 51844, Astrophysics - Solar and Stellar Astrophysics},
+         year = "2014",
+        month = "Jul",
+       volume = {567},
+          eid = {A124},
+        pages = {A124},
+          doi = {10.1051/0004-6361/201423801},
+archivePrefix = {arXiv},
+       eprint = {1406.4319},
+ primaryClass = {astro-ph.SR},
+       adsurl = {https://ui.adsabs.harvard.edu/abs/2014A&A...567A.124H},
+      adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+}
+

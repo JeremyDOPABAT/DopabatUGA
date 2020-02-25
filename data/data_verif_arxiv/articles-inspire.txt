@@ -1,0 +1,39 @@
+@article{Marolf:2020xie,
+      author         = "Marolf, Donald and Maxfield, Henry",
+      title          = "{Transcending the ensemble: baby universes, spacetime
+                        wormholes, and the order and disorder of black hole
+                        information}",
+      year           = "2020",
+      eprint         = "2002.08950",
+      archivePrefix  = "arXiv",
+      primaryClass   = "hep-th",
+      SLACcitation   = "%%CITATION = ARXIV:2002.08950;%%"
+}
+@article{Pincak:2019lch,
+      author         = "Pincák, Richard and Kanjamapornkul, Kabin and Bartoš,
+                        Erik",
+      title          = "{Forecasting Laurent Polynomial in the Chern–Simons
+                        Current of V3 Loop Time Series}",
+      journal        = "Annalen Phys.",
+      volume         = "531",
+      year           = "2019",
+      number         = "7",
+      pages          = "1800375",
+      doi            = "10.1002/andp.201800375",
+      SLACcitation   = "%%CITATION = ANPYA,531,1800375;%%"
+
+
+}
+
+@article{Ohashi:2020djc,
+      author         = "Ohashi, Y. and Tajima, H. and van Wyk, P.",
+      title          = "{BCS–BEC crossover in cold atomic and in nuclear
+                        systems}",
+      journal        = "Prog. Part. Nucl. Phys.",
+      volume         = "111",
+      year           = "2020",
+      pages          = "103739",
+      doi            = "10.1016/j.ppnp.2019.103739",
+      SLACcitation   = "%%CITATION = PPNPD,111,103739;%%"
+}
+

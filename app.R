@@ -309,6 +309,7 @@ server <- function(input, output, session) {
        show_ref=FALSE,
        show_cit=FALSE,
        res_ads=res_data_nasa_ads,
+       table_to_show_ref=NULL,
        fmts=c("%d/%m/%y","%Y", "%Y-%m", "%m/%d/%y","%d-%m-%Y","%Y-%m-%d %I:%M:%S %p","%B %d, %Y","%Y-%m-%d")
     )
     
@@ -1171,9 +1172,9 @@ server <- function(input, output, session) {
     })
     
     observeEvent(input$ads_cit_ask,{
-      table_to_show_ref=reactive_values$res_ads$dataframe_publi_found[(reactive_values$res_ads$dataframe_publi_found$check_title_pct<value_same_min_accept) &(reactive_values$res_ads$dataframe_publi_found$check_title_pct>=value_same_min_ask),]
-      rownames(table_to_show_ref)<-1:nrow(table_to_show_ref)
-      df <- reactiveValues(data =cbind(Delete = shinyInput(actionButton, nrow(table_to_show_ref), 'button_', label = "Delete", onclick = 'Shiny.onInputChange(\"select_button\",  this.id)' ),table_to_show_ref
+      reactive_values$table_to_show_ref=reactive_values$res_ads$dataframe_publi_found[(reactive_values$res_ads$dataframe_publi_found$check_title_pct<value_same_min_accept) &(reactive_values$res_ads$dataframe_publi_found$check_title_pct>=value_same_min_ask),]
+      rownames(reactive_values$table_to_show_ref)<-1:nrow(reactive_values$table_to_show_ref)
+      df <- reactiveValues(data =cbind(Delete = shinyInput(actionButton, nrow(reactive_values$table_to_show_ref), 'button_', label = "Delete", onclick = 'Shiny.onInputChange(\"select_button\",  this.id)' ),reactive_values$table_to_show_ref
       ) )
       
       output$table_data_ref1<- DT::renderDataTable(
@@ -1182,8 +1183,8 @@ server <- function(input, output, session) {
                                                                                                 scrollX = TRUE, columnDefs = list(list(
                                                                                                   targets = "_all" ,render = JS(
                                                                                                     "function(data, type, row, meta) {",
-                                                                                                    "return type === 'display' && data.length > 70 ?",
-                                                                                                    "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
+                                                                                                    "return type === 'display' && data.length > 200 ?",
+                                                                                                    "'<span title=\"' + data + '\">' + data.substr(0, 200) + '...</span>' : data;",
                                                                                                     "}")
                                                                                                 )))
       )
@@ -1193,13 +1194,17 @@ server <- function(input, output, session) {
     })
     
     observeEvent(input$select_button, {
+      
       selectedRow <- as.numeric(strsplit(input$select_button, "_")[[1]][2])
       #df$data <- df$data[rownames(df$data) != selectedRow, ]
       #¶reactive_values$res_ads$dataframe_publi_found[(res_data_nasa_ads$dataframe_publi_found$check_title_pct<value_same_min_accept) &(res_data_nasa_ads$dataframe_publi_found$check_title_pct>=value_same_min_ask),]<- df$data
       print(selectedRow)
-      ind=which(table_to_show_ref$bibcode[[selectedRow]]==unlist(reactive_values$res_ads$dataframe_citation_ask))
-      print(ind)
-      if(dim(reactive_values$res_ads$dataframe_citation_ask[ind,])[1]>0) reactive_values$res_ads$dataframe_citation_accept=rbind(reactive_values$res_ads$dataframe_citation_accep,reactive_values$res_ads$dataframe_citation_ask[ind,])
+      ind=which(reactive_values$table_to_show_ref$bibcode[[selectedRow]]==unlist(reactive_values$res_ads$dataframe_citation_ask))
+      ind2=which(reactive_values$table_to_show_ref$bibcode[[selectedRow]]==unlist(reactive_values$res_ads$dataframe_citation_accept))
+      print(ind2)
+      if(length(ind2)==0){
+        if(dim(reactive_values$res_ads$dataframe_citation_ask[ind,])[1]>0)reactive_values$res_ads$dataframe_citation_accept=rbind(reactive_values$res_ads$dataframe_citation_accep,reactive_values$res_ads$dataframe_citation_ask[ind,])
+      }
     })
     
   
