@@ -1120,7 +1120,7 @@ server <- function(input, output, session) {
         #   need(!is.null(reactive_values$data_wos), "")
         # )
         
-        table_data=datatable(df_flatten(reactive_values$res_ads$dataframe_ref), options = list(scrollX = TRUE, columnDefs = list(list(
+        table_data=datatable(df_flatten(reactive_values$res_ads$dataframe_ref_accept), options = list(scrollX = TRUE, columnDefs = list(list(
           targets = "_all" ,render = JS(
             "function(data, type, row, meta) {",
             "return type === 'display' && data.length > 70 ?",
@@ -1174,7 +1174,7 @@ server <- function(input, output, session) {
     observeEvent(input$ads_cit_ask,{
       reactive_values$table_to_show_ref=reactive_values$res_ads$dataframe_publi_found[(reactive_values$res_ads$dataframe_publi_found$check_title_pct<value_same_min_accept) &(reactive_values$res_ads$dataframe_publi_found$check_title_pct>=value_same_min_ask),]
       rownames(reactive_values$table_to_show_ref)<-1:nrow(reactive_values$table_to_show_ref)
-      df <- reactiveValues(data =cbind(Delete = shinyInput(actionButton, nrow(reactive_values$table_to_show_ref), 'button_', label = "Delete", onclick = 'Shiny.onInputChange(\"select_button\",  this.id)' ),reactive_values$table_to_show_ref
+      df <- reactiveValues(data =cbind(shinyInput(actionButton, nrow(reactive_values$table_to_show_ref), 'button_', label = "Transfer", onclick = 'Shiny.onInputChange(\"select_button\",  this.id)' ),reactive_values$table_to_show_ref
       ) )
       
       output$table_data_ref1<- DT::renderDataTable(
@@ -1201,9 +1201,14 @@ server <- function(input, output, session) {
       print(selectedRow)
       ind=which(reactive_values$table_to_show_ref$bibcode[[selectedRow]]==unlist(reactive_values$res_ads$dataframe_citation_ask))
       ind2=which(reactive_values$table_to_show_ref$bibcode[[selectedRow]]==unlist(reactive_values$res_ads$dataframe_citation_accept))
-      print(ind2)
-      if(length(ind2)==0){
+      
+      
+      ind_ref_1=which(reactive_values$table_to_show_ref$bibcode[[selectedRow]]==unlist(reactive_values$res_ads$dataframe_ref_ask))
+      ind_ref_2=which(reactive_values$table_to_show_ref$bibcode[[selectedRow]]==unlist(reactive_values$res_ads$dataframe_ref_accept))
+      
+      if(length(ind2)==0 ||length(ind_ref_2)==0){
         if(dim(reactive_values$res_ads$dataframe_citation_ask[ind,])[1]>0)reactive_values$res_ads$dataframe_citation_accept=rbind(reactive_values$res_ads$dataframe_citation_accep,reactive_values$res_ads$dataframe_citation_ask[ind,])
+        if(dim(reactive_values$res_ads$dataframe_ref_ask[ind,])[1]>0)reactive_values$res_ads$dataframe_citation_accept=rbind(reactive_values$res_ads$dataframe_ref_accept,reactive_values$res_ads$dataframe_ref_ask[ind_ref_1,])
       }
     })
     

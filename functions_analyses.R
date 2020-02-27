@@ -519,66 +519,48 @@ pdf_extract_data<-function(path_folder){
   })
 
 }
-title_vector=ti_data
-author_vector=au_data
 
-supress_unfit_entry<-function(title_vector,author_vector,sep=",",max_aut=8){
+supress_unfit_entry<-function(title_vector,author_vector,sep="",max_aut=8){
   # fonction pertmettant de supprimer les entr? ind?cisrable (ou de les rendre compatible )
   # input pdf_folder : lien du dossier dans lequel se trouve le fichier pdf 
   
   #output   une dataframe avec les m?tadonner qui nous interesse 
+
   
   ind=which(title_vector=="")
   if(length(ind)>0){
     title_vector=title_vector[-ind]
     author_vector=author_vector[-ind]
-   print("Publication without title in the select language can't be analysed")
+    print("Publication without title in the select language can't be analysed")
   } 
- 
+  
+  if(length(sep)==1) if(sep=="") sep=rep(",",length(author_vector)) 
+  au_sep=sapply(1:length(author_vector),FUN=function(x) strsplit(author_vector[x],sep[x]))
+  nb_author<-sapply(1:length(author_vector),FUN=function(x) length(au_sep[[x]]))
   
   
-  au_sep=strsplit(author_vector,sep)
-   nb_author<-sapply(1:length(author_vector),FUN=function(x) length(au_sep[[x]]))
-   
-   ind=which(nb_author==0)
-   if(length(ind)>0){
-     title_vector=title_vector[-ind]
-     author_vector=author_vector[-ind]
-     print("Publication without author can't be analyse")
-   } 
-   
-   ind1=which(nb_author>max_aut)
-   
-   if(length(ind1)>0){
-     temp<-sapply(ind1,FUN=function(x){
-        return(list((au_sep[[x]])[1:max_aut]))
-     })
-     au_sep[ind1]<-temp
-     author_vector=sapply(1:length(au_sep),FUN=function(x) paste(unlist(au_sep[x]),collapse = ","))
-     
+  ind=which(nb_author==0)
+  if(length(ind)>0){
+    title_vector=title_vector[-ind]
+    author_vector=author_vector[-ind]
+    print("Publication without author can't be analyse")
+  } 
+  
+  ind1=which(nb_author>max_aut)
+  
+  
+  if(length(ind1)>0){
+    temp<-sapply(ind1,FUN=function(x){
+      return(list((au_sep[[x]])[1:max_aut]))
+    })
+    au_sep[ind1]<-temp
+    author_vector=sapply(1:length(au_sep),FUN=function(x) paste(unlist(au_sep[x]),collapse = ","))
+    
     print(paste("the publication with", max_aut, "or more author will be restrected to",max_aut, "authors"))
-   }
+  }
+  
   return(list(title_vector,author_vector))
 }
-#res_temp=supress_unfit_entry(ti_ths,au_ths)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -603,8 +585,6 @@ duplicated2 <- function(x){
   else duplicated(c(x[dup],x))[-(1:sum(dup))] 
 }
 
-#ti_trouver=ti_ths[first:last]
-#ti_data=unlist(tps)
 
 compaire_title<-function(ti_trouver,ti_data){
   #Cette fonction compare les titre de ti trouver avec l'autre vecteur, renvoi le score maximal  , elle indique aussi l'indexe du premier titre qui a le score correspondant 
@@ -625,7 +605,6 @@ compaire_title<-function(ti_trouver,ti_data){
   return(res)
   })
 }
-#t=compaire_title(ti_ths[first:last],unlist(tps))
 
 
 
@@ -658,8 +637,6 @@ querry_warning_message<-function(r){
   
   
 }
-
-#-------------------------------------------------------------------------------------
 
 
 
@@ -1232,274 +1209,6 @@ pumed_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,v
 
 
 
-extraction_data_api_nasa_ads<-function(data_pub,ti_name,au_name,token,pas=8,value_same_min_accept=0, value_same_min_ask=1,type="all",source_name=""){
-  # fonction permetant d'interroger ads sur les reference et les citation d'un corpus de publication placer en entr?e 
-  #intput   
-  #-data_pub: corpus de publication doit au moin contenir les titre et les auteur en anglais(dans un premier temps )
-  # ti_name non de la colonne titre 
-  # au name : nom de la colonne auteur
-  #token : string, token d'identification 
-  # pas: nombre de publication par requete (joue sur l'impact de l'erreur )
-  #value_same_min_accept= valeur entre ? et 1 repr?sente le taux minimum de cimilitude a avoir pour accespter la r?ponse de la bd dans l'?tude 
-  #value_same_min_ask=valeur minimal pour demander a l'utilisteur si il veul la publication dans l'?tude 
-  # type: typ? danalise cit =citation , ref=reference, all=les deux 
-  
-  #outpout res : liste de 12 ?l?m?ents
-  #author_vector:vecteur d'auteur retenu pour les requ?tes
-  #dataframe_citation :dataframe des resultat(citation)
-  #dataframe_citation_ask :dataframe des resultat demander (citation)
-  #dataframe_publi_found :dataframe of all the publication found
-  #dataframe_ref:dataframe des resultat(reference)
-  #dataframe_ref:dataframe des resultat demand?e (reference)
-  #error_querry_publi: matrice de rapport d'erreur pour la partie recherche de publication  
-  #error_querry_citation matrice d'erreur concertnant la partie citation
-  #error_querry_ref matrice d'erreur concertnant la partie reference
-  #last_result : resultat brut de la derni?re requ?t 
-  #res_accept: dataframe des resultat accespt? (citation ou reference )
-  #res_ask: dataframe des resultat demander (citation ou reference )
-  #reject_analyse : dataframe(publication rejet? )
-  #title_vector : vecteur titre  
-  
-  
-  
-  au_data<-data_pub[au_name][[1]]#auteur nom colonne 
-  ti_data<-data_pub[ti_name][[1]]#titre 
-  res_rest=c() 
-  res_wos=c() 
-  err1=c()
-  err2=c() 
-  reject1=reject2=c()
-  if(source_name!="" && (type=="ref" || type=="all")){
-    data_wos=data_pub[data_pub[source_name]=="WOS",]
-    if(dim(data_wos)[1]!=0) {
-      res_wos_all=ads_get_publi(data_wos[au_name][[1]],data_wos[ti_name][[1]],data_wos$position_name,pas,value_same_min_ask,value_same_min_accept,token)
-      res_wos=res_wos_all$res
-      err1=res_wos_all$error
-      reject1=res_wos_all$reject
-      lastresult=res_wos_all$lastresult
-    }
-    data_rest=data_pub[data_pub[source_name]!="WOS",]
-    if(dim(data_rest)[1]!=0) {
-      res_rest_all=ads_get_publi(data_rest[au_name][[1]],data_rest[ti_name][[1]],data_rest$position_name,pas,value_same_min_ask,value_same_min_accept,token)
-      res_rest=res_rest_all$res
-      err2=res_rest_all[2,]$error
-      reject2=res_rest_all$reject
-      lastresult=res_rest_all$lastresult
-    }
-    
-    res=rbind(res_rest,res_wos)
-    error_querry=rbind(err1,err2)
-    reject=rbind(reject1,reject2)
-  }else {
-    resdt_all=ads_get_publi(au_data,ti_data,data_pub$position_name,pas,value_same_min_ask,value_same_min_accept,token)
-    error_querry=resdt_all$error
-    res=resdt_all$res
-    reject=resdt_all$reject
-    lastresult=resdt_all$lastresult
-  }
-  
-  
-  resdt<-as.data.frame(res,stringsAsFactors = FALSE)
-  
-  
-  # source("C:/Users/moroguij/Documents/R_programs/functions_analyses.R")#source nneded function 
-  #initialisation des variable __________________________________________  
-  
-  # Pr?non nom--> nom,pr?non  
-  
-  
-  #ins?r? fct 
-  if(type=="all"|| type=="cit"){
-    
-    
-    res_cite=get_cit_or_ref(resdt,type="cit")# citation 
-    total_res=res_cite$res_cit_ref[res_cite$res_cit_ref$check>=value_same_min_accept,]
-    total_res_ask=res_cite$res_cit_ref[(res_cite$res_cit_ref$check>=value_same_min_ask) & (res_cite$res_cit_ref$check<value_same_min_accept),]
-    if(!is.null(total_res)[1]){
-      if(dim(total_res)[1]>0) total_res<-total_res[order(unlist(total_res$`citing identifier`)),]
-      if(dim(total_res_ask)[1]>0)total_res_ask<-total_res_ask[order(unlist(total_res_ask$`citing identifier`)),]
-      if(dim(total_res)[1]>0) row.names(total_res)<-1:dim(total_res)[1]
-      if(dim(total_res_ask)[1]>0) row.names(total_res_ask)<-1:dim(total_res_ask)[1]
-    }
-    
-    
-    #error_querry_cit=res_cite$error_table
-    error_querry=rbind(error_querry,res_cite$error_table)
-    
-    if(type=="cit"){
-      total_res_ref=NULL
-      total_res_ref_ask=NULL
-      error_querry_ref=NULL
-    }
-  }
-  
-  if(type=="all"|| type=="ref"){
-    if(source_name==""){
-      res_rest=resdt
-    }
-    res_ref=get_cit_or_ref(res_rest,type="ref")  #ref?rence
-    total_res_ref=res_ref$res_cit_ref[res_ref$res_cit_ref$check>=value_same_min_accept,]
-    total_res_ref_ask=total_res_ref[(total_res_ref$check>=value_same_min_ask) & (total_res_ref$check<value_same_min_accept),]
-    if(!is.null(total_res_ref)[1]){
-      if(dim(total_res_ref)[1]>0) total_res_ref<-total_res_ref[order(unlist(total_res_ref$`refering identifier`)),]
-      if(dim(total_res_ref)[1]>0) row.names(total_res_ref)<-1:dim(total_res_ref)[1]
-      if(dim(total_res_ref_ask)[1]>0)total_res_ref_ask<-total_res_ref_ask[order(unlist(total_res_ref_ask$`refering identifier`)),]
-      if(dim(total_res_ref_ask)[1]>0) row.names(total_res_ref_ask)<-1:dim(total_res_ref_ask)[1]
-      
-      
-      error_querry=rbind(error_querry,res_cite$error_table)
-      
-      
-      
-      if(type=="ref"){
-        total_res=NULL
-        total_res_ask=NULL
-        error_querry_cit=NULL
-      }
-    }
-  }
-  return(list(dataframe_citation_accept=total_res,error_querry_publi=error_querry,title_vector=ti_data,author_vector=au_data,dataframe_citation_ask=total_res_ask,
-              reject_analyse=reject, last_result=lastresult,dataframe_publi_found=resdt,dataframe_ref=total_res_ref,dataframe_ref_ask=total_res_ref_ask))
-}
-
-
-
-
-
-ads_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,value_same_min_accept,token){
-  #m?me chose que les fonction pr?c?dente du m?me nom mais avec ads, cette fonction permet de recup?r? les m?ta donner de publi sur l'api d'ads en se servant d'un vecteur titre/ auteur 
-  
-  
-  res=c()#variable resultat 
-  
-  
-  
-  error_querry=c()# table d'erreur  
-  
-  
-  
-  res_temp=supress_unfit_entry(ti_data,au_data)#permet d'aclimater les do,n?es a la bd (possiblement sortable de la fonction )
-  
-  
-  
-  
-  
-  
-  # Pr?non nom--> nom,pr?non  
-  ti_data=res_temp[[1]]
-  au_data=res_temp[[2]]
-  
-  
-  
-  position_togo=rep(2,length(au_data))
-  au_data=fit_name_position(au_data,position_name,position_togo =position_togo )
-  au_data=sapply(1:length(au_data),FUN = function(x) paste(au_data[[x]],collapse = ";"))
-  
-  
-  inter=ceiling(length(au_data)[1]/pas)# nombre d'iteration
-  
-  for(h in 1:inter){
-    first<-(h-1)*pas+1
-    last<-h*pas
-    if(last>length(au_data)) last<-length(au_data)
-    #ti_test="M31 Globular Clusters: Colors and Metallicities"
-    #au_test="Huchra,John"
-    #adaptation des caract?re sp?ciaux au requette pour les titre et les auteur
-    (au_querry=paste0("%22",gsub("&","%26",gsub("[(]","",gsub("[)]","",gsub(";",'%22AND%22',gsub("[?]","",gsub(",","%2C",gsub("\\", "", gsub(":","%3A",gsub("/","%2F",
-                                                                                                                                                             gsub(" ","%20",Unaccent((au_data[first:last])))))
-                                                                                                                               , fixed =TRUE))))))), collapse = 'OR','%22'))
-    
-    
-    
-    (ti_querry=paste0("%22",gsub("[]]","%5D",gsub("`",'%60',gsub("[[]","%5B",gsub("[(]","%28",gsub("[)]","%29",gsub("<","%3C",gsub(">","%3E",gsub("=","%3D",gsub('[}{$]',"",gsub("&","%26",gsub('"','%22',gsub("\\", "",gsub(":","%3A",gsub("/","%2F",gsub("'","%27",gsub(" ","%20",
-                                                                                                                                                                                                                                                                          gsub(",","%2c",gsub("e?","e",gsub("?","",gsub("%","%25",(tolower(Unaccent(ti_data[first:last])))),fixed=TRUE),fixed = TRUE)))))), 
-                                                                                                                                                                                                               fixed=TRUE)))))))))))), collapse = 'OR','%22'))
-    
-    
-    adress=paste0('author%3A%28',au_querry,'%29AND%20title%3A%28',ti_querry,'%29&fl=reference%20citation%20author%20title%20database%20pubdate%20bibcode%20keyword%20pub%20&sort=date%20desc&rows=500&start=',0)
-    (quest2<-paste0('https://api.adsabs.harvard.edu/v1/search/query?q=', adress))
-    
-    nchar(quest2)
-    r <- httr::GET(paste0("https://api.adsabs.harvard.edu/v1/search/query?q=", adress),
-                   httr::add_headers( Authorization = paste0('Bearer ', token))
-    )
-    error=tryCatch({#rep?rage des erreur 
-      querry_warning_message(r)
-      
-    },
-    
-    warning=function(cond){
-      titre_error=as.data.frame(ti_data[first:last])
-      names(titre_error)=c("Publication title")
-      titre_error["Status error"]=r$status
-      titre_error$Message=message_error(r)
-      titre_error["Data impact"]="ref & cit"
-      titre_error$h=h
-      return(titre_error)
-    })
-    
-    if(length(error)>0){
-      error_querry<-rbind(error_querry,error)
-      error=c()
-      
-    }else {#si il n'y a pas d'erreur 
-      result <-jsonlite::fromJSON(txt = httr::content(r, 'text',encoding = "UTF-8"), simplifyDataFrame = TRUE)
-      if(result$response$numFound>0){
-        last_good_result=r
-        res_header=result$responseHeader
-        aut=result$response$docs$author
-        titre=result$response$docs$title
-        subj=result$response$docs$database
-        pubdate=result$response$docs$pubdate
-        keyword=result$response$docs$keyword
-        pub=result$response$docs$pub
-        
-        citation=result$response$docs$citation
-        reference=result$response$docs$reference
-        
-        bibcode=result$response$docs$bibcode
-        
-        if(is.null(citation)) citation<-NA
-        if(is.null(keyword)) keyword<-NA
-        if(is.null(reference)) reference<-NA
-        
-        if(length(unlist(titre))>1){
-          titre2<-sapply(1:length(titre),FUN=function(x) return(list(unlist(titre[x])[1])))
-          titre=titre2
-        }
-        res<-rbind(res,cbind(h,bibcode,aut,titre,subj, citation,pubdate,keyword,pub,reference))
-      }
-      
-    }
-    
-    
-    
-    if(result$response$numFound>0) print(h) #aide de d?vlopement 
-    if(h==inter) {# fin de loop mise en place des data frame 
-      resdt=as.data.frame(res)
-      if(dim(resdt)[1]>0){
-        resdt$aut=sapply(1:dim(resdt)[1], FUN=function(x){paste(unlist(resdt$aut[x]),collapse = ' ; ')})  
-        trouver<-unlist(resdt$titre)
-        indic_compaire_title<-compaire_title(trouver,ti_data)
-        
-        resdt["check_title_pct"]<-unlist(indic_compaire_title[1,])
-        resdt["check_title_ind"]<-unlist(indic_compaire_title[2,])
-        ind_null<-sapply(1:length(resdt$citation), FUN = function(x) is.null(resdt$citation[[x]]))
-        resdt$citation[which(ind_null)]<-NA
-      }
-    }
-    if(length(dim(error_querry)) &(h==inter)>0) print("il y a des erreurs")
-  }
-  
-  
-  
-  
-  
-  if(value_same_min_ask<1) reject=resdt[resdt$check_title_pct<value_same_min_ask,]# les rejet? sont ceux qui non pas assez de similitudfe pour aire dans les demande 
-  resdt=resdt[resdt$check_title_pct>value_same_min_ask,]
-  
-  return(list(res=resdt,error=error_querry,reject=reject,lastresult=last_good_result))
-}
 
 extraction_data_api_arxiv<-function(data_pub,ti_name,au_name,pas=8,value_same_min_accept=0, value_same_min_ask=1,type="cit",source_name="",sep=","){
   
@@ -1572,7 +1281,7 @@ extraction_data_api_arxiv<-function(data_pub,ti_name,au_name,pas=8,value_same_mi
     data_wos=data_pub[data_pub[source_name]=="WOS",]
     if(dim(data_wos)[1]!=0) {
       
-      res_wos_all=axiv_get_publi(data_wos[au_name][[1]],data_wos[ti_name][[1]],data_wos$position_name,pas,value_same_min_ask,value_same_min_accept,sep)
+      res_wos_all=arxiv_get_publi(data_wos[au_name][[1]],data_wos[ti_name][[1]],data_wos$position_name,pas,value_same_min_ask,value_same_min_accept,sep)
       res_wos=res_wos_all$res
       err1=res_wos_all$error
       reject1=res_wos_all$reject
@@ -1580,7 +1289,7 @@ extraction_data_api_arxiv<-function(data_pub,ti_name,au_name,pas=8,value_same_mi
     }
     data_rest=data_pub[data_pub[source_name]!="WOS",]
     if(dim(data_rest)[1]!=0) {
-      res_rest_all=axiv_get_publi(data_rest[au_name][[1]],data_rest[ti_name][[1]],data_rest$position_name,pas,value_same_min_ask,value_same_min_accept,sep)
+      res_rest_all=arxiv_get_publi(data_rest[au_name][[1]],data_rest[ti_name][[1]],data_rest$position_name,pas,value_same_min_ask,value_same_min_accept,sep)
       res_rest=res_rest_all$res
       err2=res_rest_all[2,]$error
       reject2=res_rest_all$reject
@@ -1591,7 +1300,7 @@ extraction_data_api_arxiv<-function(data_pub,ti_name,au_name,pas=8,value_same_mi
     error_querry=rbind(err1,err2)
     reject=rbind(reject1,reject2)
   }else {
-    resdt_all=axiv_get_publi(au_data,ti_data,data_pub$position_name,pas,value_same_min_ask,value_same_min_accept,sep)
+    resdt_all=arxiv_get_publi(au_data,ti_data,data_pub$position_name,pas,value_same_min_ask,value_same_min_accept,sep)
     error_querry=resdt_all$error
     reject=resdt_all$reject
     res=resdt_all$res
@@ -1654,21 +1363,19 @@ extraction_data_api_arxiv<-function(data_pub,ti_name,au_name,pas=8,value_same_mi
   }
 }
 
-
-
-axiv_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,value_same_min_accept,sep=","){
+arxiv_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,value_same_min_accept,sep){
   #fonction interne qui permet de r?cup?r? les publication de l'api d'arxiv avecc un vecteur de titre et d'auteur, on pr?sice aussi le pourcentage de cimilitude a avoir pour le concerver 
   
   
   
   
-  res_temp=supress_unfit_entry(ti_data,au_data,sep)
+  res_temp=supress_unfit_entry(ti_data,au_data,sep,max_aut = 1)
   
   ti_data=res_temp[[1]]
   au_data=res_temp[[2]]
   
   
-  position_togo=rep(1,length(au_data))
+  position_togo=rep(2,length(au_data))
   au_data=fit_name_position(au_data,position_name,position_togo =position_togo )
   au_data=sapply(1:length(au_data),FUN = function(x) paste(au_data[[x]],collapse = ","))
   
@@ -1806,6 +1513,8 @@ axiv_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,va
   }
   return(list(res=res,error=error_querry,reject=res_reject))
 }
+
+
 
 get_cit_or_ref_arxiv<-function(resdt,type){ 
   #Permet de r?cu^?r? les citation et les reference de arxiv en se basant sur une df d'entr?e '
@@ -1964,13 +1673,15 @@ get_cit_or_ref_arxiv<-function(resdt,type){
 
 
 
-fit_name_position<-function(au_data,position_base,position_togo){
-  au_sep=strsplit(au_data,",")
+fit_name_position<-function(au_data,position_base,position_togo,sep=""){
+  if(length(sep)==1) if(sep=="") sep=rep(",",length(au_data)) 
+  au_sep=sapply(1:length(au_data),FUN=function(x) strsplit(au_data[x],sep[x]))
+  
   
   #togo==2
   test_full=sapply(1:length(au_data),FUN=function(x,position_b=position_base,position_tg=position_togo){
     if(position_b[x]!=position_tg[x]){
-      # si le type est ?gale a un, cela signifie pr?nom nom, type deux nom, pr?nom dans les deux cas cela fini en nom pr?nom 
+      # si le type est ?gale a un, cela signifie pr?nom nom, type deux nom, pr?nom m
       nom=unlist(lapply(strsplit(unlist(au_sep[x]), " "), function(x) {
         
         return(x[length(x)]) }))
@@ -1990,6 +1701,287 @@ fit_name_position<-function(au_data,position_base,position_togo){
   
 }
 
+extraction_data_api_nasa_ads<-function(data_pub,ti_name,au_name,token,pas=8,value_same_min_accept=0, value_same_min_ask=1,type="all",source_name="",sep_vector_in_data="",position_vector_in_data=""){
+  # fonction permetant d'interroger ads sur les reference et les citation d'un corpus de publication placer en entr?e 
+  #intput   
+  #-data_pub: corpus de publication doit au moin contenir les titre et les auteur en anglais(dans un premier temps )
+  # ti_name non de la colonne titre 
+  # au name : nom de la colonne auteur
+  #token : string, token d'identification 
+  # pas: nombre de publication par requete (joue sur l'impact de l'erreur )
+  #value_same_min_accept= valeur entre ? et 1 repr?sente le taux minimum de cimilitude a avoir pour accespter la r?ponse de la bd dans l'?tude 
+  #value_same_min_ask=valeur minimal pour demander a l'utilisteur si il veul la publication dans l'?tude 
+  # type: typ? danalise cit =citation , ref=reference, all=les deux 
+  
+  #outpout res : liste de 12 ?l?m?ents
+  #author_vector:vecteur d'auteur retenu pour les requ?tes
+  #dataframe_citation :dataframe des resultat(citation)
+  #dataframe_citation_ask :dataframe des resultat demander (citation)
+  #dataframe_publi_found :dataframe of all the publication found
+  #dataframe_ref:dataframe des resultat(reference)
+  #dataframe_ref:dataframe des resultat demand?e (reference)
+  #error_querry_publi: matrice de rapport d'erreur pour la partie recherche de publication  
+  #error_querry_citation matrice d'erreur concertnant la partie citation
+  #error_querry_ref matrice d'erreur concertnant la partie reference
+  #last_result : resultat brut de la derni?re requ?t 
+  #res_accept: dataframe des resultat accespt? (citation ou reference )
+  #res_ask: dataframe des resultat demander (citation ou reference )
+  #reject_analyse : dataframe(publication rejet? )
+  #title_vector : vecteur titre  
+  
+  
+  
+  au_data<-data_pub[au_name][[1]]#auteur nom colonne 
+  ti_data<-data_pub[ti_name][[1]]#titre 
+  res_rest=c() 
+  res_wos=c() 
+  err1=c()
+  err2=c() 
+  reject1=reject2=c()
+  if(length(position_vector_in_data)==1) if(position_vector_in_data=="") position_name=rep(1,length(au_data)) else position_name=data_pub[position_vector_in_data][[1]]
+  if(source_name!="" && (type=="ref" || type=="all")){
+    data_wos=data_pub[data_pub[source_name]=="WOS",]
+    
+    
+    if(length(sep_vector_in_data)==1) if(sep_vector_in_data=="") sep="" else sep=data_wos[sep_vector_in_data][[1]]
+    if(dim(data_wos)[1]!=0) {
+      res_wos_all=ads_get_publi(data_wos[au_name][[1]],data_wos[ti_name][[1]],position_name[data_pub[source_name]=="WOS"],pas,value_same_min_ask,value_same_min_accept,token,sep)
+      res_wos=res_wos_all$res
+      err1=res_wos_all$error
+      reject1=res_wos_all$reject
+      lastresult=res_wos_all$lastresult
+    }
+    data_rest=data_pub[data_pub[source_name]!="WOS",]
+    
+    if(length(sep_vector_in_data)==1) if(sep_vector_in_data=="") sep="" else sep=data_rest[sep_vector_in_data][[1]]
+    if(dim(data_rest)[1]!=0) {
+      res_rest_all=ads_get_publi(data_rest[au_name][[1]],data_rest[ti_name][[1]],position_name[data_pub[source_name]!="WOS"],pas,value_same_min_ask,value_same_min_accept,token)
+      res_rest=res_rest_all$res
+      err2=res_rest_all[2,]$error
+      reject2=res_rest_all$reject
+      lastresult=res_rest_all$lastresult
+    }
+    
+    res=rbind(res_rest,res_wos)
+    error_querry=rbind(err1,err2)
+    reject=rbind(reject1,reject2)
+  }else {
+    if(length(sep_vector_in_data)==1) if(sep_vector_in_data=="") sep="" else sep=data_pub[sep_vector_in_data][[1]]
+    resdt_all=ads_get_publi(au_data,ti_data,position_name,pas,value_same_min_ask,value_same_min_accept,token,sep = sep)
+    error_querry=resdt_all$error
+    res=resdt_all$res
+    reject=resdt_all$reject
+    lastresult=resdt_all$lastresult
+  }
+  
+  
+  resdt<-as.data.frame(res,stringsAsFactors = FALSE)
+  
+  
+  # source("C:/Users/moroguij/Documents/R_programs/functions_analyses.R")#source nneded function 
+  #initialisation des variable __________________________________________  
+  
+  # Pr?non nom--> nom,pr?non  
+  
+  
+  #ins?r? fct 
+  if(type=="all"|| type=="cit"){
+    
+    
+    res_cite=get_cit_or_ref(resdt,type="cit")# citation 
+    total_res=res_cite$res_cit_ref[res_cite$res_cit_ref$check>=value_same_min_accept,]
+    total_res_ask=res_cite$res_cit_ref[(res_cite$res_cit_ref$check>=value_same_min_ask) & (res_cite$res_cit_ref$check<value_same_min_accept),]
+    if(!is.null(total_res)[1]){
+      if(dim(total_res)[1]>0) total_res<-total_res[order(unlist(total_res$`citing identifier`)),]
+      if(dim(total_res_ask)[1]>0)total_res_ask<-total_res_ask[order(unlist(total_res_ask$`citing identifier`)),]
+      if(dim(total_res)[1]>0) row.names(total_res)<-1:dim(total_res)[1]
+      if(dim(total_res_ask)[1]>0) row.names(total_res_ask)<-1:dim(total_res_ask)[1]
+    }
+    
+    
+    #error_querry_cit=res_cite$error_table
+    error_querry=rbind(error_querry,res_cite$error_table)
+    
+    if(type=="cit"){
+      total_res_ref=NULL
+      total_res_ref_ask=NULL
+      error_querry_ref=NULL
+    }
+  }
+  
+  if(type=="all"|| type=="ref"){
+    if(source_name==""){
+      res_rest=resdt
+    }
+    res_ref=get_cit_or_ref(res_rest,type="ref")  #ref?rence
+    total_res_ref=res_ref$res_cit_ref[res_ref$res_cit_ref$check>=value_same_min_accept,]
+    total_res_ref_ask=total_res_ref[(total_res_ref$check>=value_same_min_ask) & (total_res_ref$check<value_same_min_accept),]
+    if(!is.null(total_res_ref)[1]){
+      if(dim(total_res_ref)[1]>0) total_res_ref<-total_res_ref[order(unlist(total_res_ref$`refering identifier`)),]
+      if(dim(total_res_ref)[1]>0) row.names(total_res_ref)<-1:dim(total_res_ref)[1]
+      if(dim(total_res_ref_ask)[1]>0)total_res_ref_ask<-total_res_ref_ask[order(unlist(total_res_ref_ask$`refering identifier`)),]
+      if(dim(total_res_ref_ask)[1]>0) row.names(total_res_ref_ask)<-1:dim(total_res_ref_ask)[1]
+      
+      
+      error_querry=rbind(error_querry,res_cite$error_table)
+      
+      
+      
+      if(type=="ref"){
+        total_res=NULL
+        total_res_ask=NULL
+        error_querry_cit=NULL
+      }
+    }
+  }
+  return(list(dataframe_citation_accept=total_res,error_querry_publi=error_querry,title_vector=ti_data,author_vector=au_data,dataframe_citation_ask=total_res_ask,
+              reject_analyse=reject, last_result=lastresult,dataframe_publi_found=resdt,dataframe_ref_accept=total_res_ref,dataframe_ref_ask=total_res_ref_ask))
+}
+
+
+
+
+
+ads_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,value_same_min_accept,token,sep){
+  #m?me chose que les fonction pr?c?dente du m?me nom mais avec ads, cette fonction permet de recup?r? les m?ta donner de publi sur l'api d'ads en se servant d'un vecteur titre/ auteur 
+  
+  
+  res=c()#variable resultat 
+  
+  
+  
+  error_querry=c()# table d'erreur  
+  
+  
+  
+  res_temp=supress_unfit_entry(ti_data,au_data,sep)#permet d'aclimater les do,n?es a la bd (possiblement sortable de la fonction )
+  
+  
+  
+  
+  
+  
+  # Pr?non nom--> nom,pr?non  
+  ti_data=res_temp[[1]]
+  au_data=res_temp[[2]]
+  
+  
+  
+  position_togo=rep(2,length(au_data))
+  
+  
+  
+  
+  
+  
+  au_data=fit_name_position(au_data,position_name,position_togo =position_togo )
+  au_data=sapply(1:length(au_data),FUN = function(x) paste(au_data[[x]],collapse = ";"))
+  
+  
+  inter=ceiling(length(au_data)[1]/pas)# nombre d'iteration
+  
+  for(h in 1:inter){
+    first<-(h-1)*pas+1
+    last<-h*pas
+    if(last>length(au_data)) last<-length(au_data)
+    #ti_test="M31 Globular Clusters: Colors and Metallicities"
+    #au_test="Huchra,John"
+    #adaptation des caract?re sp?ciaux au requette pour les titre et les auteur
+    (au_querry=paste0("%22",gsub("&","%26",gsub("[(]","",gsub("[)]","",gsub(";",'%22AND%22',gsub("[?]","",gsub(",","%2C",gsub("\\", "", gsub(":","%3A",gsub("/","%2F",
+                                                                                                                                                            gsub(" ","%20",Unaccent((au_data[first:last])))))
+                                                                                                                              , fixed =TRUE))))))), collapse = 'OR','%22'))
+    
+    
+    
+    (ti_querry=paste0("%22",gsub("[]]","%5D",gsub("`",'%60',gsub("[[]","%5B",gsub("[(]","%28",gsub("[)]","%29",gsub("<","%3C",gsub(">","%3E",gsub("=","%3D",gsub('[}{$]',"",gsub("&","%26",gsub('"','%22',gsub("\\", "",gsub(":","%3A",gsub("/","%2F",gsub("'","%27",gsub(" ","%20",
+                                                                                                                                                                                                                                                                          gsub(",","%2c",gsub("e?","e",gsub("?","",gsub("%","%25",(tolower(Unaccent(ti_data[first:last])))),fixed=TRUE),fixed = TRUE)))))), 
+                                                                                                                                                                                                               fixed=TRUE)))))))))))), collapse = 'OR','%22'))
+    
+    
+    adress=paste0('author%3A%28',au_querry,'%29AND%20title%3A%28',ti_querry,'%29&fl=reference%20citation%20author%20title%20database%20pubdate%20bibcode%20keyword%20pub%20&sort=date%20desc&rows=500&start=',0)
+    (quest2<-paste0('https://api.adsabs.harvard.edu/v1/search/query?q=', adress))
+    
+    nchar(quest2)
+    r <- httr::GET(paste0("https://api.adsabs.harvard.edu/v1/search/query?q=", adress),
+                   httr::add_headers( Authorization = paste0('Bearer ', token))
+    )
+    error=tryCatch({#rep?rage des erreur 
+      querry_warning_message(r)
+      
+    },
+    
+    warning=function(cond){
+      titre_error=as.data.frame(ti_data[first:last])
+      names(titre_error)=c("Publication title")
+      titre_error["Status error"]=r$status
+      titre_error$Message=message_error(r)
+      titre_error["Data impact"]="ref & cit"
+      titre_error$h=h
+      return(titre_error)
+    })
+    
+    if(length(error)>0){
+      error_querry<-rbind(error_querry,error)
+      error=c()
+      
+    }else {#si il n'y a pas d'erreur 
+      result <-jsonlite::fromJSON(txt = httr::content(r, 'text',encoding = "UTF-8"), simplifyDataFrame = TRUE)
+      if(result$response$numFound>0){
+        last_good_result=r
+        res_header=result$responseHeader
+        aut=result$response$docs$author
+        titre=result$response$docs$title
+        subj=result$response$docs$database
+        pubdate=result$response$docs$pubdate
+        keyword=result$response$docs$keyword
+        pub=result$response$docs$pub
+        
+        citation=result$response$docs$citation
+        reference=result$response$docs$reference
+        
+        bibcode=result$response$docs$bibcode
+        
+        if(is.null(citation)) citation<-NA
+        if(is.null(keyword)) keyword<-NA
+        if(is.null(reference)) reference<-NA
+        
+        if(length(unlist(titre))>1){
+          titre2<-sapply(1:length(titre),FUN=function(x) return(list(unlist(titre[x])[1])))
+          titre=titre2
+        }
+        res<-rbind(res,cbind(h,bibcode,aut,titre,subj, citation,pubdate,keyword,pub,reference))
+      }
+      
+    }
+    
+    
+    
+    if(result$response$numFound>0) print(h) #aide de d?vlopement 
+    if(h==inter) {# fin de loop mise en place des data frame 
+      resdt=as.data.frame(res)
+      if(dim(resdt)[1]>0){
+        resdt$aut=sapply(1:dim(resdt)[1], FUN=function(x){paste(unlist(resdt$aut[x]),collapse = ' ; ')})  
+        trouver<-unlist(resdt$titre)
+        indic_compaire_title<-compaire_title(trouver,ti_data)
+        
+        resdt["check_title_pct"]<-unlist(indic_compaire_title[1,])
+        resdt["check_title_ind"]<-unlist(indic_compaire_title[2,])
+        ind_null<-sapply(1:length(resdt$citation), FUN = function(x) is.null(resdt$citation[[x]]))
+        resdt$citation[which(ind_null)]<-NA
+      }
+    }
+    if(length(dim(error_querry)) &(h==inter)>0) print("il y a des erreurs")
+  }
+  
+  
+  
+  
+  
+  if(value_same_min_ask<1) reject=resdt[resdt$check_title_pct<value_same_min_ask,]# les rejet? sont ceux qui non pas assez de similitudfe pour aire dans les demande 
+  resdt=resdt[resdt$check_title_pct>value_same_min_ask,]
+  
+  return(list(res=resdt,error=error_querry,reject=reject,lastresult=last_good_result))
+}
 
 
 #_________________________
@@ -2160,7 +2152,7 @@ find_journal_domaine<-function(journal_data,issn,essn,journal_table_ref){
 }
 
 
-  shinyInput <- function(FUN, len, id, ...) {
+shinyInput <- function(FUN, len, id, ...) {
     inputs <- character(len)
     for (i in seq_len(len)) {
       inputs[i] <- as.character(FUN(paste0(id, i), ...))
