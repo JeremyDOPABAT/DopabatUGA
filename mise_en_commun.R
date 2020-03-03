@@ -13,8 +13,9 @@ source("functions_analyses.R")
 library(plyr)
 
 ths$position_name=1
+ths$sep=","
 
-res_data_nasa_ads=extraction_data_api_nasa_ads(data_pub=ths,ti_name=ti_name,au_name=au_name,token=token,pas=8,value_same_min_accept=0.95,value_same_min_ask = 0,type="all")
+res_data_nasa_ads=extraction_data_api_nasa_ads(data_pub=ths,ti_name=ti_name,au_name=au_name,token=token,pas=8,value_same_min_accept=0.95,value_same_min_ask = 0,type="all",sep_vector_in_data ="sep",position_vector_in_data = "position_name" )
 res_arxiv=extraction_data_api_arxiv(data_pub=ths,ti_name=ti_name,au_name=au_name,pas=8,value_same_min_accept=0.95,value_same_min_ask = 0.85,type = "all",sep = ",")
 res_pumed=extract_data_api_pumed(data_pub=ths,ti_name,au_name,pas=8,value_same_min_accept=0.85, value_same_min_ask=0.95,type="all")
 View(res_data_nasa_ads$dataframe_publi_found)
@@ -114,7 +115,7 @@ names(test)
 
 
 
-dom<-find_journal_domaine(test$`cited journal`,test$`cited issn`,test$`cited essn`,journal_table_ref)
+dom<-find_journal_domaine_v2(test$`cited journal`,test$`cited issn`,test$`cited essn`,journal_table_ref)
 dom_length<-sapply(1:length(dom), FUN=function(x) length(unlist(dom[x])))
 table(dom_length)
 unique(dom)
@@ -140,7 +141,7 @@ View(tbc)
 
 
 arxi_data=res_arxiv$res_reference_accept
-ads_data=res_data_nasa_ads$dataframe_ref
+ads_data=res_data_nasa_ads$dataframe_ref_accept
 pumed_data=res_pumed$dataframe_ref_accept
 names(ads_data)
 names(arxi_data)
@@ -152,99 +153,24 @@ test=as.data.frame(rbind.fill(data_merge,pumed_data),stringsAsFactors = FALSE)
 #verifier les doublon 
 #verifier les doublon 
 
-find_journal_domaine<-function(journal_data,issn,essn,journal_table_ref){
-  
-  
-  
-  
-  dom=sapply(1:length(journal_data),FUN=function(x){
-    if(!is.na(journal_data[x]) && !is.null(issn[x]) ) {
-      if(issn[x]!="" && !is.na(issn[x]) ){
-        ind=which(issn[x]==journal_table_ref$issn) 
-        return((journal_table_ref$SubField_English[ind]))
-      }
-    }
-  })
-  
-  dom2=sapply(1:length(journal_data),FUN=function(x){
-    if(!is.na(journal_data[x]) && !is.null(essn[x]) && is.null(unlist(dom[x]))){
-      if(essn[x]!=""&& !is.na(essn[x])){
-        ind=which(essn[x]==journal_table_ref$essn) 
-        return((journal_table_ref$SubField_English[ind]))
-      }
-    }
-  })
-  
-  dom3=sapply(1:length(journal_data),FUN=function(x){
-    #print("first")
-    if(!is.na(journal_data[x]) && is.null(unlist(dom2[x]))){ 
-      tp=grep(paste0("^",tolower(trimws(gsub("[(#$%*,.:;<=>@^_`{|}~.)]","",gsub("\\s*\\([^\\)]+\\)","",journal_data[x])))),"$"),tolower(trimws(journal_table_ref$Source_title)),perl = TRUE)
-      
-      if(length(tp)>0){
-        return((journal_table_ref$SubField_English[tp]))
-      }
-    }
-    
-    
-  })
-  
-  
-  
-  
-  dom4=sapply(1:length(journal_data),FUN=function(x){
-    #print("2")
-    if(!is.na(journal_data[x]) && is.null(unlist(dom[x]))){
-      tp=grep(paste0("^",tolower(trimws(gsub("[(#$%*,.:;<=>@^_`{|}~.)]","",gsub("\\s*\\([^\\)]+\\)","",journal_data[x]))))),tolower(trimws(journal_table_ref$Source_title)),perl = TRUE)
-      if(length(tp)>0){
-        return((journal_table_ref$SubField_English[tp]))
-      }
-    }else {
-      return(unlist(dom3[x]))
-    }
-    
-    
-  })
-  
-  dom5=sapply(1:length(journal_data),FUN=function(x){
-    #print("2")
-    if(!is.na(journal_data[x]) && is.null(unlist(dom2[x]))){
-      tp=grep(paste0(tolower(trimws(gsub("[(#$%*,.:;<=>@^_`{|}~.)]","",gsub("\\s*\\([^\\)]+\\)","",journal_data[x]))))),tolower(trimws(journal_table_ref$Source_title)),perl = TRUE)
-      if(length(tp)>0){
-        return((journal_table_ref$SubField_English[tp]))
-      }
-    }else {
-      return(unlist(dom4[x]))
-    }
-    
-    
-    
-  })
-  
-  
-  #traiiter le pluri danns le if et le esle !!!
-  
-  
-  dom_length<-sapply(1:length(dom3), FUN=function(x) length(unlist(dom3[x])))
-  ind<-which(dom_length>1)
-  
-  length(dom_length)
-  table(dom_length)
-  
-  temp<-sapply(ind, function(x){
-    cat<-names(table(dom3[x]))
-    if(length(cat)==1) return(cat) else return(NA)
-  })
-  
-  dom3[ind]<-temp
-  return(dom3)
-  
-}
 
 
 dom<-find_journal_domaine(test$`refering journal`,test$`refering issn`,test$`refering essn`,journal_table_ref)
+print(Sys.time())
+dom_new=find_journal_domaine_v2(test$`refering journal`,test$`refering issn`,test$`refering essn`,journal_table_ref)
+print(Sys.time())
+##.old 11min
 dom_length<-sapply(1:length(dom), FUN=function(x) length(unlist(dom[x])))
 table(dom_length)
 unique(dom)
+
+dom_length<-sapply(1:length(dom_new), FUN=function(x) length(unlist(dom_new[x])))
+table(dom_length)
+unique(dom_new)
+
+
+
+
 
 test$refering_journal_domaine=dom
 
@@ -375,4 +301,23 @@ V(c_igraph)$group="node(keyword)"
 #   if(input$contain_cit==TRUE) reactive_values$show_cit <- TRUE else reactive_values$show_cit <- FALSE
 # })
 # 
+
+
+ 
+
+domine_test<-find_journal_domaine_v2(test$`cited journal`,test$`cited issn`,test$`cited essn`,journal_table_ref)
+ 
+  
+ 
+ 
+  
+  
+  
+  
+  
+  
+  #traiiter le pluri danns le if et le esle !!!
+  
+  
+
 

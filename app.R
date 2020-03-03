@@ -237,7 +237,7 @@ ui <-dashboardPage(skin = "red",
                           
                           # Horizontal line ----
                     ),
-                    conditionalPanel('output.show_token_ads', tabBox(width = 8, title = "result data tab ",
+                     tabBox(width = 8, title = "result data tab ",
                            tabPanel("ADS",actionButton("ads_ref_accept", "Show references"),
                         actionButton("ads_cit_accept", "Show citations"),
                         actionButton("ads_error", "Show error(s)"),
@@ -246,10 +246,12 @@ ui <-dashboardPage(skin = "red",
                         tabPanel("ArXiv",actionButton("arxiv_ref_accept", "Show references"),
                                  actionButton("arxiv_cit_accept", "Show citations"),
                                  actionButton("arxiv_error", "Show error(s)"),
+                                 actionButton("arxiv_ask","Show publication found with doute"),
                                  dataTableOutput("table_data_ref2")),
                         tabPanel("Pubmed",actionButton("pubmed_ref_accept", "Show references"),
                                  actionButton("pubmed_cit_accept", "Show citations"),
-                                 actionButton("pumed_error", "Show error(s)"),
+                                 actionButton("pubmed_error", "Show error(s)"),
+                                 actionButton("pubmed_ask","Show publication found with doute"),
                                  dataTableOutput("table_data_ref3"))
                         
                       
@@ -257,7 +259,7 @@ ui <-dashboardPage(skin = "red",
                     
                     # Horizontal line ----
                     
-                    ))
+                    )
             )
           ),
             
@@ -308,9 +310,11 @@ server <- function(input, output, session) {
        show_wos_valid=FALSE,
        show_ref=FALSE,
        show_cit=FALSE,
-       res_ads=res_data_nasa_ads,
+       res_ads=res_data_nasa_ads,#temporaire 
+       res_arxiv=res_arxiv,
        table_to_show_ref=NULL,
-       fmts=c("%d/%m/%y","%Y", "%Y-%m", "%m/%d/%y","%d-%m-%Y","%Y-%m-%d %I:%M:%S %p","%B %d, %Y","%Y-%m-%d")
+       fmts=c("%d/%m/%y","%Y", "%Y-%m", "%m/%d/%y","%d-%m-%Y","%Y-%m-%d %I:%M:%S %p","%B %d, %Y","%Y-%m-%d"),
+       active_source=NULL
     )
     
     output$show_header <- reactive({
@@ -1113,7 +1117,7 @@ server <- function(input, output, session) {
       }
     })
     observeEvent(input$ads_ref_accept,{
-     
+      print("ref")
       output$table_data_ref1 <- renderDataTable({
         # validate(
         #   need(reactive_values$data_wos, "No bibtext data"),
@@ -1133,6 +1137,7 @@ server <- function(input, output, session) {
      })
     
     observeEvent(input$ads_cit_accept,{
+      print("cit")
       output$table_data_ref1 <- renderDataTable({
         # validate(
         #   need(reactive_values$data_wos, "No bibtext data"),
@@ -1190,7 +1195,7 @@ server <- function(input, output, session) {
       )
       
       
-      
+      reactive_values$active_source="ADS"  
     })
     
     observeEvent(input$select_button, {
@@ -1198,19 +1203,38 @@ server <- function(input, output, session) {
       selectedRow <- as.numeric(strsplit(input$select_button, "_")[[1]][2])
       #df$data <- df$data[rownames(df$data) != selectedRow, ]
       #¶reactive_values$res_ads$dataframe_publi_found[(res_data_nasa_ads$dataframe_publi_found$check_title_pct<value_same_min_accept) &(res_data_nasa_ads$dataframe_publi_found$check_title_pct>=value_same_min_ask),]<- df$data
-      print(selectedRow)
-      ind=which(reactive_values$table_to_show_ref$bibcode[[selectedRow]]==unlist(reactive_values$res_ads$dataframe_citation_ask))
-      ind2=which(reactive_values$table_to_show_ref$bibcode[[selectedRow]]==unlist(reactive_values$res_ads$dataframe_citation_accept))
-      
-      
-      ind_ref_1=which(reactive_values$table_to_show_ref$bibcode[[selectedRow]]==unlist(reactive_values$res_ads$dataframe_ref_ask))
-      ind_ref_2=which(reactive_values$table_to_show_ref$bibcode[[selectedRow]]==unlist(reactive_values$res_ads$dataframe_ref_accept))
-      
-      if(length(ind2)==0 ||length(ind_ref_2)==0){
-        if(dim(reactive_values$res_ads$dataframe_citation_ask[ind,])[1]>0)reactive_values$res_ads$dataframe_citation_accept=rbind(reactive_values$res_ads$dataframe_citation_accep,reactive_values$res_ads$dataframe_citation_ask[ind,])
-        if(dim(reactive_values$res_ads$dataframe_ref_ask[ind,])[1]>0)reactive_values$res_ads$dataframe_citation_accept=rbind(reactive_values$res_ads$dataframe_ref_accept,reactive_values$res_ads$dataframe_ref_ask[ind_ref_1,])
+      print(reactive_values$active_source)
+      if(reactive_values$active_source=="ADS"){
+        ind=which(reactive_values$table_to_show_ref$bibcode[[selectedRow]]==unlist(reactive_values$res_ads$dataframe_citation_ask$`cited identifier`))
+        ind2=which(reactive_values$table_to_show_ref$bibcode[[selectedRow]]==unlist(reactive_values$res_ads$dataframe_citation_accept$`cited identifier`))# il  dej  été ajouter 
+        
+        
+        ind_ref_1=which(reactive_values$table_to_show_ref$bibcode[[selectedRow]]==unlist(reactive_values$res_ads$dataframe_ref_ask$`refering identifier`))# ligne a ajouter 
+        ind_ref_2=which(reactive_values$table_to_show_ref$bibcode[[selectedRow]]==unlist(reactive_values$res_ads$dataframe_ref_accept$`refering identifier`))# ligne déja ajouter
+        
+        if(length(ind2)==0 && length(ind_ref_2)==0){
+          print(ind_ref_1)
+          if(dim(reactive_values$res_ads$dataframe_citation_ask[ind,])[1]>0)reactive_values$res_ads$dataframe_citation_accept=rbind(reactive_values$res_ads$dataframe_citation_accep,reactive_values$res_ads$dataframe_citation_ask[ind,])
+          if(dim(reactive_values$res_ads$dataframe_ref_ask[ind_ref_1,])[1]>0)reactive_values$res_ads$dataframe_ref_accept=rbind(reactive_values$res_ads$dataframe_ref_accept,reactive_values$res_ads$dataframe_ref_ask[ind_ref_1,])
+        }
+      }
+      print(reactive_values$active_source)
+      if(reactive_values$active_source=="ARXIV"){
+        ind=which(reactive_values$table_to_show_ref$abs_link[[selectedRow]]==unlist(reactive_values$res_arxiv$res_citation_ask$`cited identifier`))
+        ind2=which(reactive_values$table_to_show_ref$abs_link[[selectedRow]]==unlist(reactive_values$res_arxiv$res_citation_accept$`cited identifier`))# il  dej  été ajouter 
+        
+        
+        ind_ref_1=which(reactive_values$table_to_show_ref$abs_link[[selectedRow]]==unlist(reactive_values$res_arxiv$res_reference_ask$`refering identifier`))# ligne a ajouter 
+        ind_ref_2=which(reactive_values$table_to_show_ref$abs_link[[selectedRow]]==unlist(reactive_values$res_arxiv$res_reference_accept$`refering identifier`))# ligne déja ajouter
+        
+        if(length(ind2)==0 && length(ind_ref_2)==0){
+          print(ind_ref_1)
+          if(dim(reactive_values$res_arxiv$res_citation_ask[ind,])[1]>0)reactive_values$res_arxiv$res_citation_accept=rbind(reactive_values$res_arxiv$res_citation_accept,reactive_values$res_arxiv$res_citation_ask[ind,])
+          if(dim(reactive_values$res_arxiv$res_reference_ask[ind_ref_1,])[1]>0)reactive_values$res_arxiv$res_reference_accept=rbind(reactive_values$res_arxiv$res_reference_accept,reactive_values$res_arxiv$res_reference_ask[ind_ref_1,])
+        }
       }
     })
+    
     
   
     
@@ -1272,6 +1296,30 @@ server <- function(input, output, session) {
         
       })
     })
+    observeEvent(input$arxiv_ask,{
+      print("je passe sur le bouton ta grand maman")
+      reactive_values$table_to_show_ref=reactive_values$res_arxiv$res_publi_foundt[(reactive_values$res_arxiv$res_publi_foundt$check_pct<value_same_min_accept),]
+     
+      rownames(reactive_values$table_to_show_ref)<-1:nrow(reactive_values$table_to_show_ref)
+      df <- reactiveValues(data =cbind(shinyInput(actionButton, nrow(reactive_values$table_to_show_ref), 'button_', label = "Transfer", onclick = 'Shiny.onInputChange(\"select_button\",  this.id)' ),reactive_values$table_to_show_ref
+      ) )
+      
+      output$table_data_ref2<- DT::renderDataTable(
+        df_flatten(df$data), escape = FALSE, options = list( lengthMenu = c(5, 25, 50), pageLength = 25, 
+                                                             
+                                                             scrollX = TRUE, columnDefs = list(list(
+                                                               targets = "_all" ,render = JS(
+                                                                 "function(data, type, row, meta) {",
+                                                                 "return type === 'display' && data.length > 200 ?",
+                                                                 "'<span title=\"' + data + '\">' + data.substr(0, 200) + '...</span>' : data;",
+                                                                 "}")
+                                                             )))
+      )
+      
+      
+      reactive_values$active_source="ARXIV"  
+      View(df_flatten(df$data))
+    })
     observeEvent(input$pubmed_ref_accept,{
       output$table_data_ref3 <- renderDataTable({
         # validate(
@@ -1307,7 +1355,7 @@ server <- function(input, output, session) {
     })
     
     
-    observeEvent(input$pumed_error,{
+    observeEvent(input$pubmed_error,{
       output$table_data_ref3 <- renderDataTable({
         # validate(
         #   need(reactive_values$data_wos, "No bibtext data"),
