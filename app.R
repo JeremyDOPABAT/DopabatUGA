@@ -1212,8 +1212,8 @@ server <- function(input, output, session) {
         ind_ref_1=which(reactive_values$table_to_show_ref$bibcode[[selectedRow]]==unlist(reactive_values$res_ads$dataframe_ref_ask$`refering identifier`))# ligne a ajouter 
         ind_ref_2=which(reactive_values$table_to_show_ref$bibcode[[selectedRow]]==unlist(reactive_values$res_ads$dataframe_ref_accept$`refering identifier`))# ligne déja ajouter
         
-        if(length(ind2)==0 && length(ind_ref_2)==0){
-          print(ind_ref_1)
+        if(length(ind2)==0 || length(ind_ref_2)==0){
+
           if(dim(reactive_values$res_ads$dataframe_citation_ask[ind,])[1]>0)reactive_values$res_ads$dataframe_citation_accept=rbind(reactive_values$res_ads$dataframe_citation_accep,reactive_values$res_ads$dataframe_citation_ask[ind,])
           if(dim(reactive_values$res_ads$dataframe_ref_ask[ind_ref_1,])[1]>0)reactive_values$res_ads$dataframe_ref_accept=rbind(reactive_values$res_ads$dataframe_ref_accept,reactive_values$res_ads$dataframe_ref_ask[ind_ref_1,])
         }
@@ -1227,8 +1227,9 @@ server <- function(input, output, session) {
         ind_ref_1=which(reactive_values$table_to_show_ref$abs_link[[selectedRow]]==unlist(reactive_values$res_arxiv$res_reference_ask$`refering identifier`))# ligne a ajouter 
         ind_ref_2=which(reactive_values$table_to_show_ref$abs_link[[selectedRow]]==unlist(reactive_values$res_arxiv$res_reference_accept$`refering identifier`))# ligne déja ajouter
         
-        if(length(ind2)==0 && length(ind_ref_2)==0){
+        if(length(ind2)==0 || length(ind_ref_2)==0){
           print(ind_ref_1)
+          print(ind)
           if(dim(reactive_values$res_arxiv$res_citation_ask[ind,])[1]>0)reactive_values$res_arxiv$res_citation_accept=rbind(reactive_values$res_arxiv$res_citation_accept,reactive_values$res_arxiv$res_citation_ask[ind,])
           if(dim(reactive_values$res_arxiv$res_reference_ask[ind_ref_1,])[1]>0)reactive_values$res_arxiv$res_reference_accept=rbind(reactive_values$res_arxiv$res_reference_accept,reactive_values$res_arxiv$res_reference_ask[ind_ref_1,])
         }
@@ -1247,7 +1248,7 @@ server <- function(input, output, session) {
         #   need(!is.null(reactive_values$data_wos), "")
         # )
         
-        table_data=datatable(df_flatten(res_arxiv$res_reference_accept), options = list(scrollX = TRUE, columnDefs = list(list(
+        table_data=datatable(df_flatten(reactive_values$res_arxiv$res_reference_accept), options = list(scrollX = TRUE, columnDefs = list(list(
           targets = "_all" ,render = JS(
             "function(data, type, row, meta) {",
             "return type === 'display' && data.length > 70 ?",
@@ -1266,7 +1267,7 @@ server <- function(input, output, session) {
         #   need(!is.null(reactive_values$data_wos), "")
         # )
         #test=df_flatten(res_arxiv$res_citation_accept)
-        table_data=datatable(df_flatten(res_arxiv$res_citation_accept), options = list(scrollX = TRUE, columnDefs = list(list(
+        table_data=datatable(df_flatten(reactive_values$res_arxiv$res_citation_accept), options = list(scrollX = TRUE, columnDefs = list(list(
           targets = "_all" ,render = JS(
             "function(data, type, row, meta) {",
             "return type === 'display' && data.length > 70 ?",
@@ -1285,7 +1286,7 @@ server <- function(input, output, session) {
         #   need(!is.null(reactive_values$data_wos), "")
         # )
         
-        table_data=datatable(df_flatten(res_arxiv$error_querry), options = list(scrollX = TRUE, columnDefs = list(list(
+        table_data=datatable(df_flatten(reactive_values$res_arxiv$error_querry), options = list(scrollX = TRUE, columnDefs = list(list(
           targets = "_all" ,render = JS(
             "function(data, type, row, meta) {",
             "return type === 'display' && data.length > 70 ?",

@@ -22,20 +22,10 @@ value_same_min_ask=0.85
  value_same_min_accept=0.95
 # 
 pas=8
-
+position_vector_in_data="position_name"
 type="all"
 source_name=""
 data_pub=ths
-ti_data<-data_pub[ti_name][[1]]
-
-au_data<-data_pub[au_name][[1]]
-position_name=rep(1,length(ti_data))
-sep=rep(",",length(ti_data))
-
-
-au_data<-data_pub[au_name][[1]]#auteur nom colonne 
-ti_data<-data_pub[ti_name][[1]]#titre 
-
 
 
 
