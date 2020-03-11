@@ -311,7 +311,8 @@ server <- function(input, output, session) {
        show_ref=FALSE,
        show_cit=FALSE,
        res_ads=res_data_nasa_ads,#temporaire 
-       res_arxiv=res_arxiv,
+       res_arxiv=res_arxiv,#temporaire
+       res_pumed=res_pumed, #temporaire 
        table_to_show_ref=NULL,
        fmts=c("%d/%m/%y","%Y", "%Y-%m", "%m/%d/%y","%d-%m-%Y","%Y-%m-%d %I:%M:%S %p","%B %d, %Y","%Y-%m-%d"),
        active_source=NULL
@@ -996,24 +997,24 @@ server <- function(input, output, session) {
             ))
           }else {
             if(input$sup_wos_for_ref==TRUE){# a changer 
-                reactives_values$res_ads=extraction_data_api_nasa_ads(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",token=input$token,pas=8,value_same_min_accept=0.95,value_same_min_ask = 0.85,type =input$type,source_name = "source")
+                reactives_values$res_ads=extraction_data_api_nasa_ads(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",token=input$token,pas=8,value_same_min_accept=0.95,value_same_min_ask = 0.85,type =input$type,source_name = "source",sep_vector_in_data ="sep",position_vector_in_data = "position_name")
             }else{
-                reactives_values$res_ads=extraction_data_api_nasa_ads(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",token=input$token,pas=8,value_same_min_accept=0.95,value_same_min_ask = 0.85,type =input$type)
+                reactives_values$res_ads=extraction_data_api_nasa_ads(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",token=input$token,pas=8,value_same_min_accept=0.95,value_same_min_ask = 0.85,type =input$type,sep_vector_in_data ="sep",position_vector_in_data = "position_name")
             }
           }
         }
         if(input$arxiv==TRUE){
           if(input$sup_wos_for_ref==TRUE){
-            res_arxiv=extraction_data_api_arxiv(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",pas=8,value_same_min_accept=0.95,value_same_min_ask = 0.85,type = input$type,source_name = "source")
+            res_arxiv=extraction_data_api_arxiv(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",pas=8,value_same_min_accept=0.95,value_same_min_ask = 0.85,type = input$type,source_name = "source",sep_vector_in_data ="sep",position_vector_in_data = "position_name")
           }else{
-            res_arxiv=extraction_data_api_arxiv(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",pas=8,value_same_min_accept=0.95,value_same_min_ask = 0.85,type = input$type)
+            res_arxiv=extraction_data_api_arxiv(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",pas=8,value_same_min_accept=0.95,value_same_min_ask = 0.85,type = input$type,sep_vector_in_data ="sep",position_vector_in_data = "position_name")
           }
         } 
         if(input$pubmed==TRUE){
           if(input$sup_wos_for_ref==TRUE){
-            res_pumed=extract_data_api_pumed(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",pas=8,value_same_min_accept=0.85, value_same_min_ask=0.95,type = input$type,source_name = "source")
+            res_pumed=extract_data_api_pumed(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",pas=8,value_same_min_accept=0.85, value_same_min_ask=0.95,type = input$type,source_name = "source",sep_vector_in_data ="sep",position_vector_in_data = "position_name")
           }else {
-            res_pumed=extract_data_api_pumed(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",pas=8,value_same_min_accept=0.85, value_same_min_ask=0.95,type = input$type)
+            res_pumed=extract_data_api_pumed(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",pas=8,value_same_min_accept=0.85, value_same_min_ask=0.95,type = input$type,sep_vector_in_data ="sep",position_vector_in_data = "position_name")
           }
         } 
         
@@ -1178,7 +1179,7 @@ server <- function(input, output, session) {
     
     observeEvent(input$ads_cit_ask,{
       reactive_values$table_to_show_ref=reactive_values$res_ads$dataframe_publi_found[(reactive_values$res_ads$dataframe_publi_found$check_title_pct<value_same_min_accept) &(reactive_values$res_ads$dataframe_publi_found$check_title_pct>=value_same_min_ask),]
-      rownames(reactive_values$table_to_show_ref)<-1:nrow(reactive_values$table_to_show_ref)
+      if(dim(reactive_values$table_to_show_ref)[1]>0) rownames(reactive_values$table_to_show_ref)<-1:nrow(reactive_values$table_to_show_ref)
       df <- reactiveValues(data =cbind(shinyInput(actionButton, nrow(reactive_values$table_to_show_ref), 'button_', label = "Transfer", onclick = 'Shiny.onInputChange(\"select_button\",  this.id)' ),reactive_values$table_to_show_ref
       ) )
       
@@ -1232,6 +1233,21 @@ server <- function(input, output, session) {
           print(ind)
           if(dim(reactive_values$res_arxiv$res_citation_ask[ind,])[1]>0)reactive_values$res_arxiv$res_citation_accept=rbind(reactive_values$res_arxiv$res_citation_accept,reactive_values$res_arxiv$res_citation_ask[ind,])
           if(dim(reactive_values$res_arxiv$res_reference_ask[ind_ref_1,])[1]>0)reactive_values$res_arxiv$res_reference_accept=rbind(reactive_values$res_arxiv$res_reference_accept,reactive_values$res_arxiv$res_reference_ask[ind_ref_1,])
+        }
+      }
+      
+      if(reactive_values$active_source=="PUBMED"){
+        ind=which(reactive_values$table_to_show_ref$id[[selectedRow]]==unlist(reactive_values$res_pumed$dataframe_citation_ask$`cited identifier`))
+        ind2=which(reactive_values$table_to_show_ref$id[[selectedRow]]==unlist(reactive_values$res_pumed$dataframe_citation_accept$`cited identifier`))# il  dej  été ajouter 
+        
+        
+        ind_ref_1=which(reactive_values$table_to_show_ref$id[[selectedRow]]==unlist(reactive_values$res_pumed$dataframe_ref_ask$`refering identifier`))# ligne a ajouter 
+        ind_ref_2=which(reactive_values$table_to_show_ref$id[[selectedRow]]==unlist(reactive_values$res_pumed$dataframe_ref_accept$`refering identifier`))# ligne déja ajouter
+        
+        if(length(ind2)==0 || length(ind_ref_2)==0){
+          
+          if(dim(reactive_values$res_pumed$dataframe_citation_ask[ind,])[1]>0)reactive_values$res_pumed$dataframe_citation_accept=rbind(reactive_values$res_pumed$dataframe_citation_accep,reactive_values$res_ads$dataframe_citation_ask[ind,])
+          if(dim(reactive_values$res_pumed$dataframe_ref_ask[ind_ref_1,])[1]>0)reactive_values$res_pumed$dataframe_ref_accept=rbind(reactive_values$res_pumed$dataframe_ref_accept,reactive_values$res_ads$dataframe_ref_ask[ind_ref_1,])
         }
       }
     })
@@ -1301,7 +1317,7 @@ server <- function(input, output, session) {
       print("je passe sur le bouton ta grand maman")
       reactive_values$table_to_show_ref=reactive_values$res_arxiv$res_publi_foundt[(reactive_values$res_arxiv$res_publi_foundt$check_pct<value_same_min_accept),]
      
-      rownames(reactive_values$table_to_show_ref)<-1:nrow(reactive_values$table_to_show_ref)
+      if(dim(reactive_values$table_to_show_ref)[1]>0) rownames(reactive_values$table_to_show_ref)<-1:nrow(reactive_values$table_to_show_ref)
       df <- reactiveValues(data =cbind(shinyInput(actionButton, nrow(reactive_values$table_to_show_ref), 'button_', label = "Transfer", onclick = 'Shiny.onInputChange(\"select_button\",  this.id)' ),reactive_values$table_to_show_ref
       ) )
       
@@ -1374,6 +1390,31 @@ server <- function(input, output, session) {
         
       })
     })
+    observeEvent(input$pubmed_ask,{
+      print("je passe sur pumed ask ")
+      reactive_values$table_to_show_ref=reactive_values$res_pumed$dataframe_publi_found[(reactive_values$res_pumed$dataframe_publi_found$check_title_pct<value_same_min_accept),]
+      
+      if(dim(reactive_values$table_to_show_ref)[1]>0) rownames(reactive_values$table_to_show_ref)<-1:nrow(reactive_values$table_to_show_ref)
+      df <- reactiveValues(data =cbind(shinyInput(actionButton, nrow(reactive_values$table_to_show_ref), 'button_', label = "Transfer", onclick = 'Shiny.onInputChange(\"select_button\",  this.id)' ),reactive_values$table_to_show_ref
+      ) )
+      
+      output$table_data_ref2<- DT::renderDataTable(
+        df_flatten(df$data), escape = FALSE, options = list( lengthMenu = c(5, 25, 50), pageLength = 25, 
+                                                             
+                                                             scrollX = TRUE, columnDefs = list(list(
+                                                               targets = "_all" ,render = JS(
+                                                                 "function(data, type, row, meta) {",
+                                                                 "return type === 'display' && data.length > 200 ?",
+                                                                 "'<span title=\"' + data + '\">' + data.substr(0, 200) + '...</span>' : data;",
+                                                                 "}")
+                                                             )))
+      )
+      
+      
+      reactive_values$active_source="PUBMED"  
+      View(df_flatten(df$data))
+    })
+    
     
     #citing subject fait plant? 
     

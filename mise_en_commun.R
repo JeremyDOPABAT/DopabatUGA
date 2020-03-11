@@ -16,8 +16,8 @@ ths$position_name=1
 ths$sep=","
 
 res_data_nasa_ads=extraction_data_api_nasa_ads(data_pub=ths,ti_name=ti_name,au_name=au_name,token=token,pas=8,value_same_min_accept=0.95,value_same_min_ask = 0,type="all",sep_vector_in_data ="sep",position_vector_in_data = "position_name" )
-res_arxiv=extraction_data_api_arxiv(data_pub=ths,ti_name=ti_name,au_name=au_name,pas=8,value_same_min_accept=0.95,value_same_min_ask = 0.85,type = "all",sep = ",")
-res_pumed=extract_data_api_pumed(data_pub=ths,ti_name,au_name,pas=8,value_same_min_accept=0.85, value_same_min_ask=0.95,type="all")
+res_arxiv=extraction_data_api_arxiv(data_pub=ths,ti_name=ti_name,au_name=au_name,pas=8,value_same_min_accept=0.95,value_same_min_ask = 0.85,type = "all",sep_vector_in_data ="sep",position_vector_in_data = "position_name")
+res_pumed=extract_data_api_pumed(data_pub=ths,ti_name,au_name,pas=8,value_same_min_accept=0.85, value_same_min_ask=0.95,type="all",sep_vector_in_data ="sep",position_vector_in_data = "position_name")
 View(res_data_nasa_ads$dataframe_publi_found)
 dim(res_data_nasa_ads$dataframe_citation_ask)
 dim(res_data_nasa_ads$dataframe_publi_found[(res_data_nasa_ads$dataframe_publi_found$check_title_pct<value_same_min_accept) &(res_data_nasa_ads$dataframe_publi_found$check_title_pct>=value_same_min_ask),])
@@ -157,7 +157,7 @@ test=as.data.frame(rbind.fill(data_merge,pumed_data),stringsAsFactors = FALSE)
 
 dom<-find_journal_domaine(test$`refering journal`,test$`refering issn`,test$`refering essn`,journal_table_ref)
 print(Sys.time())
-dom_new=find_journal_domaine_v2(test$`refering journal`,test$`refering issn`,test$`refering essn`,journal_table_ref)
+dom_new=find_journal_domaine_(test$`refering journal`,test$`refering issn`,test$`refering essn`,journal_table_ref)
 print(Sys.time())
 ##.old 11min
 dom_length<-sapply(1:length(dom), FUN=function(x) length(unlist(dom[x])))

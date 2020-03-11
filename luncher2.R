@@ -1,1 +1,6 @@
-res_arxiv=extraction_data_api_arxiv(data_pub=ths,ti_name=ti_name,au_name=au_name,pas=8,value_same_min_accept=0.95,value_same_min_ask = 0.85,type = "all")
+
+print(Sys.time())
+dompV1<-find_journal_domaine(test$`refered journal`,test$`refering issn`,test$`refering essn`,journal_table_ref)
+print(Sys.time())
+domp<-find_journal_domaine_v3(test$`refered journal`,test$`refering issn`,test$`refering essn`,journal_table_ref)
+print(Sys.time())
