@@ -1,0 +1,10 @@
+name: applitodeploy
+title:
+username:
+account: jeremyuga
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 1965492
+bundleId: 2898043
+url: https://jeremyuga.shinyapps.io/applitodeploy/
+when: 1584626245.80782

@@ -243,27 +243,30 @@ ui <-dashboardPage(skin = "red",
                                                    Both = "all"),
                                        selected = "cit"),
                           
-                          actionButton("valid_DB", "Process"),
+                          
+                                           actionButton("valid_DB", "Process"),
                           conditionalPanel('output.show_token_ads',textInput("token",label ="Token" ))
                           
                           # Horizontal line ----
                     ),
                      tabBox(width = 8, title = "result data tab ",
-                           tabPanel("ADS",actionButton("ads_ref_accept", "Show references"),
-                        actionButton("ads_cit_accept", "Show citations"),
+                     
+                           tabPanel("ADS", conditionalPanel('output.show_ads_res_window',actionButton("ads_ref_accept", "Show references"),
+                            
+                            actionButton("ads_cit_accept", "Show citations"),
                         actionButton("ads_error", "Show error(s)"),
                         actionButton("ads_cit_ask","Show publication found with doute"),
-                        dataTableOutput("table_data_ref1")),
-                        tabPanel("ArXiv",actionButton("arxiv_ref_accept", "Show references"),
+                        dataTableOutput("table_data_ref1"))),
+                        tabPanel("ArXiv", conditionalPanel('output.show_arxiv_res_window',actionButton("arxiv_ref_accept", "Show references"),
                                  actionButton("arxiv_cit_accept", "Show citations"),
                                  actionButton("arxiv_error", "Show error(s)"),
                                  actionButton("arxiv_ask","Show publication found with doute"),
-                                 dataTableOutput("table_data_ref2")),
-                        tabPanel("Pubmed",actionButton("pubmed_ref_accept", "Show references"),
+                                 dataTableOutput("table_data_ref2"))),
+                        tabPanel("Pubmed", conditionalPanel('output.show_pumed_res_window',actionButton("pubmed_ref_accept", "Show references"),
                                  actionButton("pubmed_cit_accept", "Show citations"),
                                  actionButton("pubmed_error", "Show error(s)"),
                                  actionButton("pubmed_ask","Show publication found with doute"),
-                                 dataTableOutput("table_data_ref3"))
+                                 dataTableOutput("table_data_ref3")))
                         
                       
                       
@@ -290,6 +293,7 @@ ui <-dashboardPage(skin = "red",
                 )
                 
                             # Output: Data file ---
+         
         )
     )
 )
@@ -320,7 +324,9 @@ server <- function(input, output, session) {
        show_token_ads=FALSE,
        show_wos_valid=FALSE,
        show_ref=FALSE,
-       show_cit=FALSE,
+       show_ads_res_window=FALSE,
+       show_pumed_res_window=FALSE,
+       show_arxiv_res_window=FALSE,
        res_ads=NULL, #res_data_nasa_ads,#temporaire 
        res_arxiv=NULL,#res_arxiv temporaire
        res_pumed=NULL, #res_pumed temporaire 
@@ -345,15 +351,24 @@ server <- function(input, output, session) {
     output$show_ref<- reactive({
       reactive_values$show_ref
     })
-    output$show_cit<- reactive({
-      reactive_values$show_cit
+    output$show_ads_res_window<- reactive({
+      reactive_values$show_ads_res_window 
+    })
+    output$show_pumed_res_window<- reactive({
+      reactive_values$show_pumed_res_window 
+    })
+    output$show_arxiv_res_window<- reactive({
+      reactive_values$show_arxiv_res_window 
     })
     outputOptions(output, "show_header", suspendWhenHidden = FALSE)
     outputOptions(output, "show_pdf_valid", suspendWhenHidden = FALSE)
     outputOptions(output, "show_token_ads", suspendWhenHidden = FALSE)
     outputOptions(output, "show_wos_valid", suspendWhenHidden = FALSE)
     outputOptions(output, "show_ref", suspendWhenHidden = FALSE)
-    outputOptions(output, "show_cit", suspendWhenHidden = FALSE)
+    outputOptions(output, "show_ads_res_window", suspendWhenHidden = FALSE)
+    outputOptions(output, "show_pumed_res_window", suspendWhenHidden = FALSE)
+    outputOptions(output, "show_arxiv_res_window", suspendWhenHidden = FALSE)
+    
     observeEvent(input$file1, {
             # input$file1 will be NULL initially. After the user selects
             # and uploads a file, head of that data file by default,
@@ -520,7 +535,6 @@ server <- function(input, output, session) {
          updateSelectInput(session, inputId = "networkintervalyear",choices =c("None",1:1))
        } 
        
-       print("laaaa")
        
        
        keywords_tok<-strsplit(keywords,",",fixed=TRUE)
@@ -1012,6 +1026,7 @@ server <- function(input, output, session) {
               footer = NULL
             ))
           }else {
+            reactive_values$show_ads_res_window=TRUE
             if(input$sup_wos_for_ref==TRUE){# a changer 
               reactive_values$res_ads=extraction_data_api_nasa_ads(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",token=input$token,pas=8,value_same_min_accept=0.95,value_same_min_ask = 0.85,type =input$type,source_name = "source",sep_vector_in_data ="sep",position_vector_in_data = "position_name")
             }else{
@@ -1020,6 +1035,7 @@ server <- function(input, output, session) {
           }
         }
         if(input$arxiv==TRUE){
+          reactive_values$show_arxiv_res_window=TRUE
           if(input$sup_wos_for_ref==TRUE){
             reactive_values$res_arxiv=extraction_data_api_arxiv(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",pas=8,value_same_min_accept=0.95,value_same_min_ask = 0.85,type = input$type,source_name = "source",sep_vector_in_data ="sep",position_vector_in_data = "position_name")
           }else{
@@ -1027,6 +1043,7 @@ server <- function(input, output, session) {
           }
         } 
         if(input$pubmed==TRUE){
+          reactive_values$show_pumed_res_window=TRUE
           if(input$sup_wos_for_ref==TRUE){
             reactive_values$res_pumed=extract_data_api_pumed(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",pas=8,value_same_min_accept=0.85, value_same_min_ask=0.95,type = input$type,source_name = "source",sep_vector_in_data ="sep",position_vector_in_data = "position_name")
           }else {
@@ -1392,6 +1409,8 @@ server <- function(input, output, session) {
     
     observeEvent(input$pubmed_error,{
       output$table_data_ref3 <- renderDataTable({
+        print(dim(res_pumed$error_querry_publi))
+        View(res_pumed$error_querry_publi)
         # validate(
         #   need(reactive_values$data_wos, "No bibtext data"),
         #   need(!is.null(reactive_values$data_wos), "")
