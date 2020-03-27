@@ -8,7 +8,7 @@
 ##reset("title_selection")
 # source de code et libraries 
 
-source("functions_analyses.R")
+source("global.R",encoding = "UTF-")
 
 
 library(shiny)
@@ -881,6 +881,7 @@ server <- function(input, output, session) {
   observeEvent(input$pdf_path, {
     reactive_values$path_folder <- choose.dir(default = "", caption = "Select folder with pdf file you want to add")
     print(reactive_values$path_folder )
+    print(dim(pdf_extract_data(reactive_values$path_folder)))
     
     reactive_values$show_pdf_valid <- TRUE
     if(is.na(reactive_values$path_folder)){

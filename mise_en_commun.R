@@ -115,7 +115,7 @@ names(test)
 
 
 
-dom<-find_journal_domaine(test$`cited journal`,test$`cited issn`,test$`cited essn`,journal_table_ref)
+dom<-find_journal_domaine_v2(test$`cited journal`,test$`cited issn`,test$`cited essn`,journal_table_ref)
 dom_length<-sapply(1:length(dom), FUN=function(x) length(unlist(dom[x])))
 table(dom_length)
 unique(dom)
@@ -157,7 +157,12 @@ test=as.data.frame(rbind.fill(data_merge,pumed_data),stringsAsFactors = FALSE)
 
 dom<-find_journal_domaine(test$`refering journal`,test$`refering issn`,test$`refering essn`,journal_table_ref)
 print(Sys.time())
+dom_new=find_journal_domaine_(test$`refering journal`,test$`refering issn`,test$`refering essn`,journal_table_ref)
+print(Sys.time())
 ##.old 11min
+dom_length<-sapply(1:length(dom), FUN=function(x) length(unlist(dom[x])))
+table(dom_length)
+unique(dom)
 
 dom_length<-sapply(1:length(dom_new), FUN=function(x) length(unlist(dom_new[x])))
 table(dom_length)
