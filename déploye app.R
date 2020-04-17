@@ -6,4 +6,3 @@ rsconnect::setAccountInfo(name='jeremyuga',
                           secret='knAU1s+GdoPCLE2SHQkJnzPWw8/Ea0cPaXhow9RI')
 rsconnect::deployApp('C:/Users/moroguij/Documents/R_programs/DopabatUGA/applitodeploy')
 
-

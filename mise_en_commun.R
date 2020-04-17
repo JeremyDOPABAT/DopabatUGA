@@ -9,17 +9,28 @@ dim(ths)
 
 token="SYZW1C1o9mDDfOWXUSh7Jrq0MMqvleL2is0pnTNQ"
 
-source("functions_analyses.R")
+source("global.R")
 library(plyr)
 
 ths$position_name=1
 ths$sep=","
 
 res_data_nasa_ads=extraction_data_api_nasa_ads(data_pub=ths,ti_name=ti_name,au_name=au_name,token=token,pas=8,value_same_min_accept=0.95,value_same_min_ask = 0,type="all",sep_vector_in_data ="sep",position_vector_in_data = "position_name" )
+
+
+
+
+
+dim(res_data_nasa_ads$error_querry_publi)
+
+
+
+
+
 res_arxiv=extraction_data_api_arxiv(data_pub=ths,ti_name=ti_name,au_name=au_name,pas=8,value_same_min_accept=0.95,value_same_min_ask = 0.85,type = "all",sep_vector_in_data ="sep",position_vector_in_data = "position_name")
 res_pumed=extract_data_api_pumed(data_pub=ths,ti_name,au_name,pas=8,value_same_min_accept=0.85, value_same_min_ask=0.95,type="all",sep_vector_in_data ="sep",position_vector_in_data = "position_name")
-View(res_data_nasa_ads$dataframe_publi_found)
-dim(res_data_nasa_ads$dataframe_citation_ask)
+dim(res_data_nasa_ads$dataframe_citation_accept)
+dim(res_data_nasa_ads$dataframe_citation_accept)
 dim(res_data_nasa_ads$dataframe_publi_found[(res_data_nasa_ads$dataframe_publi_found$check_title_pct<value_same_min_accept) &(res_data_nasa_ads$dataframe_publi_found$check_title_pct>=value_same_min_ask),])
 
 View(as.data.frame(res_data_nasa_ads$dataframe_citation))
@@ -93,10 +104,10 @@ setwd("~/R_programs")
 
 
 
-path_journal="data/journal_classification.csv"
+path_journal="data/DOPABAT_Titres_AvecWC.csv"
 journal_table_ref=read.csv(path_journal, sep = ";",header = TRUE,stringsAsFactors = FALSE)
-journal_table_ref$Source_title<-gsub("\\s*\\([^\\)]+\\)","",journal_table_ref$Source_title)
-journal_table_ref$Source_title<-gsub("[(#$%*,.:;<=>@^_`{|}~.)]","",journal_table_ref$Source_title)
+journal_table_ref$Source_title<-gsub("\\s*\\([^\\)]+\\)","",journal_table_ref$Full.Journal.Title)
+journal_table_ref$Source_title<-gsub("[(#$%*,.:;<=>@^_`{|}~.)]","",journal_table_ref$Full.Journal.Title)
 
 
 

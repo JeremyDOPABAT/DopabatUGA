@@ -1,6 +1,5 @@
 library(network)
 library(igraph)
-library(tidyverse)
 library(igraphdata)
 require("tm")
 require('wordcloud')
@@ -8,10 +7,12 @@ require("RColorBrewer")
 require("rvest")
 require("visNetwork")
 library(pdftools)
-library(tidyverse)
 library(httr)
 library(lubridate)
 library(tm)
+#library(rlang)
+library(tidyverse)
+library(readr)
 
 
 make_input_notwork_graph<-function(keywords) { 
@@ -647,6 +648,7 @@ querry_warning_message<-function(r){
 get_cit_or_ref<-function(resdt,type="cit"){# on r?cup?re les infodes citation uniquement 
   #permet de recup?r? les citation et les reference d'ads grace a une base de publie en entr?e, 
   #fonction interne 
+  last_good_result=NULL
   res_cit=c()
   if(type=="cit"){
     if(sum(is.na(resdt$citation)!=length(resdt$citation))) res_temp=resdt[!is.na(resdt$citation),]$citation else res_temp=-666 # si on demande des sitation et il y en a pas 
@@ -664,9 +666,9 @@ get_cit_or_ref<-function(resdt,type="cit"){# on r?cup?re les infodes citation un
     test=c()
     start_RQ=0
     # withProgress(
-    #   message='Please wait',
-    #   detail=paste0("doing ",type, ' search in ads ...'),
-    #   value=0, {
+    #    message='Please wait',
+    #    detail=paste0("doing ",type, ' search in ads ...'),
+    #    value=0, {
     #     
     for(j in 1:count){# on parcour tout les ref/cit 
       first<-(j-1)*pas_cit+1
@@ -768,7 +770,7 @@ get_cit_or_ref<-function(resdt,type="cit"){# on r?cup?re les infodes citation un
         result=list(res_cit_ref=total_res,error_table=error_querry_cit)
       }
       if(length(dim(error_querry_cit)) &(j==count)) print("il y a des erreurs lors de l'agr?gation des info des citations") 
-    }
+      }
     #})
     
   } else result=NULL
@@ -806,11 +808,11 @@ get_cit_or_ref_arxiv<-function(resdt,type){
   
   link_abs<-unlist(resdt$abs_link)
   res_cit<-c()
-  # withProgress(
-  #   message='Please wait',
-  #   detail=paste0("searching for ",type, "in arxiv"),
-  #     value=0, {
-  #       
+  #  withProgress(
+  #    message='Please wait',
+  #    detail=paste0("searching for ",type, "in arxiv"),
+  #      value=0, {
+  # #       
   for(ar in(1:length(link_list))){
     #cited<-abs_link[[ar]]#lien vers l'article trouver 
     
@@ -912,7 +914,7 @@ get_cit_or_ref_arxiv<-function(resdt,type){
       }
     }
   }
-  #})
+#})
   
   
   
@@ -992,7 +994,7 @@ fit_name_position<-function(au_data,position_base,position_togo,sep=""){
 
 ads_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,value_same_min_accept,token,sep){
   #m?me chose que les fonction pr?c?dente du m?me nom mais avec ads, cette fonction permet de recup?r? les m?ta donner de publi sur l'api d'ads en se servant d'un vecteur titre/ auteur 
-  
+  last_good_result=NULL
   
   res=c()#variable resultat 
   
@@ -1028,13 +1030,13 @@ ads_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,val
   
   inter=ceiling(length(au_data)[1]/pas)# nombre d'iteration
   # withProgress(
-  #   message='Please wait',
-  #   detail='Doing reasearche of publication in ads...',
-  #   value=0, {
+  #    message='Please wait',
+  #    detail='Doing reasearche of publication in ads...',
+  #    value=0, {
   for(h in 1:inter){
     first<-(h-1)*pas+1
     last<-h*pas
-    #incProgress(1/inter)
+#    incProgress(1/inter)
     if(last>length(au_data)) last<-length(au_data)
     
     #ti_test="M31 Globular Clusters: Colors and Metallicities"
@@ -1125,7 +1127,7 @@ ads_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,val
     }
     if(length(dim(error_querry)) &(h==inter)>0) print("il y a des erreurs")
   }
-  #   })
+#})
   
   
   
@@ -1233,7 +1235,7 @@ shinyInput <- function(FUN, len, id, ...) {
 }
 
 
-find_journal_domaine<-function(journal_data,issn,essn,journal_table_ref){
+find_journal_domaine<-function(journal_data,journal_table_ref,issn="",essn=""){
   
   
   #Cette fonction permet de retrouver le domaine avec le nom du journal
@@ -1258,37 +1260,39 @@ find_journal_domaine<-function(journal_data,issn,essn,journal_table_ref){
       
       first<-(h-1)*pas+1# premier individu a prendre en compte(ligne)
       last<-h*pas       # dernier ""   "      "       "   "
-      if(last>length(au_data)[1]) last<-length(journal_table_ref)
+      if(last>length(dim(journal_table_ref)[1])) last<-dim(journal_table_ref)[1]
       journal_courant=journal_table_ref[first:last,]
       
       
       #print(x)
       if(!is.na(journal_data[x])) {
-        if(!is.null(issn[x]) && issn[x]!="" && !is.na(issn[x]) ){# on trouve l'iissn si il est présent 
+        if(length(issn)!=0){ if(!is.null(issn[x]) &&issn[x]!="" && !is.na(issn[x]) ){# on trouve l'iissn si il est présent 
           ind=which(issn[x]==journal_courant$issn) 
-          if(length(ind)==1) return((journal_courant$SubField_English[ind]))
-        }
-        if(!is.null(essn[x]) && essn[x]!=""&& !is.na(essn[x])){# pareil pour l'essn
+          if(length(ind)>0) return((journal_courant$Abreviation[ind]))
+        }}
+        if(length(essn)!=0){ 
+          if(!is.null(essn[x]) && essn[x]!=""&& !is.na(essn[x])){# pareil pour l'essn
           ind=which(essn[x]==journal_courant$essn) 
-          if(length(ind)==1) return((journal_courant$SubField_English[ind]))
+          if(length(ind)>0) return((journal_courant$Abreviation[ind]))
+          }
         }
         #on seach le nom exacte du journal dans la liste de reférence 
         #tryCatch({
-        tp=grep(paste0("^",tolower(trimws(gsub("[(#$%*,.:;<=>@^_`{|}~.)]","",gsub("\\s*\\([^\\)]+\\)","",journal_data[x])))),"$"),tolower(trimws(journal_courant$Source_title)),fixed = TRUE)
+        tp=grep(paste0("^",tolower(trimws(gsub("[(#$%*,.:;<=>@^_`{|}~.)]","",gsub("\\s*\\([^\\)]+\\)","",journal_data[x])))),"$"),tolower(trimws(journal_courant$Full.Journal.Title)),fixed = TRUE)
         #}, error = function(e) { return(NA)})
         
-        if(length(tp)==1){
-          return((journal_courant$SubField_English[tp]))
+        if(length(tp)>0){
+          return((journal_courant$Abreviation[tp]))
         }else{
           # on cherche une correspondance de reference qui commence par le debut
-          tp=grep(paste0("^",tolower(trimws(gsub("[(#$%*,.:;<=>@^_`{|}~.)]","",gsub("\\s*\\([^\\)]+\\)","",journal_data[x]))))),tolower(trimws(journal_courant$Source_title)),fixed = TRUE)
+          tp=grep(paste0("^",tolower(trimws(gsub("[(#$%*,.:;<=>@^_`{|}~.)]","",gsub("\\s*\\([^\\)]+\\)","",journal_data[x]))))),tolower(trimws(journal_courant$Full.Journal.Title)),fixed = TRUE)
           if(length(tp)==1){
-            return((journal_courant$SubField_English[tp]))
+            return((journal_courant$Abreviation[tp]))
           } else {
             #on cherche une référence corespondans partout dans le nom
-            tp=grep(paste0(tolower(trimws(gsub("[(#$%*,.:;<=>@^_`{|}~.)]","",gsub("\\s*\\([^\\)]+\\)","",journal_data[x]))))),tolower(trimws(journal_courant$Source_title)),fixed = TRUE)
-            if(length(tp)>0){
-              return((journal_courant$SubField_English[tp]))
+            tp=grep(paste0(tolower(trimws(gsub("[(#$%*,.:;<=>@^_`{|}~.)]","",gsub("\\s*\\([^\\)]+\\)","",journal_data[x]))))),tolower(trimws(journal_courant$Full.Journal.Title)),fixed = TRUE)
+            if(length(tp)==1){
+              return((journal_courant$Abreviation[tp]))
             }
             
           }
@@ -1297,17 +1301,17 @@ find_journal_domaine<-function(journal_data,issn,essn,journal_table_ref){
       }
     }
   })
-  dom_length<-sapply(1:length(dom), FUN=function(x) length(unlist(dom[x])))
-  ind<-which(dom_length>1)
+  # dom_length<-sapply(1:length(dom), FUN=function(x) length(unlist(dom[x])))
+  # ind<-which(dom_length>1)
+  # 
+  # 
+  # 
+  # temp<-sapply(ind, function(x){
+  #   cat<-names(table(dom[x]))
+  #   if(length(cat)==1) return(cat) else return(NA)
+ # })
   
-  
-  
-  temp<-sapply(ind, function(x){
-    cat<-names(table(dom[x]))
-    if(length(cat)==1) return(cat) else return(NA)
-  })
-  
-  dom[ind]<-temp
+  #dom[ind]<-temp
   return(dom) 
   
 }
@@ -1362,7 +1366,7 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,pas=8,value_same_min_a
   ti_data=res_temp[[1]]
   au_data=res_temp[[2]]
   
-  print("lalala")
+  
   
   
   res_rest=c() 
@@ -1382,7 +1386,13 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,pas=8,value_same_min_a
       err1=res_wos_all$error
       reject1=res_wos_all$reject
       
+    }else{
+      res_wos=NULL
+      err1=NULL
+      reject1=NULL
+      
     }
+  
     data_rest=data_pub[data_pub[source_name]!="WOS",]
     if(dim(data_rest)[1]!=0) {
       if(length(sep_vector_in_data)==1) if(sep_vector_in_data=="") sep="" else sep=data_rest[sep_vector_in_data][[1]]
@@ -1393,7 +1403,13 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,pas=8,value_same_min_a
       err2=res_rest_all[2,]$error
       reject2=res_rest_all$reject
       
+    }else{
+      res_rest=NULL
+      err2=NULL
+      reject2=NULL
+      
     }
+  
     
     res_new=rbind(res_rest,res_wos)
     error_querry=rbind(err1,err2)
@@ -1411,8 +1427,8 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,pas=8,value_same_min_a
   }
   
   
-  
-  
+  print("voici les dimention du res neuw  avant")
+  print(dim(res_new))
   
   # Pr?non nom--> nom,pr?non 
   
@@ -1434,14 +1450,14 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,pas=8,value_same_min_a
       error_querry_ref=c()#matrice erreur citation 
       
       # withProgress(
-      #   message='Please wait',
-      #   detail=paste0("doing research reference in pumed"),
-      #   value=0, {
-      #     
+      #    message='Please wait',
+      #    detail=paste0("doing research reference in pumed"),
+      #    value=0, {
+      # #     
         for(h in(1:inter)){
           first<-(h-1)*pas+1
           last<-h*pas
-         # incProgress(1/inter)
+          #incProgress(1/inter)
           if(last>length(id_list_ref)) last<-length(id_list_ref)
           
           id_element=pumed_get_element_id(id_list_ref[first:last],type)
@@ -1499,13 +1515,13 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,pas=8,value_same_min_a
     id_raw=c()
     inter=ceiling(length(id_list)/pas)
     error_querry_cit=c()
-    # withProgress(
+    #  withProgress(
     #   message='Please wait',
-    #   detail=paste0("doing research citation in pumed"),
-    #     value=0, {
-    #       
+    #    detail=paste0("doing research citation in pumed"),
+    #      value=0, {
+    # #      
       for(h in(1:inter)){ 
-        #incProgress(1/inter)
+       # incProgress(1/inter)
         first<-(h-1)*pas+1
         last<-h*pas
         if(last>length(id_list)) last<-length(id_list)
@@ -1558,7 +1574,7 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,pas=8,value_same_min_a
         }# ?tant donn?e que  nous pouvons avoir plusieur citation pour un seul article nous somme oblig? de faire se finir la boucle ii pour en commencer une autre 
         
       }
-      #})
+    #})
     if(length(id_raw)!=dim(res_new)[1] && !is.null(res_new) ) id_raw<-c(id_raw,rep(NA,dim(res_new)[1]-length(id_raw)))
     res_new$citation<-id_raw
     
@@ -1618,6 +1634,9 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,pas=8,value_same_min_a
     print("onnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn passsssssssssssssssssssssssse ")
     names(error_querry)=c("Publication title","Status error","Message error", "Data impact")}
   
+  print("voici les dimention du res new final ")
+  print(dim(res_new))
+  
   return(
     list(dataframe_citation_accept=res_cit_accept,error_querry_publi=error_querry,error_querry_citation=error_querry_cit,title_vector=ti_data,author_vector=au_data,dataframe_citation_ask=res_cit_ask,
          reject_analyse=reject,dataframe_publi_found=res_new,dataframe_ref_accept=res_ref_accept,error_querry_ref=error_querry_ref,dataframe_ref_ask=res_ref_ask))
@@ -1644,11 +1663,11 @@ pumed_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,v
   
   
   au_data=sapply(1:length(au_data),FUN = function(x) paste(au_data[[x]],collapse = ";"))
-  # withProgress(
-  #   message='Please wait',
-  #   detail=paste0("doing research in pumed"),
-  #     value=0, {
-  #       
+   # withProgress(
+   #   message='Please wait',
+   #   detail=paste0("doing research in pumed"),
+   #     value=0, {
+   #    
     for(h in 1:inter){
       print(h)
       first<-(h-1)*pas+1
@@ -1787,9 +1806,6 @@ pumed_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,v
 
 
 
-
-
-
 extraction_data_api_nasa_ads<-function(data_pub,ti_name,au_name,token,pas=8,value_same_min_accept=0, value_same_min_ask=1,type="all",source_name="",sep_vector_in_data="",position_vector_in_data=""){
   # fonction permetant d'interroger ads sur les reference et les citation d'un corpus de publication placer en entr?e 
   #intput   
@@ -1831,6 +1847,7 @@ extraction_data_api_nasa_ads<-function(data_pub,ti_name,au_name,token,pas=8,valu
   reject1=reject2=c()
   
   if(source_name!="" && (type=="ref" || type=="all")){
+    print("passe wos")
     data_wos=data_pub[data_pub[source_name]=="WOS",]
     
     
@@ -1842,7 +1859,14 @@ extraction_data_api_nasa_ads<-function(data_pub,ti_name,au_name,token,pas=8,valu
       err1=res_wos_all$error
       reject1=res_wos_all$reject
       lastresult=res_wos_all$lastresult
+    }else{
+      res_wos=NULL
+      err1=NULL
+      reject1=NULL
+      
     }
+  
+    
     data_rest=data_pub[data_pub[source_name]!="WOS",]
     
     if(length(sep_vector_in_data)==1) if(sep_vector_in_data=="") sep="" else sep=data_rest[sep_vector_in_data][[1]]
@@ -1853,7 +1877,13 @@ extraction_data_api_nasa_ads<-function(data_pub,ti_name,au_name,token,pas=8,valu
       err2=res_rest_all[2,]$error
       reject2=res_rest_all$reject
       lastresult=res_rest_all$lastresult
+    }else{
+      res_rest=NULL
+      err2=NULL
+      reject2=NULL
+      
     }
+  
     
     res=rbind(res_rest,res_wos)
     error_querry=rbind(err1,err2)
@@ -1861,7 +1891,7 @@ extraction_data_api_nasa_ads<-function(data_pub,ti_name,au_name,token,pas=8,valu
   }else {
     if(length(sep_vector_in_data)==1) if(sep_vector_in_data=="") sep="" else sep=data_pub[sep_vector_in_data][[1]]
     if(length(position_vector_in_data)==1) if(position_vector_in_data=="") position_name=rep(1,dim(data_pub)[1]) else position_name=data_pub[position_vector_in_data][[1]]
-    if(dim(data_wos)[1]!=0) {
+    if(dim(data_pub)[1]!=0) {
       resdt_all=ads_get_publi(au_data,ti_data,position_name,pas,value_same_min_ask,value_same_min_accept,token,sep = sep)
       error_querry=resdt_all$error
       res=resdt_all$res
@@ -1935,6 +1965,9 @@ extraction_data_api_nasa_ads<-function(data_pub,ti_name,au_name,token,pas=8,valu
   
 }
 
+
+
+
 extraction_data_api_arxiv<-function(data_pub,ti_name,au_name,pas=8,value_same_min_accept=0, value_same_min_ask=1,type="cit",source_name="",sep_vector_in_data="",position_vector_in_data="",id_name=""){
   
   # fonction permetant d'interroger arxiv sur les reference et les citation d'un corpus de publication placer en entr?e 
@@ -2000,21 +2033,29 @@ extraction_data_api_arxiv<-function(data_pub,ti_name,au_name,pas=8,value_same_mi
   ti_data<-data_pub[ti_name][[1]]
   
   au_data<-data_pub[au_name][[1]]
-  if(id_name!="" && !is.null(id_name)) id_data<-data_pub[id_name][[1]] else id_data=NULL 
+  
+  if(id_name!="") id_data<-data_pub[id_name][[1]] else id_data=NULL 
+  if(length(which(!is.na(id_data)))==0) id_data=NULL 
   if(source_name!="" && (type=="ref" || type=="all")){
     data_wos=data_pub[data_pub[source_name]=="WOS",]
     
     if(dim(data_wos)[1]!=0) {
       if(length(sep_vector_in_data)==1) if(sep_vector_in_data=="") sep="" else sep=data_wos[sep_vector_in_data][[1]]
       if(length(position_vector_in_data)==1) if(position_vector_in_data=="") position_name=rep(1,dim(data_wos)[1]) else position_name=data_wos[position_vector_in_data][[1]]
-      
-      
+
       res_wos_all=arxiv_get_publi(data_wos[au_name][[1]],data_wos[ti_name][[1]],position_name,pas,value_same_min_ask,value_same_min_accept,sep,id_data)
       res_wos=res_wos_all$res
       err1=res_wos_all$error
       reject1=res_wos_all$reject
       
+    }else{
+      res_wos=NULL
+      err1=NULL
+      reject1=NULL
+      
     }
+  
+    
     data_rest=data_pub[data_pub[source_name]!="WOS",]
     if(dim(data_rest)[1]!=0) {
       if(length(sep_vector_in_data)==1) if(sep_vector_in_data=="") sep="" else sep=data_rest[sep_vector_in_data][[1]]
@@ -2024,6 +2065,11 @@ extraction_data_api_arxiv<-function(data_pub,ti_name,au_name,pas=8,value_same_mi
       res_rest=res_rest_all$res
       err2=res_rest_all[2,]$error
       reject2=res_rest_all$reject
+      
+    }else{
+      res_rest=NULL
+      err2=NULL
+      reject2=NULL
       
     }
     
@@ -2118,34 +2164,34 @@ arxiv_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,v
   
   ti_data=gsub("[#$%*<=>@^_`{|}\\]","",ti_data)
   au_data<-gsub("\\s+"," ",gsub(","," ",au_data))
-  print(au_data[1])
   
   
   res=c()
   res_reject=c()
   error_querry=c()
-  
+  id=id[!is.na(id)]
+  ind=which(!is.null(id) && !id=="")
+  id=id[ind]
+  print(id)
   
   if(length(id)!=0){
     print("on passe par les id" )
     pas_id=15
-    ind=which(!is.na(id) & !is.null(id) )
-    id_use=id[ind]
-    inter=ceiling(length(id_use)/pas_id)
+    inter=ceiling(length(id)/pas_id)
     au_data=au_data[!ind]
-    print(length(id_use))
+    
     for(h in 1:inter){# boucle principale qui parcour les donn?es 
       
-      #      incProgress(1/inter)
+      #incProgress(1/inter)
       first<-(h-1)*pas_id+1# premier individu a prendre en compte(ligne)
       last<-h*pas       # dernier ""   "      "       "   "
-      if(last>length(id_use)[1]) last<-length(id_use)
+      if(last>length(id)[1]) last<-length(id)
       
       # cr?ation de requette espace = + 
       
       
       #querry<-paste0('http://export.arxiv.org/api/query?search_query=(au:( "',(au_querry),'"))&start=0&max_results=2000')#paste0('http://export.arxiv.org/api/query?search_query=(au:( "',au_querry,'"))AND (ti: ("',ti_querry,'"))&start=0&max_results=2000')
-      id_querry<-paste0(gsub("arXiv:","",id_use[first:last]), collapse = '+OR+')
+      id_querry<-paste0(gsub("arXiv:","",id[first:last]), collapse = '+OR+')
       
       #querry<-paste0('http://export.arxiv.org/api/query?search_query=(au:%20"',au_querry,'")&start=0&max_results=2000')
       querry<-paste0('http://export.arxiv.org/api/query?search_query=id:',id_querry,'&start=0&max_results=2000')
@@ -2255,8 +2301,6 @@ arxiv_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,v
       
     }
   }
-  print("voici lent au data ")
-  print(length(au_data))
   if(length(au_data)){
     inter=ceiling(length(au_data)/pas)
     
@@ -2264,16 +2308,16 @@ arxiv_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,v
     # print(paste("Le temps d'execution est estimé est  environs ",time_min,"minute(s)"))
     
     
-    # withProgress(
-    #   message='Please wait',
-    #   detail="searching for publication in arxiv",
-    #     value=0, {
+     # withProgress(
+     #   message='Please wait',
+     #   detail="searching for publication in arxiv",
+     #    value=0, {
     for(h in 1:inter){# boucle principale qui parcour les donn?es 
       
       print(h)
       print("On passe title")
       start=c(start,Sys.time())
-      #      incProgress(1/inter)
+           # incProgress(1/inter)
       first<-(h-1)*pas+1# premier individu a prendre en compte(ligne)
       last<-h*pas       # dernier ""   "      "       "   "
       if(last>length(au_data)[1]) last<-length(au_data)
@@ -2393,8 +2437,8 @@ arxiv_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,v
         }
       }
     }
-    #})
-  }
+  #})
+}
   return(list(res=res,error=error_querry,reject=res_reject)) 
 }
 
