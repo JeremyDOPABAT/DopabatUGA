@@ -10,7 +10,7 @@
 
 source("global.R",encoding = "UTF-8")
 
-
+library(utils)
 library(shiny)
 library(shinydashboard)
 library(shinyjs)
@@ -70,6 +70,13 @@ ui <-dashboardPage(skin = "red",
                                                               "Single Quote" = "'"),
                                                   selected = '"'),
                                      
+                                     #selected encoding 
+                                     radioButtons("encoding", "Encoding",
+                                                  choices = c("UTF-8" = "UTF-8",
+                                                              "Latin-1" = "Latin-1"
+                                                              ),
+                                                  selected = "Latin-1"),
+                                     
                                      # Input: Select number of rows to display ----
                                      radioButtons("disp", "Display",
                                                   choices = c(Head = "head",
@@ -102,32 +109,32 @@ ui <-dashboardPage(skin = "red",
                                         
                                         # Output: Data file ----
                                         dataTableOutput("contents"),
-                                  br(),
-                                  fluidRow(
-                                    conditionalPanel('output.show_header',
-                                                     tags$div(title="complete the column selection before analysing the corpus",box(width = 12, title = "Headers selection", solidHeader = TRUE, status = "danger",
-                                                        fluidRow( 
-                                                          column(width=3, selectInput("title_selection", "Title column", choices = "", width = "300px"),
-                                                                 selectInput("author_selection", "Author column", choices = "", width = "300px")),
-                                                          column(3,offset = 1,selectInput("keyword_selection", "Keywords column", choices = "", width = "300px"),
-                                                                 selectInput("domain_selection", "Domain column", choices = "", width = "300px")),
-                                                          column(3,offset = 1,selectInput("date_selection", "Date publication column", choices = "", width = "300px"),
-                                                                 selectInput("id_arxiv_selection", "arxiv id column", choices = "", width = "300px")),
-                                                          #,conditionalPanel('output.show_ref',
-                                                          #column(3,offset = 1,selectInput("ref_selection", "Reference column", choices = "", width = "300px"))
-                                                          #),
-                                                          # conditionalPanel('output.show_cit',
-                                                          #                  column(3,selectInput("cit_selection", "Citation column", choices = "", width = "300px"))
-                                                          # )
-                                                        )
-                                                                                                                                    
-                                                     ))
-                                    )
-                                    
-                                  )
-                           )
-                         )
-                 ),
+                                        br(),
+                                        fluidRow(
+                                          conditionalPanel('output.show_header',
+                                                           tags$div(title="complete the column selection before analysing the corpus",box(width = 12, title = "Headers selection", solidHeader = TRUE, status = "danger",
+                                                                                                                                          fluidRow( 
+                                                                                                                                            column(width=3, selectInput("title_selection", "Title column", choices = "", width = "300px"),
+                                                                                                                                                   selectInput("author_selection", "Author column", choices = "", width = "300px")),
+                                                                                                                                            column(3,offset = 1,selectInput("keyword_selection", "Keywords column", choices = "", width = "300px"),
+                                                                                                                                                   selectInput("domain_selection", "Domain column", choices = "", width = "300px")),
+                                                                                                                                            column(3,offset = 1,selectInput("date_selection", "Date publication column", choices = "", width = "300px"),
+                                                                                                                                                   selectInput("id_arxiv_selection", "arxiv id column", choices = "", width = "300px")),
+                                                                                                                                            #,conditionalPanel('output.show_ref',
+                                                                                                                                            #column(3,offset = 1,selectInput("ref_selection", "Reference column", choices = "", width = "300px"))
+                                                                                                                                            #),
+                                                                                                                                            # conditionalPanel('output.show_cit',
+                                                                                                                                            #                  column(3,selectInput("cit_selection", "Citation column", choices = "", width = "300px"))
+                                                                                                                                            # )
+                                                                                                                                          )
+                                                                                                                                          
+                                                           ))
+                                          )
+                                          
+                                        )
+                                 )
+                               )
+                       ),
                        
                        # Second tab content
                        tabItem(tabName = "import_pdf",
@@ -312,6 +319,7 @@ ui <-dashboardPage(skin = "red",
 
 # Define server logic to read selected file ----
 server <- function(input, output, session) {
+  #Sys.setlocale( Sys.getlocale(category = "LC_TIME"), "C")
   
   options(shiny.maxRequestSize=32*1024^2)
   
@@ -354,7 +362,7 @@ server <- function(input, output, session) {
   output$show_pdf_valid<- reactive({
     reactive_values$show_pdf_valid
   })
-
+  
   output$show_wos_valid<- reactive({
     reactive_values$show_wos_valid
   })
@@ -389,26 +397,27 @@ server <- function(input, output, session) {
   outputOptions(output, "show_pumed_res_window", suspendWhenHidden = FALSE)
   outputOptions(output, "show_arxiv_res_window", suspendWhenHidden = FALSE)
   outputOptions(output, "show_id_arxiv", suspendWhenHidden = FALSE)
-
+  
   observeEvent(input$file1, {
     # input$file1 will be NULL initially. After the user selects
     # and uploads a file, head of that data file by default,
     # or all rows if selected, will be shown.
-
+    
     #temporai
-
+    
     observeEvent({
       input$header
       input$sep
       input$quote
     },{
       #test_error=tryCatch({
-
-        df <- read.csv(input$file1$datapath,
-                       header = input$header,
-                       sep = input$sep,
-                       quote = input$quote,stringsAsFactors = FALSE)
-
+      
+      df <- as.data.frame(data.table::fread(input$file1$datapath,
+                     header = input$header,
+                     sep = input$sep,
+                     quote = input$quote,encoding = input$encoding),stringsAsFactors = FALSE)
+      print("le csv est lu")
+      print(class(df))
       #},
       # error=function(cond){
       #   return(-400)
@@ -421,42 +430,42 @@ server <- function(input, output, session) {
       #     footer = NULL
       #   ))
       # }else{
-      reactive_values$df_csv <- type.convert(df)
-        table_data=datatable(df_flatten(reactive_values$df_csv), options = list(scrollX = TRUE, columnDefs = list(list(
-          targets = "_all" ,render = JS(
-            "function(data, type, row, meta) {",
-            "return type === 'display' && data.length > 70 ?",
-            "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
-            "}")
-        ))))
-
-        reactive_values$show_header <- TRUE
-
-        updateSelectInput(session, inputId = "title_selection", choices = names(df))
-        updateSelectInput(session, inputId = "keyword_selection", choices = names(df))
-        updateSelectInput(session, inputId = "author_selection", choices = names(df))
-        updateSelectInput(session, inputId = "domain_selection", choices = names(df))
-        updateSelectInput(session, inputId = "date_selection", choices = names(df))
-       updateSelectInput(session, inputId = "id_arxiv_selection", choices = c("none",names(df)))
-
-        output$contents <- renderDataTable({
-          if(input$disp == "head") {
-            return(datatable(df_flatten(df[1:2,]), options = list(scrollX = TRUE, columnDefs = list(list(
-              targets = "_all",render = JS(
-                "function(data, type, row, meta) {",
-                "return type === 'display' && data.length > 70 ?",
-                "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
-                "}")
-            )))))
-          }
-          else {
-            return(table_data)
-          }
-        })#end render___________________________
+      reactive_values$df_csv <- df
+      table_data=datatable(df_flatten(reactive_values$df_csv), options = list(scrollX = TRUE, columnDefs = list(list(
+        targets = "_all" ,render = JS(
+          "function(data, type, row, meta) {",
+          "return type === 'display' && data.length > 70 ?",
+          "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
+          "}")
+      ))))
+      
+      reactive_values$show_header <- TRUE
+      
+      updateSelectInput(session, inputId = "title_selection", choices = names(df))
+      updateSelectInput(session, inputId = "keyword_selection", choices = names(df))
+      updateSelectInput(session, inputId = "author_selection", choices = names(df))
+      updateSelectInput(session, inputId = "domain_selection", choices = names(df))
+      updateSelectInput(session, inputId = "date_selection", choices = names(df))
+      updateSelectInput(session, inputId = "id_arxiv_selection", choices = c("none",names(df)))
+      
+      output$contents <- renderDataTable({
+        if(input$disp == "head") {
+          return(datatable(df_flatten(df[c(1,2),]), options = list(scrollX = TRUE, columnDefs = list(list(
+            targets = "_all",render = JS(
+              "function(data, type, row, meta) {",
+              "return type === 'display' && data.length > 70 ?",
+              "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
+              "}")
+          )))))
+        }
+        else {
+          return(table_data)
+        }
+      })#end render___________________________
       #}
-
+      
     })
-
+    
   })
   observeEvent(
     input$valid_table, {
@@ -483,14 +492,14 @@ server <- function(input, output, session) {
 
         col_date<-parse_date_time(x = reactive_values$df_csv[[input$date_selection]],
                                   orders = reactive_values$fmts,
-                                  locale = "eng")
+                                  locale =  Sys.getlocale(category = "LC_TIME"))
 
 
 
         col_title<-reactive_values$df_csv[[input$title_selection]]
         col_auth<-reactive_values$df_csv[[input$author_selection]]
         if(input$id_arxiv_selection!="none") arxiv_col=reactive_values$df_csv[[input$id_arxiv_selection]] else arxiv_col=NA
-        
+
         if(is.null(reactive_values$df_global)==TRUE) {
 
           reactive_values$df_global=as.data.frame(cbind(col_title,col_auth,col_key,col_dom,col_date),stringsAsFactors = FALSE)
@@ -511,7 +520,7 @@ server <- function(input, output, session) {
           temp["sep"]=input$sep_author_csv
           temp["year"]<-NA
           temp["id_arxiv"]=arxiv_col
-          
+
           # print(names(temp))
           # print(names( reactive_values$df_global))
           reactive_values$df_global=rbind(reactive_values$df_global,temp)
@@ -904,7 +913,7 @@ server <- function(input, output, session) {
 
 
   observeEvent(input$pdf_path, {
-    reactive_values$path_folder <-  utils::choose.dir(default = "", caption = "Select folder with pdf file you want to add")
+    reactive_values$path_folder <-  choose.dir(default = "", caption = "Select folder with pdf file you want to add")
     print(reactive_values$path_folder )
 
 
@@ -971,10 +980,10 @@ server <- function(input, output, session) {
 
       col_date<-parse_date_time(x=reactive_values$df_pdf[["date"]],
                                 orders = reactive_values$fmts,
-                                locale = "eng")
+                                locale =  Sys.getlocale(category = "LC_TIME"))
 
       if(is.null(reactive_values$df_global)==TRUE) {
-       
+
         reactive_values$df_global=reactive_values$df_pdf
         names(reactive_values$df_global)<-c('titre','auteur','keywords','domain','date')
 
@@ -984,7 +993,7 @@ server <- function(input, output, session) {
         reactive_values$df_global["position_name"]=input$position_name_pdf
         reactive_values$df_global["sep"]=input$sep_author_pdf
         reactive_values$df_global["id_arxiv"]=NA
-        
+
 
         #write.csv(reactive_values$df_global,"~/R_programs/interface_shiny/test/File Name.csv", row.names = FALSE)
       }else{
@@ -997,7 +1006,7 @@ server <- function(input, output, session) {
 
         temp["date"]=col_date
         temp["id_arxiv"]=NA
-        
+
         reactive_values$df_global=rbind(reactive_values$df_global,temp)
         print("hors du else ")
         #browser()
@@ -1073,9 +1082,9 @@ server <- function(input, output, session) {
         }
       }
       if(input$arxiv==TRUE){
-        
+
         reactive_values$show_arxiv_res_window=TRUE
-        if(input$sup_wos_for_ref==TRUE){ 
+        if(input$sup_wos_for_ref==TRUE){
           reactive_values$res_arxiv=extraction_data_api_arxiv(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",pas=8,value_same_min_accept=0.95,value_same_min_ask = 0.85,type = input$type,source_name = "source",sep_vector_in_data ="sep",position_vector_in_data = "position_name",id_name ="id_arxiv" )
         }else{
           print("cest dans la fct)")
@@ -1161,11 +1170,11 @@ server <- function(input, output, session) {
         reactive_values$df_global["sep"]=";"
         reactive_values$df_global["position_name"]=2
         reactive_values$df_global["id_arxiv"]=NA
-        
+
 
         col_date<-parse_date_time(x = reactive_values$df_global[["date"]],
                                   orders = reactive_values$fmts,
-                                  locale = "eng")
+                                  locale =  Sys.getlocale(category = "LC_TIME"))
 
         reactive_values$df_global[["date"]]=col_date
 
@@ -1179,14 +1188,14 @@ server <- function(input, output, session) {
         temp["position_name"]=2
         temp["sep"]=";"
         temp["id_arxiv"]=NA
-        
 
-       
+
+
 
         #browser()
         col_date<-parse_date_time(x = temp[["date"]],
                                   orders = reactive_values$fmts,
-                                  locale = "eng")
+                                  locale =  Sys.getlocale(category = "LC_TIME"))
         temp[["date"]]=col_date
         reactive_values$df_global=rbind(reactive_values$df_global,temp)
         print("je passe dans le else wos ")
@@ -1259,7 +1268,7 @@ server <- function(input, output, session) {
   observeEvent(input$ads_cit_ask,{
     reactive_values$table_to_show_ref=reactive_values$res_ads$dataframe_publi_found[(reactive_values$res_ads$dataframe_publi_found$check_title_pct<value_same_min_accept) &(reactive_values$res_ads$dataframe_publi_found$check_title_pct>=value_same_min_ask),]
     if(dim(reactive_values$table_to_show_ref)[1]>0) rownames(reactive_values$table_to_show_ref)<-1:nrow(reactive_values$table_to_show_ref)
-    df <- reactiveValues(data =cbind(shinyInput(actionButton, nrow(reactive_values$table_to_show_ref), 'button_', label = "Transfer", onclick = 'Shiny.onInputChange(\"select_button\",  this.id)' ),reactive_values$table_to_show_ref
+    df <- reactiveValues(data =cbind(shinyInput(actionButton, nrow(reactive_values$table_to_show_ref), 'button_', label = "Transfer", onclick = 'Shiny.onInp"en_UShange(\"select_button\",  this.id)' ),reactive_values$table_to_show_ref
     ) )
 
     output$table_data_ref1<- DT::renderDataTable(
@@ -1520,13 +1529,13 @@ server <- function(input, output, session) {
   # observeEvent(input$contain_cit,{
   #   if(input$contain_cit==TRUE) reactive_values$show_cit <- TRUE else reactive_values$show_cit <- FALSE
   #
-
+  
 }#end serveur 
 
 
 # Run the app ----
 shinyApp(ui, server)
- 
+
 
 
 

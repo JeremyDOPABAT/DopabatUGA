@@ -665,16 +665,16 @@ get_cit_or_ref<-function(resdt,type="cit"){# on r?cup?re les infodes citation un
     size_res=c()
     test=c()
     start_RQ=0
-    # withProgress(
-    #    message='Please wait',
-    #    detail=paste0("doing ",type, ' search in ads ...'),
-    #    value=0, {
-    #     
-    for(j in 1:count){# on parcour tout les ref/cit 
+    withProgress(
+       message='Please wait',
+       detail=paste0("doing ",type, ' search in ads ...'),
+       value=0, {
+
+    for(j in 1:count){# on parcour tout les ref/cit
       first<-(j-1)*pas_cit+1
       last<-j*pas_cit
-      #incProgress(1/count)
-      
+      incProgress(1/count)
+         
       
       if(last>length(res_temp)[1]) last<-length(res_temp)[1]
       citationbib=gsub("&",'%26',unlist(res_temp[first:last]))
@@ -771,7 +771,7 @@ get_cit_or_ref<-function(resdt,type="cit"){# on r?cup?re les infodes citation un
       }
       if(length(dim(error_querry_cit)) &(j==count)) print("il y a des erreurs lors de l'agr?gation des info des citations") 
       }
-    #})
+    })
     
   } else result=NULL
   
@@ -808,11 +808,11 @@ get_cit_or_ref_arxiv<-function(resdt,type){
   
   link_abs<-unlist(resdt$abs_link)
   res_cit<-c()
-  #  withProgress(
-  #    message='Please wait',
-  #    detail=paste0("searching for ",type, "in arxiv"),
-  #      value=0, {
-  # #       
+  withProgress(
+     message='Please wait',
+     detail=paste0("searching for ",type, "in arxiv"),
+       value=0, {
+  
   for(ar in(1:length(link_list))){
     #cited<-abs_link[[ar]]#lien vers l'article trouver 
     
@@ -829,7 +829,7 @@ get_cit_or_ref_arxiv<-function(resdt,type){
       titre_error["Data impact"]=type
       titre_error$h=ar
     })
-    #incProgress(1/length(link_list))
+    incProgress(1/length(link_list))
     if(length(error)>0){
       error_querry_cit<-rbind(error_querry_cit,error)
       error=c()
@@ -914,7 +914,7 @@ get_cit_or_ref_arxiv<-function(resdt,type){
       }
     }
   }
-#})
+})
   
   
   
@@ -1029,14 +1029,14 @@ ads_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,val
   
   
   inter=ceiling(length(au_data)[1]/pas)# nombre d'iteration
-  # withProgress(
-  #    message='Please wait',
-  #    detail='Doing reasearche of publication in ads...',
-  #    value=0, {
+  withProgress(
+     message='Please wait',
+     detail='Doing reasearche of publication in ads...',
+     value=0, {
   for(h in 1:inter){
     first<-(h-1)*pas+1
     last<-h*pas
-#    incProgress(1/inter)
+    incProgress(1/inter)
     if(last>length(au_data)) last<-length(au_data)
     
     #ti_test="M31 Globular Clusters: Colors and Metallicities"
@@ -1127,7 +1127,7 @@ ads_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,val
     }
     if(length(dim(error_querry)) &(h==inter)>0) print("il y a des erreurs")
   }
-#})
+})
   
   
   
@@ -1449,15 +1449,15 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,pas=8,value_same_min_a
       res_ref=c() 
       error_querry_ref=c()#matrice erreur citation 
       
-      # withProgress(
-      #    message='Please wait',
-      #    detail=paste0("doing research reference in pumed"),
-      #    value=0, {
-      # #     
+      withProgress(
+         message='Please wait',
+         detail=paste0("doing research reference in pumed"),
+         value=0, {
+      #
         for(h in(1:inter)){
           first<-(h-1)*pas+1
           last<-h*pas
-          #incProgress(1/inter)
+          incProgress(1/inter)
           if(last>length(id_list_ref)) last<-length(id_list_ref)
           
           id_element=pumed_get_element_id(id_list_ref[first:last],type)
@@ -1466,7 +1466,7 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,pas=8,value_same_min_a
           error_querry_ref<-rbind(error_querry_ref,id_element$error)
           error_querry=c(error_querry,id_element$error)
         }
-    #})
+    })
       res_ref=as.data.frame(res_ref,stringsAsFactors = FALSE)
       
       
@@ -1515,13 +1515,13 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,pas=8,value_same_min_a
     id_raw=c()
     inter=ceiling(length(id_list)/pas)
     error_querry_cit=c()
-    #  withProgress(
-    #   message='Please wait',
-    #    detail=paste0("doing research citation in pumed"),
-    #      value=0, {
-    # #      
-      for(h in(1:inter)){ 
-       # incProgress(1/inter)
+     withProgress(
+      message='Please wait',
+       detail=paste0("doing research citation in pumed"),
+         value=0, {
+    #
+      for(h in(1:inter)){
+        incProgress(1/inter)
         first<-(h-1)*pas+1
         last<-h*pas
         if(last>length(id_list)) last<-length(id_list)
@@ -1574,7 +1574,7 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,pas=8,value_same_min_a
         }# ?tant donn?e que  nous pouvons avoir plusieur citation pour un seul article nous somme oblig? de faire se finir la boucle ii pour en commencer une autre 
         
       }
-    #})
+    })
     if(length(id_raw)!=dim(res_new)[1] && !is.null(res_new) ) id_raw<-c(id_raw,rep(NA,dim(res_new)[1]-length(id_raw)))
     res_new$citation<-id_raw
     
@@ -1663,16 +1663,16 @@ pumed_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,v
   
   
   au_data=sapply(1:length(au_data),FUN = function(x) paste(au_data[[x]],collapse = ";"))
-   # withProgress(
-   #   message='Please wait',
-   #   detail=paste0("doing research in pumed"),
-   #     value=0, {
-   #    
+   withProgress(
+     message='Please wait',
+     detail=paste0("doing research in pumed"),
+       value=0, {
+
     for(h in 1:inter){
       print(h)
       first<-(h-1)*pas+1
       last<-h*pas
-      #incProgress(1/inter)
+      incProgress(1/inter)
       if(last>length(au_data)) last<-length(au_data)
       
       
@@ -1780,7 +1780,7 @@ pumed_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,v
         }
       }
     }
-  #})
+  })
   
   
   
@@ -2182,7 +2182,7 @@ arxiv_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,v
     
     for(h in 1:inter){# boucle principale qui parcour les donn?es 
       
-      #incProgress(1/inter)
+      incProgress(1/inter)
       first<-(h-1)*pas_id+1# premier individu a prendre en compte(ligne)
       last<-h*pas       # dernier ""   "      "       "   "
       if(last>length(id)[1]) last<-length(id)
@@ -2308,16 +2308,16 @@ arxiv_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,v
     # print(paste("Le temps d'execution est estimé est  environs ",time_min,"minute(s)"))
     
     
-     # withProgress(
-     #   message='Please wait',
-     #   detail="searching for publication in arxiv",
-     #    value=0, {
-    for(h in 1:inter){# boucle principale qui parcour les donn?es 
+     withProgress(
+       message='Please wait',
+       detail="searching for publication in arxiv",
+        value=0, {
+    for(h in 1:inter){# boucle principale qui parcour les donn?es
       
       print(h)
       print("On passe title")
       start=c(start,Sys.time())
-           # incProgress(1/inter)
+      incProgress(1/inter)
       first<-(h-1)*pas+1# premier individu a prendre en compte(ligne)
       last<-h*pas       # dernier ""   "      "       "   "
       if(last>length(au_data)[1]) last<-length(au_data)
@@ -2437,7 +2437,7 @@ arxiv_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,v
         }
       }
     }
-  #})
+  })
 }
   return(list(res=res,error=error_querry,reject=res_reject)) 
 }

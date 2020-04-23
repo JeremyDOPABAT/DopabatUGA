@@ -24,7 +24,7 @@ table(data_wos$PY)
 max(data_wos$PY,na.rm = TRUE)-min(data_wos$PY,na.rm = TRUE)!=0
 #data_wos
 
-urce("C:/Users/moroguij/Documents/R_programs/functions_analyses.R")
+source("applitodeploy/global.R")
 
 
 
@@ -38,8 +38,6 @@ urce("C:/Users/moroguij/Documents/R_programs/functions_analyses.R")
 
 
 
-
-View(head(data_wos))
 #AB = abstract
 #ti=titre
 #Ar article number
@@ -53,7 +51,7 @@ path=choose.files(caption = "chosse your data file")
 data_wos<-convert2df(readFiles(path),dbsource = "wos",format = "bibtex")
 
 res_wos=data_wos[,c("TI","AU","DE","SC","PY")]
-names(res_wos)<-c('titre','auteur','keywords','domain','date')
+names(res_wos)<-c('title','author','keywords','domain','date')
 res_wos$idw=paste0("_",1:dim(res_wos)[1],"_")
 
 
@@ -62,16 +60,16 @@ res_wos$position_name=2
 res_wos$sep=";"
 res_wos$source="WOS"
 
-ti_name="titre"
-au_name="auteur"
 
 res_data_nasa_ads=extraction_data_api_nasa_ads(data_pub=res_wos,ti_name=ti_name,au_name=au_name,token=token,pas=8,value_same_min_accept=0.95,value_same_min_ask = 0,type="all",sep_vector_in_data ="sep",position_vector_in_data = "position_name",source_name = 'source' )
-res_arxiv=extraction_data_api_arxiv(data_pub=res_wos,ti_name=ti_name,au_name=au_name,pas=8,value_same_min_accept=0.95,value_same_min_ask = 0.85,type = "all",sep_vector_in_data ="sep",position_vector_in_data = "position_name",source_name = 'source')
+res_arxiv=extraction_data_api_arxiv(data_pub=ths,ti_name=ti_name,au_name=au_name,pas=1,value_same_min_accept=0.95,value_same_min_ask = 0.85,type = "all",sep_vector_in_data ="sep",position_vector_in_data = "position_name")
+
+res_arxiv_wos=extraction_data_api_arxiv(data_pub=res_wos,ti_name=ti_name,au_name=au_name,pas=1,value_same_min_accept=0.95,value_same_min_ask = 0.85,type = "all",sep_vector_in_data ="sep",position_vector_in_data = "position_name",source_name = 'source')
+
+View(res_arxiv$res_publi_foundt)
 
 
-
-
-
+View(res_arxiv_wos$res_publi_foundt)
 
 
 
@@ -357,16 +355,28 @@ names(arxi_data)
 
 
 
-dom_length<-sapply(1:length(luncher2_results$domp), FUN=function(x) length(unlist(luncher2_results$domp[x])))
-table(dom_length)
+## Numeric to integer
+class(rivers)
+x <- type.convert(rivers)
+class(x)
 
+## Convert many columns
+auto <- type.convert(mtcars)
+str(mtcars)
+str(auto)
 
-dom_length<-sapply(1:length(luncher2_results$domp1), FUN=function(x) length(unlist(luncher2_results$domp1[x])))
-table(dom_length)
+## Convert matrix
+phones <- type.convert(WorldPhones)
+storage.mode(WorldPhones)
+storage.mode(phones)
 
-dom_length<-sapply(1:length(luncher2_results$domp2), FUN=function(x) length(unlist(luncher2_results$domp2[x])))
-table(dom_length)
-
+## Factor or character
+chr <- c("A", "B", "B", "A")
+fac <- factor(c("A", "B", "B", "A"))
+type.convert(chr)               # -> factor
+type.convert(fac)               # -> factor
+type.convert(chr, as.is = TRUE) # -> character
+type.convert(fac, as.is = TRUE) # -> character
 
 
 #                
