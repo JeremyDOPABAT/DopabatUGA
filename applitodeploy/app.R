@@ -305,7 +305,11 @@ ui <-dashboardPage(skin = "red",
                                  
                                  # Show Word Cloud
                                  mainPanel(
-                                   #uiOutput("plot_wordcloud")
+                                   htmlOutput("text"),
+                                   tags$img(src = "logo_uga.png",hight=150,width=150,align="right"),
+                                   tags$img(src = "logo_colex.png",hight=150,width=150,align="right"),
+                                   tags$img(src = "logo_cnrs.png",hight=150,width=150,align="right"),
+                                   tags$img(src = "logo_psl.png",hight=150,width=150,align="left")
                                  )
                                )
                        )
@@ -398,6 +402,34 @@ server <- function(input, output, session) {
   outputOptions(output, "show_arxiv_res_window", suspendWhenHidden = FALSE)
   outputOptions(output, "show_id_arxiv", suspendWhenHidden = FALSE)
   
+  output$text <- renderText({
+    
+    paste( h3("DOPABAT, what is it ?"),"\n","DOPABAT (Développement d’outils d’analyse bibliométrique et d’audience des thèses) is a project funded by Collex-Persée. 
+          A national infrastructure of technique and sciences which support French researchers ","\n",
+           "The objectives are, on one hand to know the importance of thesis in the scientific production and, in the other and to know the importance of the cooperation between labs on the theme of physics and Astronomy.",
+           "\n","At first this project was a researcher’s request that consisted in the analysis of PHDs coming from two universities. We analyse all the bibliometric data, keywords, domain of study, citation, references..",
+           h3("DOPABAT,who is it?"),"
+  <ul>
+  <li>l’Université Grenoble Alpes</li>
+	  -DGD RIV\n
+	  -BAPSO\n
+	<li>L’Observatoire de Paris</li> 
+	  -BIbliothèque de l’Observatoire Paris Meudon
+	<li>l’Inist-CNRS</li>
+</ul>",h3("the Team" ),"<ul>
+  <li>Anne-Marie Badolato (INIST-CNRS)</li>
+	 <li>Aurélie Fayard (bibliothèque de l’Observatoire Paris - Meudon)</li> 
+	 	<li>Frédéric Saconnet  (bibliothèque de l’Observatoire Paris - Meudon)</li>
+	 	<li>Jeremy Moro--Guibbert (Université Grenoble Alpes)</li>
+	 <li>Didier Vercueil  (Université Grenoble Alpes)</li>
+  <li>Lucie Albaret  (Université Grenoble Alpes)</li>
+</ul>"
+           
+    )
+
+
+
+  })
   observeEvent(input$file1, {
     # input$file1 will be NULL initially. After the user selects
     # and uploads a file, head of that data file by default,
@@ -1535,7 +1567,6 @@ server <- function(input, output, session) {
 
 # Run the app ----
 shinyApp(ui, server)
-
 
 
 

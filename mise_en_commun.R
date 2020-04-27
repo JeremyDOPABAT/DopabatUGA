@@ -9,7 +9,7 @@ dim(ths)
 
 token="SYZW1C1o9mDDfOWXUSh7Jrq0MMqvleL2is0pnTNQ"
 
-source("global.R")
+source("applitodeploy/global.R")
 library(plyr)
 
 ths$position_name=1
@@ -19,12 +19,11 @@ res_data_nasa_ads=extraction_data_api_nasa_ads(data_pub=ths,ti_name=ti_name,au_n
 
 
 
-
+read_test<-data.table::fread(file = path_data, header = TRUE,sep = ";")
 
 dim(res_data_nasa_ads$error_querry_publi)
-
-
-
+View(res_arxiv$res_publi_foundt)
+View(res_to_save)
 
 
 res_arxiv=extraction_data_api_arxiv(data_pub=ths,ti_name=ti_name,au_name=au_name,pas=8,value_same_min_accept=0.95,value_same_min_ask = 0.85,type = "all",sep_vector_in_data ="sep",position_vector_in_data = "position_name")
@@ -104,11 +103,11 @@ setwd("~/R_programs")
 
 
 
-path_journal="data/DOPABAT_Titres_AvecWC.csv"
+path_journal="data/data_journal/table_categ_wos.csv"
 journal_table_ref=read.csv(path_journal, sep = ";",header = TRUE,stringsAsFactors = FALSE)
 journal_table_ref$Source_title<-gsub("\\s*\\([^\\)]+\\)","",journal_table_ref$Full.Journal.Title)
 journal_table_ref$Source_title<-gsub("[(#$%*,.:;<=>@^_`{|}~.)]","",journal_table_ref$Full.Journal.Title)
-
+names(journal_table_ref)
 
 
 journal_data=test$`citing journal`
@@ -126,7 +125,7 @@ names(test)
 
 
 
-dom<-find_journal_domaine_v2(test$`cited journal`,test$`cited issn`,test$`cited essn`,journal_table_ref)
+dom<-find_journal_domaine(test$`cited journal`,test$`cited issn`,journal_table_ref = journal_table_ref)
 dom_length<-sapply(1:length(dom), FUN=function(x) length(unlist(dom[x])))
 table(dom_length)
 unique(dom)
@@ -164,20 +163,14 @@ test=as.data.frame(rbind.fill(data_merge,pumed_data),stringsAsFactors = FALSE)
 #verifier les doublon 
 #verifier les doublon 
 
-
-
-dom<-find_journal_domaine(test$`refering journal`,test$`refering issn`,test$`refering essn`,journal_table_ref)
-print(Sys.time())
-dom_new=find_journal_domaine_(test$`refering journal`,test$`refering issn`,test$`refering essn`,journal_table_ref)
-print(Sys.time())
-##.old 11min
+source("applitodeploy/global.R")
+dim(test)
+dom<-find_journal_domaine(journal_data = test$`refering journal`,journal_table_ref = journal_table_ref,issn = test$`refering issn`)
+#.old 11min
 dom_length<-sapply(1:length(dom), FUN=function(x) length(unlist(dom[x])))
 table(dom_length)
 unique(dom)
 
-dom_length<-sapply(1:length(dom_new), FUN=function(x) length(unlist(dom_new[x])))
-table(dom_length)
-unique(dom_new)
 
 
 
@@ -185,15 +178,92 @@ unique(dom_new)
 
 test$refering_journal_domaine=dom
 
-dom2<-find_journal_domaine(test$`refered journal`,test$`refered issn`,test$`refered essn`,journal_table_ref)
+dom2<-find_journal_domaine(journal_data = test$`refered journal`,journal_table_ref = journal_table_ref,issn = test$`refered issn`)
 dom_length<-sapply(1:length(dom2), FUN=function(x) length(unlist(dom2[x])))
 table(dom_length)
 unique(dom2)
 
 
+
+
+
+
+
+#----------------------------------------------------------------------------------
+
+
 test$refered_journal_domaine=dom2
-names(test)
-names(arxi_data)
+
+
+View(test)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+nb_categ=unlist(test$refered_journal_domaine)
+list_categ<-names(table(nb_categ))
+
+matrice_prop=as.data.frame(matrix(0,ncol=length(list_categ)+1))
+names(matrice_dist)=c("id",list_categ)
+precedent=""
+for(i in 1:dim(test)[1]){
+  if(!is.null(test$refered_journal_domaine[[i]])){
+    if(precedent!=test$`refering identifier`[[i]]){
+      line=c(test$`refering identifier`[[i]],rep(0,length(list_categ)))
+      matrice_dist=rbind(matrice_dist,line)
+    }
+    col_ind=which(names(matrice_dist)==test$refered_journal_domaine[[i]])
+    matrice_prop[dim(matrice_dist)[1],col_ind]=1
+    precedent=test$`refering identifier`[[i]]
+  }
+}
+matrice_prop<-type.convert(matrice_dist)
+matrice_prop["sum"]<-rowSums(matrice_dist[,2:length(matrice_dist)])
+
+
+table_dist<-read.table(file="data/data_journal/category_similarity_matrix.txt",header = TRUE,sep = " ",dec ="." )
+dim(table_dist)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 is.na(test) <- test == "NULL"
 #View(test[c("cited_journal_domaine","cited subject","citing_journal_domaine","citing subject")])
