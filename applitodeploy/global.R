@@ -846,7 +846,6 @@ get_cit_or_ref_arxiv<-function(resdt,type){
       fin<-grep("</dd>",text_base)
       
       
-      print("voici deb ")
       print(deb)
       
       
@@ -1235,8 +1234,9 @@ shinyInput <- function(FUN, len, id, ...) {
 }
 
 
-find_journal_domaine<-function(journal_data,journal_table_ref,issn="",essn=""){
-  
+find_journal_domaine<-function(journal_data,journal_table_ref,issn="",essn="",source=""){
+  if(source=="") col_journal="Full.Journal.Title" else col_journal=source
+  journal_table_ref$Abreviation[journal_table_ref$Abreviation==""]=NA
   
   #Cette fonction permet de retrouver le domaine avec le nom du journal
   
@@ -1278,19 +1278,19 @@ find_journal_domaine<-function(journal_data,journal_table_ref,issn="",essn=""){
         }
         #on seach le nom exacte du journal dans la liste de reférence 
         #tryCatch({
-        tp=grep(paste0("^",tolower(trimws(gsub("[(#$%*,.:;<=>@^_`{|}~.)]","",gsub("\\s*\\([^\\)]+\\)","",journal_data[x])))),"$"),tolower(trimws(journal_courant$Full.Journal.Title)),fixed = TRUE)
+        tp=grep(paste0("^",tolower(trimws(gsub("[(#$%*,.:;<=>@^_`{|}~.)]","",gsub("\\s*\\([^\\)]+\\)","",journal_data[x])))),"$"),tolower(trimws(journal_courant[[source]])))
         #}, error = function(e) { return(NA)})
         
         if(length(tp)>0){
           return((journal_courant$Abreviation[tp]))
         }else{
           # on cherche une correspondance de reference qui commence par le debut
-          tp=grep(paste0("^",tolower(trimws(gsub("[(#$%*,.:;<=>@^_`{|}~.)]","",gsub("\\s*\\([^\\)]+\\)","",journal_data[x]))))),tolower(trimws(journal_courant$Full.Journal.Title)),fixed = TRUE)
+          tp=grep(paste0("^",tolower(trimws(gsub("[(#$%*,.:;<=>@^_`{|}~.)]","",gsub("\\s*\\([^\\)]+\\)","",journal_data[x]))))),tolower(trimws(journal_courant[[source]])))
           if(length(tp)==1){
             return((journal_courant$Abreviation[tp]))
           } else {
             #on cherche une référence corespondans partout dans le nom
-            tp=grep(paste0(tolower(trimws(gsub("[(#$%*,.:;<=>@^_`{|}~.)]","",gsub("\\s*\\([^\\)]+\\)","",journal_data[x]))))),tolower(trimws(journal_courant$Full.Journal.Title)),fixed = TRUE)
+            tp=grep(paste0(tolower(trimws(gsub("[(#$%*,.:;<=>@^_`{|}~.)]","",gsub("\\s*\\([^\\)]+\\)","",journal_data[x]))))),tolower(trimws(journal_courant[[source]])))
             if(length(tp)==1){
               return((journal_courant$Abreviation[tp]))
             }
@@ -2442,3 +2442,58 @@ arxiv_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,v
   return(list(res=res,error=error_querry,reject=res_reject)) 
 }
 
+
+
+
+extract_ref_wos<-function(data_wos){
+  
+  
+  res_wos=data_wos[,c("TI","AU","DE","SC","PY")]
+  names(res_wos)<-c('title','author','keywords','domain','date')
+  res_wos$idw=paste0("_",1:dim(res_wos)[1],"_")
+  
+  
+  
+  ref_split<-strsplit(data_wos$CR,split = ";")
+  
+  test_split=sapply(1:dim(data_wos)[1],FUN=function(x) strsplit(ref_split[[x]],split = ","))
+  
+  res<-c()
+  length_data=c()
+  for(i in (1:length(test_split))){
+    temp<-sapply(1:length(test_split[[i]]), FUN=function(x){
+      courant=test_split[[i]][[x]]
+      
+      auth<-courant[1]
+      year<-courant[2]
+      journ<-courant[3]
+      id=paste0("_",i,"_")
+      return(list(id,auth,year,journ))
+    })   
+    res<-rbind(res, t(temp))
+  }
+  res_ref<-as.data.frame(res)
+  names(res_ref)=c("id","author","year", "journ")
+  
+  
+  
+  #View(res_ref)
+  
+  
+  ind_id<-sapply(res_ref$id,function(x){
+    return(grep(x,res_wos$idw,fixed = TRUE))
+  })
+  
+  
+  
+  
+  
+  
+  res_ref_final=cbind(res_wos[unlist(ind_id),],res_ref)
+  res_ref_final<-res_ref_final[,-which(names(res_ref_final)=="keywords")]
+  
+  #length(names(res_ref_final))
+  names(res_ref_final)<- c("refering title",'refering auth',"refering domaine","refering date","refering identifier","refered identifier","refered auth","refered date","refered journal" )
+  res_ref_final["source"]="WOS"
+  return(res_ref_final)
+}

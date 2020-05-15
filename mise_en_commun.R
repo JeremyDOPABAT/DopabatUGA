@@ -19,7 +19,6 @@ res_data_nasa_ads=extraction_data_api_nasa_ads(data_pub=ths,ti_name=ti_name,au_n
 
 
 
-read_test<-data.table::fread(file = path_data, header = TRUE,sep = ";")
 
 dim(res_data_nasa_ads$error_querry_publi)
 View(res_arxiv$res_publi_foundt)
@@ -92,7 +91,6 @@ res_cit[t,c("bibcode","titre")]
 
 
 #____________________________________________________________
-setwd("~/R_programs")
 
 
 
@@ -150,41 +148,50 @@ View(tbc)
 
 
 
-arxi_data=res_arxiv$res_reference_accept
-ads_data=res_data_nasa_ads$dataframe_ref_accept
-pumed_data=res_pumed$dataframe_ref_accept
-names(ads_data)
-names(arxi_data)
-dim(ads_data)
-dim(arxi_data)
-dim(pumed_data)
-data_merge=as.data.frame(rbind.fill(ads_data,arxi_data),stringsAsFactors = FALSE)
-test=as.data.frame(rbind.fill(data_merge,pumed_data),stringsAsFactors = FALSE)
-#verifier les doublon 
-#verifier les doublon 
-
-source("applitodeploy/global.R")
-dim(test)
-dom<-find_journal_domaine(journal_data = test$`refering journal`,journal_table_ref = journal_table_ref,issn = test$`refering issn`)
-#.old 11min
-dom_length<-sapply(1:length(dom), FUN=function(x) length(unlist(dom[x])))
-table(dom_length)
-unique(dom)
 
 
+df_global=test
+type="ref"
+df_global=test 
+prescence_ref_wos=TRUE
+
+combine_analyse_data<-function(df_global,journal_table_ref,prescence_ref_wos,type){
+  if(type=="ref"){
+    if(prescence_ref_wos==TRUE){
+      dom_wos=NULL
+      dom_not_wos=NULL
+      df_global=df_global[order(df_global$source),]
+      df_global_wos=df_global[df_global$source=="WOS",]
+      
+      if(dim(df_global_wos)[1]!=0) dom_wos<-find_journal_domaine(journal_data = df_global_wos$`refered journal`,journal_table_ref = journal_table_ref,issn = test$`refered issn`,source ="JCR.Abbreviated.Title" )
+      df_global_not_wos=df_global[df_global$source!="WOS",]
+      if(dim(df_global_not_wos)[1]!=0) dom_not_wos<-find_journal_domaine(journal_data = df_global_not_wos$`refered journal`,journal_table_ref = journal_table_ref,issn = test$`refered issn` )
+      dom=c(dom_not_wos,dom_wos)
+      
+    }else {
+      dom<-find_journal_domaine(journal_data = df_global$`refered journal`,journal_table_ref = journal_table_ref,issn = test$`refered issn` )
+    }
+    df_global$refered_journal_domaine=dom
+  }else{#pour les citation il n'y a pas de patricularité dans le wos
+    dom<-find_journal_domaine(journal_data = df_global$`citing journal`,journal_table_ref = journal_table_ref,issn = test$`refered issn` )
+    df_global$refered_journal_domaine=dom
+  }
+  return(df_global)  
+}
+test<-combine_analyse_data(test,journal_table_ref,prescence_ref=TRUE,type="ref" )
+# #dom<-find_journal_domaine(journal_data = test$`refering journal`,journal_table_ref = journal_table_ref,issn = test$`refering issn`)
+# #.old 11min
 
 
 
-
-test$refering_journal_domaine=dom
-
-dom2<-find_journal_domaine(journal_data = test$`refered journal`,journal_table_ref = journal_table_ref,issn = test$`refered issn`)
-dom_length<-sapply(1:length(dom2), FUN=function(x) length(unlist(dom2[x])))
-table(dom_length)
-unique(dom2)
+# dom<-find_journal_domaine(journal_data =test$`refered journal`[[i]],journal_table_ref = journal_table_ref,issn = test$`refered issn`,source ="JCR.Abbreviated.Title" )
 
 
+  
 
+# table(dom_length)
+# unique(dom2)
+#dom_length<-sapply(1:length(dom2), FUN=function(x) length(unlist(dom2[x])))
 
 
 
@@ -192,11 +199,10 @@ unique(dom2)
 #----------------------------------------------------------------------------------
 
 
-test$refered_journal_domaine=dom2
 
 
-View(test)
 
+#View(test)
 
 
 
@@ -217,26 +223,77 @@ View(test)
 nb_categ=unlist(test$refered_journal_domaine)
 list_categ<-names(table(nb_categ))
 
-matrice_prop=as.data.frame(matrix(0,ncol=length(list_categ)+1))
-names(matrice_dist)=c("id",list_categ)
+matrice_prop=as.data.frame(matrix(0,ncol=length(list_categ)))
+names(matrice_prop)=c(list_categ)
 precedent=""
 for(i in 1:dim(test)[1]){
   if(!is.null(test$refered_journal_domaine[[i]])){
     if(precedent!=test$`refering identifier`[[i]]){
-      line=c(test$`refering identifier`[[i]],rep(0,length(list_categ)))
-      matrice_dist=rbind(matrice_dist,line)
+      line=rep(0,length(list_categ))
+      matrice_prop=rbind(matrice_prop,line)
     }
-    col_ind=which(names(matrice_dist)==test$refered_journal_domaine[[i]])
-    matrice_prop[dim(matrice_dist)[1],col_ind]=1
+    col_ind=match(unique(test$refered_journal_domaine[[i]]),names(matrice_prop))
+    
+    col_ind=col_ind[!is.na(col_ind)]
+    matrice_prop[dim(matrice_prop)[1],col_ind]= matrice_prop[dim(matrice_prop)[1],col_ind]+1
     precedent=test$`refering identifier`[[i]]
   }
 }
-matrice_prop<-type.convert(matrice_dist)
-matrice_prop["sum"]<-rowSums(matrice_dist[,2:length(matrice_dist)])
-
+matrice_prop<-matrice_prop[-1,]
+matrice_prop<-type.convert(matrice_prop)
+sumcol=colSums(matrice_prop)
+matrice_prop=rbind(matrice_prop,sumcol)
+sumrow=rowSums(matrice_prop)
 
 table_dist<-read.table(file="data/data_journal/category_similarity_matrix.txt",header = TRUE,sep = " ",dec ="." )
-dim(table_dist)
+
+dim(matrice_prop)
+
+
+
+interdis_calcul<-function(matrice_prop, table_dist){
+  dia=sapply(1:dim(matrice_prop)[1],FUN = function(x){
+    
+    cal=0
+    matrice_prop[x,]=matrice_prop[x,]/sumrow[[x]]
+    lien<-list()
+    for(i in 1:dim(matrice_prop)[2]){
+      
+      for(j in 1:dim(matrice_prop)[2]){
+        
+        if(matrice_prop[x,i]!=0 && matrice_prop[x,j]!=0){
+          n1=names(matrice_prop)[i]
+          n2=names(matrice_prop)[j]
+          dij=table_dist[n1,n2]
+          lien=append(list(c(n1,n2)),lien)
+          cal=cal+matrice_prop[x,i]*matrice_prop[x,j]*dij
+          }
+      }
+    }
+    return(list(valeur=cal,couple=lien))
+  }
+  )
+
+  (DD=unlist(dia["valeur",][length(dia["valeur",])]))
+
+  (ID=mean(unlist(dia["valeur",][-length(dia["valeur",])])))
+
+
+  (MD=DD-ID)
+  matrice_prop=cbind(matrice_prop,c(unique(test$`refering identifier`),"Total"))
+  
+  resultat<-list(dia=dia["valeur",],md=MD,id=ID,dd=DD,prop=matrice_prop,couple=dia["couple",])
+  return(resultat)
+}
+#rajouter id dans matrice pop 
+
+
+
+
+
+
+resultat=interdis_calcul(matrice_prop, table_dist)
+resultat$couple[[1]]
 
 
 
@@ -246,36 +303,6 @@ dim(table_dist)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-is.na(test) <- test == "NULL"
-#View(test[c("cited_journal_domaine","cited subject","citing_journal_domaine","citing subject")])
-tbc<-as.data.frame((table(unlist(test$refering_journal_domaine),unlist(test$refered_journal_domaine))),stringsAsFactors = FALSE)
-names(tbc)<-c("refering", "refered", "freq")
-
-
-# typeof(test$`citing journal`)
-# write.csv(tbc,"donnee references.csv")
-
-View(tbc)
-names(test)
 
 #.premisse du graph ________________________________________________
 
@@ -283,7 +310,7 @@ names(test)
 
 
  
-wei<-tbc$freq[tbc$freq!=0]
+wei<-resultat$couple
   
   
   

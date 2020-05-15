@@ -30,7 +30,7 @@ ui <-dashboardPage(skin = "red",
                      menuItem("Import_WOS", tabName = "import_wos", icon = icon("file-export")),
                      menuItem("Worcloud Graphics", tabName = "wordcloud", icon = icon("th")),
                      menuItem("Notwork Graphics", tabName = "network", icon = icon("project-diagram")),
-                     menuItem("interdiciplinarity", tabName = "DB", icon = icon("database")),
+                     menuItem("interdisciplinarity", tabName = "DB", icon = icon("database")),
                      menuItem("About us", tabName = "about", icon = icon("address-card"))
                      #-------------------------------------------------------------------  
                    )),
@@ -83,9 +83,9 @@ ui <-dashboardPage(skin = "red",
                                                               All = "all"),
                                                   selected = "head"),
                                      
-                                     tags$div(title="the order of the author need to be told, the surname don't need to be complete abreviation works",radioButtons("position_name_CSV", "disposition of name and surname",
-                                                                                                                                                                    choices = c("Name Surname" = "2",
-                                                                                                                                                                                "Surname Name" = "1"),
+                                     tags$div(title="the order of the author need to be told, the firstname don't need to be complete abreviation works",radioButtons("position_name_CSV", "disposition of name and firstname",
+                                                                                                                                                                    choices = c("Name Firstname" = "2",
+                                                                                                                                                                                "Firstname Name" = "1"),
                                                                                                                                                                     selected = "1")),
                                      tags$div(title="The character which sep each author in the column ",radioButtons("sep_author_csv", "Separator of author names",
                                                                                                                       choices = c("," = ",",
@@ -143,10 +143,10 @@ ui <-dashboardPage(skin = "red",
                                  box(width = 5, title = "Uploading files", solidHeader = TRUE, status = "danger",
                                      tags$div(title="the pdf files in pdf folder will be shown ",actionButton("pdf_path", "Click to select you pdf folder")),
                                      tags$hr(),
-                                     tags$div(title="the order of the author need to be told, the surname don't need to be complete abreviation works, use the data vision if you need",
-                                              radioButtons("position_name_pdf", "disposition of name and surname",
-                                                           choices = c("Name Surname" = "2",
-                                                                       "Surname Name" = "1"),
+                                     tags$div(title="the order of the author need to be told, the firstname don't need to be complete abreviation works, use the data vision if you need",
+                                              radioButtons("position_name_pdf", "disposition of name and firstname",
+                                                           choices = c("Name firstname" = "2",
+                                                                       "Firstname Name" = "1"),
                                                            selected = "1")),
                                      tags$div(title="The character which sep each author in the column ",radioButtons("sep_author_pdf", "Separator of author names",
                                                                                                                       choices = c("," = ",",
@@ -235,7 +235,7 @@ ui <-dashboardPage(skin = "red",
                                
                        ),
                        tabItem(tabName = "DB",
-                               titlePanel("interdiciplinarity cit and ref "),
+                               titlePanel("interdisciplinarity cit and ref "),
                                fluidRow(
                                  
                                  box(width = 4, title = "Chose the databases you want to use", solidHeader = TRUE, status = "danger",
@@ -357,8 +357,10 @@ server <- function(input, output, session) {
     res_pumed=NULL,##res_pumed, #temporaire 
     table_to_show_ref=NULL,
     fmts=c("%d/%m/%y","%Y", "%Y-%m", "%m/%d/%y","%d-%m-%Y","%B %d, %Y","%Y-%m-%d"),
-    active_source=NULL
-  )
+    active_source=NULL,
+    value_same_min_accept=0.95,
+    value_same_min_ask=0.85
+  )  
   
   output$show_header <- reactive({
     reactive_values$show_header
@@ -448,8 +450,9 @@ server <- function(input, output, session) {
                      header = input$header,
                      sep = input$sep,
                      quote = input$quote,encoding = input$encoding),stringsAsFactors = FALSE)
-      print("le csv est lu")
-      print(class(df))
+      print(session$user)
+      print("lle csv est lu")
+      
       #},
       # error=function(cond){
       #   return(-400)
@@ -504,7 +507,7 @@ server <- function(input, output, session) {
       print("you clique on validate")
       if(input$file1$datapath %in% reactive_values$privious_datapath_csv){
         showModal(modalDialog(
-          title = "Invalid path",
+          title = "File already analysed",
           "This file as been analysed already ",
           easyClose = TRUE,
           footer = NULL
@@ -953,7 +956,7 @@ server <- function(input, output, session) {
     if(is.na(reactive_values$path_folder)){
       showModal(modalDialog(
         title = "Invalid path",
-        "Please select a good path",
+        "Please select a good path, this one semms to be false",
         easyClose = TRUE,
         footer = NULL
       ))
@@ -998,7 +1001,7 @@ server <- function(input, output, session) {
     print("validation du pdf")
     if(reactive_values$path_folder %in% reactive_values$privious_datapath_pdf){
       showModal(modalDialog(
-        title = "Invalid path",
+        title = "File already analysed",
         "This file as been analysed already ",
         easyClose = TRUE,
         footer = NULL
@@ -1107,9 +1110,9 @@ server <- function(input, output, session) {
         }else {
           reactive_values$show_ads_res_window=TRUE
           if(input$sup_wos_for_ref==TRUE){# a changer
-            reactive_values$res_ads=extraction_data_api_nasa_ads(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",token=input$token,pas=8,value_same_min_accept=0.95,value_same_min_ask = 0.85,type =input$type,source_name = "source",sep_vector_in_data ="sep",position_vector_in_data = "position_name")
+            reactive_values$res_ads=extraction_data_api_nasa_ads(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",token=input$token,pas=8,value_same_min_accept=reactive_values$value_same_min_accept,value_same_min_ask = reactive_values$value_same_min_ask,type =input$type,source_name = "source",sep_vector_in_data ="sep",position_vector_in_data = "position_name")
           }else{
-            reactive_values$res_ads=extraction_data_api_nasa_ads(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",token=input$token,pas=8,value_same_min_accept=0.95,value_same_min_ask = 0.85,type =input$type,sep_vector_in_data ="sep",position_vector_in_data = "position_name")
+            reactive_values$res_ads=extraction_data_api_nasa_ads(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",token=input$token,pas=8,value_same_min_accept=reactive_values$value_same_min_accept,value_same_min_ask = reactive_values$value_same_min_ask,type =input$type,sep_vector_in_data ="sep",position_vector_in_data = "position_name")
           }
         }
       }
@@ -1117,18 +1120,18 @@ server <- function(input, output, session) {
 
         reactive_values$show_arxiv_res_window=TRUE
         if(input$sup_wos_for_ref==TRUE){
-          reactive_values$res_arxiv=extraction_data_api_arxiv(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",pas=8,value_same_min_accept=0.95,value_same_min_ask = 0.85,type = input$type,source_name = "source",sep_vector_in_data ="sep",position_vector_in_data = "position_name",id_name ="id_arxiv" )
+          reactive_values$res_arxiv=extraction_data_api_arxiv(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",pas=8,value_same_min_accept=reactive_values$value_same_min_accept,value_same_min_ask = reactive_values$value_same_min_ask,type = input$type,source_name = "source",sep_vector_in_data ="sep",position_vector_in_data = "position_name",id_name ="id_arxiv" )
         }else{
           print("cest dans la fct)")
-          reactive_values$res_arxiv=extraction_data_api_arxiv(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",pas=8,value_same_min_accept=0.95,value_same_min_ask = 0.85,type = input$type,sep_vector_in_data ="sep",position_vector_in_data = "position_name",id_name = "id_arxiv")
+          reactive_values$res_arxiv=extraction_data_api_arxiv(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",pas=8,value_same_min_accept=reactive_values$value_same_min_accept,value_same_min_ask = reactive_values$value_same_min_ask,type = input$type,sep_vector_in_data ="sep",position_vector_in_data = "position_name",id_name = "id_arxiv")
         }
       }
       if(input$pubmed==TRUE){
         reactive_values$show_pumed_res_window=TRUE
         if(input$sup_wos_for_ref==TRUE){
-          reactive_values$res_pumed=extract_data_api_pumed(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",pas=8,value_same_min_accept=0.85, value_same_min_ask=0.95,type = input$type,source_name = "source",sep_vector_in_data ="sep",position_vector_in_data = "position_name")
+          reactive_values$res_pumed=extract_data_api_pumed(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",pas=8,value_same_min_accept=reactive_values$value_same_min_accept, value_same_min_ask=reactive_values$value_same_min_ask,type = input$type,source_name = "source",sep_vector_in_data ="sep",position_vector_in_data = "position_name")
         }else {
-          reactive_values$res_pumed=extract_data_api_pumed(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",pas=8,value_same_min_accept=0.85, value_same_min_ask=0.95,type = input$type,sep_vector_in_data ="sep",position_vector_in_data = "position_name")
+          reactive_values$res_pumed=extract_data_api_pumed(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",pas=8,value_same_min_accept=reactive_values$value_same_min_accept, value_same_min_ask=reactive_values$value_same_min_ask,type = input$type,sep_vector_in_data ="sep",position_vector_in_data = "position_name")
         }
       }
 
@@ -1179,7 +1182,7 @@ server <- function(input, output, session) {
 
     if(input$file2$datapath %in% reactive_values$privious_datapath_wos){
       showModal(modalDialog(
-        title = "Invalid path",
+        title = "file already analysed",
         "This file as been analysed already ",
         easyClose = TRUE,
         footer = NULL
@@ -1298,7 +1301,7 @@ server <- function(input, output, session) {
   })
 
   observeEvent(input$ads_cit_ask,{
-    reactive_values$table_to_show_ref=reactive_values$res_ads$dataframe_publi_found[(reactive_values$res_ads$dataframe_publi_found$check_title_pct<value_same_min_accept) &(reactive_values$res_ads$dataframe_publi_found$check_title_pct>=value_same_min_ask),]
+    reactive_values$table_to_show_ref=reactive_values$res_ads$dataframe_publi_found[(reactive_values$res_ads$dataframe_publi_found$check_title_pct<reactive_values$value_same_min_accept) &(reactive_values$res_ads$dataframe_publi_found$check_title_pct>=reactive_values$value_same_min_ask),]
     if(dim(reactive_values$table_to_show_ref)[1]>0) rownames(reactive_values$table_to_show_ref)<-1:nrow(reactive_values$table_to_show_ref)
     df <- reactiveValues(data =cbind(shinyInput(actionButton, nrow(reactive_values$table_to_show_ref), 'button_', label = "Transfer", onclick = 'Shiny.onInp"en_UShange(\"select_button\",  this.id)' ),reactive_values$table_to_show_ref
     ) )
@@ -1434,7 +1437,7 @@ server <- function(input, output, session) {
     })
   })
   observeEvent(input$arxiv_ask,{
-    reactive_values$table_to_show_ref=reactive_values$res_arxiv$res_publi_foundt[(reactive_values$res_arxiv$res_publi_foundt$check_pct<value_same_min_accept),]
+    reactive_values$table_to_show_ref=reactive_values$res_arxiv$res_publi_foundt[(reactive_values$res_arxiv$res_publi_foundt$check_pct<reactive_values$value_same_min_accept),]
 
     if(dim(reactive_values$table_to_show_ref)[1]>0) rownames(reactive_values$table_to_show_ref)<-1:nrow(reactive_values$table_to_show_ref)
     df <- reactiveValues(data =cbind(shinyInput(actionButton, nrow(reactive_values$table_to_show_ref), 'button_', label = "Transfer", onclick = 'Shiny.onInputChange(\"select_button\",  this.id)' ),reactive_values$table_to_show_ref
@@ -1515,7 +1518,7 @@ server <- function(input, output, session) {
 
     print("je passe sur pumed ask ")
     View(reactive_values$res_pumed$dataframe_publi_found)
-    reactive_values$table_to_show_ref=reactive_values$res_pumed$dataframe_publi_found[(reactive_values$res_pumed$dataframe_publi_found$check_title_pct<value_same_min_accept),]
+    reactive_values$table_to_show_ref=reactive_values$res_pumed$dataframe_publi_found[(reactive_values$res_pumed$dataframe_publi_found$check_title_pct<reactive_values$value_same_min_accept),]
 
     if(dim(reactive_values$table_to_show_ref)[1]>0) rownames(reactive_values$table_to_show_ref)<-1:nrow(reactive_values$table_to_show_ref)
     df <- reactiveValues(data =cbind(shinyInput(actionButton, nrow(reactive_values$table_to_show_ref), 'button_', label = "Transfer", onclick = 'Shiny.onInputChange(\"select_button\",  this.id)' ),reactive_values$table_to_show_ref
