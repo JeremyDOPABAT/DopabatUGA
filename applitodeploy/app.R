@@ -27,11 +27,14 @@ ui <-dashboardPage(skin = "red",
                    dashboardSidebar( sidebarMenu(
                      menuItem("Import_csv", tabName = "import_csv", icon = icon(name = "arrow-circle-up")),
                      menuItem("Import_PDF", tabName = "import_pdf", icon = icon("file-pdf")),
-                     menuItem("Import_WOS", tabName = "import_wos", icon = icon("file-export")),
+                     menuItem("Import_bibext", tabName = "import_wos", icon = icon("file-export")),
                      menuItem("Worcloud Graphics", tabName = "wordcloud", icon = icon("th")),
                      menuItem("Notwork Graphics", tabName = "network", icon = icon("project-diagram")),
-                     menuItem("interdisciplinarity", tabName = "DB", icon = icon("database")),
+                     menuItem("Reasech interdiciplinarity", tabName = "DB", icon = icon("database")),
+                     menuItem("Result interdiciplinarity", tabName = "calculinterdisciplinarity", icon = icon("database")),
+                     menuItem("History", tabName = "history", icon = icon("address-card")),
                      menuItem("About us", tabName = "about", icon = icon("address-card"))
+                     
                      #-------------------------------------------------------------------  
                    )),
                    dashboardBody(
@@ -84,8 +87,8 @@ ui <-dashboardPage(skin = "red",
                                                   selected = "head"),
                                      
                                      tags$div(title="the order of the author need to be told, the firstname don't need to be complete abreviation works",radioButtons("position_name_CSV", "disposition of name and firstname",
-                                                                                                                                                                    choices = c("Name Firstname" = "2",
-                                                                                                                                                                                "Firstname Name" = "1"),
+                                                                                                                                                                    choices = c("Lastname Firstname" = "2",
+                                                                                                                                                                                "Firstname Lastname" = "1"),
                                                                                                                                                                     selected = "1")),
                                      tags$div(title="The character which sep each author in the column ",radioButtons("sep_author_csv", "Separator of author names",
                                                                                                                       choices = c("," = ",",
@@ -145,8 +148,8 @@ ui <-dashboardPage(skin = "red",
                                      tags$hr(),
                                      tags$div(title="the order of the author need to be told, the firstname don't need to be complete abreviation works, use the data vision if you need",
                                               radioButtons("position_name_pdf", "disposition of name and firstname",
-                                                           choices = c("Name firstname" = "2",
-                                                                       "Firstname Name" = "1"),
+                                                           choices = c("Lastname Firstname" = "2",
+                                                                       "Firstname Lastname" = "1"),
                                                            selected = "1")),
                                      tags$div(title="The character which sep each author in the column ",radioButtons("sep_author_pdf", "Separator of author names",
                                                                                                                       choices = c("," = ",",
@@ -174,7 +177,11 @@ ui <-dashboardPage(skin = "red",
                                                                                               multiple = TRUE,
                                                                                               accept = c(".bib"))),
                                      tags$hr(),
-                                     checkboxInput("sup_wos_for_ref", "this file already countain reference, don't reasearch then",value = FALSE),
+                                     tags$div(title="the order of the author need to be told, the firstname don't need to be complete abreviation works",radioButtons("position_name_wos", "disposition of name and firstname",
+                                                                                                                                                                      choices = c("Lastname Firstname" = "2",
+                                                                                                                                                                                  "Firstname Lastname" = "1"),
+                                                                                                                                                                      selected = "1")),
+                                     checkboxInput("sup_wos_for_ref", "this file already countain reference, don't reasearch them",value = FALSE),
                                      conditionalPanel('output.show_wos_valid',actionButton("valid_wos", "validate"))
                                      #
                                  ),
@@ -186,10 +193,13 @@ ui <-dashboardPage(skin = "red",
                                )
                                
                        ),
-                       
+                       tabItem(tabName = "history",
+                               titlePanel("Files already in the analyse"),
+                               textOutput("list_file")
+                       ),
                        
                        tabItem(tabName = "wordcloud",
-                               titlePanel("Words cloud graphics (soon)"),
+                               titlePanel("Words cloud graphics"),
                                
                                
                                #wordcloud
@@ -235,7 +245,7 @@ ui <-dashboardPage(skin = "red",
                                
                        ),
                        tabItem(tabName = "DB",
-                               titlePanel("interdisciplinarity cit and ref "),
+                               titlePanel("research cit and ref "),
                                fluidRow(
                                  
                                  box(width = 4, title = "Chose the databases you want to use", solidHeader = TRUE, status = "danger",
@@ -252,7 +262,7 @@ ui <-dashboardPage(skin = "red",
                                                   selected = "cit"),
                                      
                                      
-                                     actionButton("valid_DB", "Process"),
+                                     actionButton("valid_DB", "Process the reaseach"),
                                      conditionalPanel('output.show_token_ads',textInput("token",label ="Token" )),
                                      
                                      
@@ -284,16 +294,19 @@ ui <-dashboardPage(skin = "red",
                                                                                              actionButton("pubmed_cit_accept", "Show citations")),
                                                                             actionButton("pubmed_error", "Show error(s)"),
                                                                             actionButton("pubmed_ask","Show publication found with doute"),
-                                                                            dataTableOutput("table_data_ref3")))
+                                                                            dataTableOutput("table_data_ref3"))),
+                                        
+                                        tabPanel("WOS",conditionalPanel('output.show_wos_res_window', dataTableOutput("table_data_ref4"))),
                                         
                                         
                                         
-                                        
-                                        # Horizontal line ----
+                                        actionButton("valid_data_research", "calculate interdisiplinarity")      # Horizontal line ----
                                         
                                  )
                                )
                        ),
+                       tabItem(tabName = "calculinterdisciplinarity",
+                               titlePanel("calcul interdisciplinarity")),
                        
                        tabItem(tabName = "about",
                                titlePanel("DOPABAT Project"),
@@ -306,10 +319,16 @@ ui <-dashboardPage(skin = "red",
                                  # Show Word Cloud
                                  mainPanel(
                                    htmlOutput("text"),
-                                   tags$img(src = "logo_uga.png",hight=150,width=150,align="right"),
-                                   tags$img(src = "logo_colex.png",hight=150,width=150,align="right"),
-                                   tags$img(src = "logo_cnrs.png",hight=150,width=150,align="right"),
-                                   tags$img(src = "logo_psl.png",hight=150,width=150,align="left")
+                                   HTML('<br>'),
+                                   HTML('<br>'),
+                                   tags$div(HTML('<img src="logo_uga.png" hight="120" width="120">'),HTML('<img src = "logo_colex.png" hight="135" width="135">' )),
+                                   HTML('<br>'),
+                                   HTML('<br>'),
+                                   HTML('<br>'),
+                                   tags$div(HTML('<img src = "logo_cnrs.png" hight="100" width="100">' ),HTML('<img src = "logo_psl.png" hight="100" width="100">' ))
+                                   #tags$img(src = "logo_colex.png",hight="150px",width="150px",align="left"),
+                                   #tags$img(src = "logo_cnrs.png",hight="150px",width="150px",align="left"),
+                                   #tags$img(src = "logo_psl.png",hight="150px",width="150px",align="left")
                                  )
                                )
                        )
@@ -352,9 +371,11 @@ server <- function(input, output, session) {
     show_ads_res_window=FALSE,
     show_pumed_res_window=FALSE,
     show_arxiv_res_window=FALSE,
+    show_wos_res_window=FALSE,
     res_ads=NULL,#res_data_nasa_ads,#temporaire 
     res_arxiv=NULL,#res_arxiv, #temporaire
     res_pumed=NULL,##res_pumed, #temporaire 
+    ref_wos=c(),
     table_to_show_ref=NULL,
     fmts=c("%d/%m/%y","%Y", "%Y-%m", "%m/%d/%y","%d-%m-%Y","%B %d, %Y","%Y-%m-%d"),
     active_source=NULL,
@@ -393,6 +414,11 @@ server <- function(input, output, session) {
   output$show_arxiv_res_window<- reactive({
     reactive_values$show_arxiv_res_window
   })
+  
+output$show_wos_res_window<- reactive({
+    reactive_values$show_wos_res_window
+  })
+  
   outputOptions(output, "show_header", suspendWhenHidden = FALSE)
   outputOptions(output, "show_pdf_valid", suspendWhenHidden = FALSE)
   outputOptions(output, "show_token_ads", suspendWhenHidden = FALSE)
@@ -403,7 +429,7 @@ server <- function(input, output, session) {
   outputOptions(output, "show_pumed_res_window", suspendWhenHidden = FALSE)
   outputOptions(output, "show_arxiv_res_window", suspendWhenHidden = FALSE)
   outputOptions(output, "show_id_arxiv", suspendWhenHidden = FALSE)
-  
+  outputOptions(output, "show_wos_res_window", suspendWhenHidden = FALSE)
   output$text <- renderText({
     
     paste( h3("DOPABAT, what is it ?"),"\n","DOPABAT (Développement d’outils d’analyse bibliométrique et d’audience des thèses) is a project funded by Collex-Persée. 
@@ -418,14 +444,18 @@ server <- function(input, output, session) {
 	<li>L’Observatoire de Paris</li> 
 	  -BIbliothèque de l’Observatoire Paris Meudon
 	<li>l’Inist-CNRS</li>
-</ul>",h3("the Team" ),"<ul>
+</ul>",h3("The Team" ),"<ul>
   <li>Anne-Marie Badolato (INIST-CNRS)</li>
 	 <li>Aurélie Fayard (bibliothèque de l’Observatoire Paris - Meudon)</li> 
 	 	<li>Frédéric Saconnet  (bibliothèque de l’Observatoire Paris - Meudon)</li>
 	 	<li>Jeremy Moro--Guibbert (Université Grenoble Alpes)</li>
 	 <li>Didier Vercueil  (Université Grenoble Alpes)</li>
   <li>Lucie Albaret  (Université Grenoble Alpes)</li>
-</ul>"
+</ul>",
+"to contact us: dopabat@univ-grenoble-alpes.fr",
+'This project is funded  by <a href="https://www.collexpersee.eu/">  GIS Collex Persée</a> arcoring to  <a href="https://https://www.collexpersee.eu/les-projets//">  APP 2019</a> ',
+h3("The Blog"), "here is the adress of the blog to see the back ground of the project : <a href='https://dopabat.inist.fr/'> : https://dopabat.inist.fr/ </a>",
+"This blog is describing the problem, the methodes and the steps of the project"
            
     )
 
@@ -477,9 +507,9 @@ server <- function(input, output, session) {
       reactive_values$show_header <- TRUE
       
       updateSelectInput(session, inputId = "title_selection", choices = names(df))
-      updateSelectInput(session, inputId = "keyword_selection", choices = names(df))
+      updateSelectInput(session, inputId = "keyword_selection", choices = c("none",names(df)))
       updateSelectInput(session, inputId = "author_selection", choices = names(df))
-      updateSelectInput(session, inputId = "domain_selection", choices = names(df))
+      updateSelectInput(session, inputId = "domain_selection", choices = c("none",names(df)))
       updateSelectInput(session, inputId = "date_selection", choices = names(df))
       updateSelectInput(session, inputId = "id_arxiv_selection", choices = c("none",names(df)))
       
@@ -508,7 +538,7 @@ server <- function(input, output, session) {
       if(input$file1$datapath %in% reactive_values$privious_datapath_csv){
         showModal(modalDialog(
           title = "File already analysed",
-          "This file as been analysed already ",
+          "This file as been analysed already. Please go see the result in wordcloud and network sessions.",
           easyClose = TRUE,
           footer = NULL
         ))
@@ -521,8 +551,9 @@ server <- function(input, output, session) {
 
       if(reactive_values$ok_analyse==TRUE){
         print("dans le if" )
-        col_key<-reactive_values$df_csv[[input$keyword_selection]]
-        col_dom<-reactive_values$df_csv[[input$domain_selection]]
+        
+        if(input$keyword_selection!="none") col_key<-reactive_values$df_csv[[input$keyword_selection]] else col_key=NA 
+        if(input$domain_selection!="none") col_dom<-reactive_values$df_csv[[input$domain_selection]] else col_dom=NA
         #col_date<-as.Date(as.POSIXct(strptime(c(reactive_values$df_csv[[input$date_selection]]), "%d/%m/%Y"),origin="1970-01-01"))
 
         col_date<-parse_date_time(x = reactive_values$df_csv[[input$date_selection]],
@@ -534,7 +565,7 @@ server <- function(input, output, session) {
         col_title<-reactive_values$df_csv[[input$title_selection]]
         col_auth<-reactive_values$df_csv[[input$author_selection]]
         if(input$id_arxiv_selection!="none") arxiv_col=reactive_values$df_csv[[input$id_arxiv_selection]] else arxiv_col=NA
-
+        #print("erreeuuuuuuuuure pas ici" )
         if(is.null(reactive_values$df_global)==TRUE) {
 
           reactive_values$df_global=as.data.frame(cbind(col_title,col_auth,col_key,col_dom,col_date),stringsAsFactors = FALSE)
@@ -605,7 +636,6 @@ server <- function(input, output, session) {
     }
 
 
-
     keywords_tok<-strsplit(keywords,",",fixed=TRUE)
 
 
@@ -650,12 +680,14 @@ server <- function(input, output, session) {
         temp=c(temp,trad)
       }
       keywords_lem_complet[[i]]<-temp
-
+      
+      
 
     }
-    ind=which(is.na(keywords_lem_complet))
-    if(length(ind)!=0) keywords_lem_complet[ind]<-NULL
-
+    # ind=which(is.na(keywords_lem_complet))
+    # print(ind)
+    # if(length(ind)!=0) keywords_lem_complet[ind]<-NULL
+    # print("l'errreeeeeeeeeeeeeeeeeeeeeeeeeur n'est pas la ")
 
     reactive_values$valide_csv=FALSE
     reactive_values$valide_pdf=FALSE
@@ -670,11 +702,11 @@ server <- function(input, output, session) {
       input$root
       input$domain
     },{
-
+print(input$keyword_selection)
       if(input$domain==FALSE){
-
         reactive_values$graph=make_network_graph(keywords_lem_complet,year,top_number=input$networktop,interval_year=input$networkintervalyear,sup_ones=input$supones,root_weight = input$root,domain = FALSE)
-      }else{
+          
+        }else{
         reactive_values$graph=make_network_graph(domainall,year,top_number=input$networktop,interval_year=input$networkintervalyear,sup_ones=input$supones,root_weight = input$root,domain = TRUE)
       }
 
@@ -1002,7 +1034,7 @@ server <- function(input, output, session) {
     if(reactive_values$path_folder %in% reactive_values$privious_datapath_pdf){
       showModal(modalDialog(
         title = "File already analysed",
-        "This file as been analysed already ",
+        "This file as been analysed already.Please go see the result in wordcloud and network sessions ",
         easyClose = TRUE,
         footer = NULL
       ))
@@ -1135,7 +1167,7 @@ server <- function(input, output, session) {
         }
       }
 
-
+    
     }
     # checkboxInput("ads", "ADS", FALSE),
     #
@@ -1150,10 +1182,9 @@ server <- function(input, output, session) {
   #________________importation wos___________________________________________________________
   observeEvent(input$file2,{
     library(bibliometrix)
-    print(input$file2$datapath)
-    print(grep(input$file2$datapath,".bib"))
-
+  
     suppressWarnings(reactive_values$data_wos <-convert2df(readFiles(input$file2$datapath),dbsource = "wos",format = "bibtex"))
+    reactive_values$data_wos <-conforme_bibtext(reactive_values$data_wos)
     # print(names(reactive_values$data_wos))
     #[c(2,4),c("TI","AU","DE","SC","PY")]
     output$table_wos <- renderDataTable({
@@ -1183,7 +1214,7 @@ server <- function(input, output, session) {
     if(input$file2$datapath %in% reactive_values$privious_datapath_wos){
       showModal(modalDialog(
         title = "file already analysed",
-        "This file as been analysed already ",
+        "This file as been analysed already. Please go see the result in wordcloud and network sessions  ",
         easyClose = TRUE,
         footer = NULL
       ))
@@ -1236,6 +1267,27 @@ server <- function(input, output, session) {
         print("je passe dans le else wos ")
       }
       reactive_values$df_global[["keywords"]]=gsub(";",",",reactive_values$df_global[["keywords"]])
+      if(input$sup_wos_for_ref==TRUE){
+        reactive_values$ref_wos=rbind(reactive_values$ref_wos,extract_ref_wos(reactive_values$data_wos))
+        reactive_values$show_wos_res_window=TRUE
+        output$table_data_ref4 <- renderDataTable({
+          # validate(
+          #   need(reactive_values$data_wos, "No bibtext data"),
+          #   need(!is.null(reactive_values$data_wos), "")
+          # )
+          
+          table_data=datatable(df_flatten(reactive_values$ref_wos), options = list(scrollX = TRUE, columnDefs = list(list(
+            targets = "_all" ,render = JS(
+              "function(data, type, row, meta) {",
+              "return type === 'display' && data.length > 70 ?",
+              "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
+              "}")
+          ))))
+          
+          
+        })
+        
+      }
       reactive_values$valide_wos=TRUE
 
     }
@@ -1540,31 +1592,13 @@ server <- function(input, output, session) {
     reactive_values$active_source="PUBMED"
     View(df_flatten(df$data))
   })
+  observeEvent({
+    reactive_values$privious_datapath_csv
+    reactive_values$privious_datapath_wos
+    },{  
+      output$list_file <- renderText({cat(paste(paste0("CSV:", reactive_values$privious_datapath_csv), paste0("WOS:",reactive_values$privious_datapath_wos),sep="\n"))})
+  })
 
-
-  #citing subject fait plant?
-
-  # tabPanel("ArXiv",actionButton("arxiv_ref_accept", "Show references"),
-  #          actionButton("arxiv_cit_accept", "Show citations"),
-  #          dataTableOutput("table_data_ref2")),
-  # tabPanel("Pubmed",actionButton("pubmed_ref_accept", "Show references"),
-  #          actionButton("pubmed_cit_accept", "Show citations"),
-  #          dataTableOutput("table_data_ref3"))
-  #
-
-
-  # actionButton("ads_ref_accept", "Show references"),F
-  # actionButton("ads_cit_accept", "Show citations"),
-  # dataTableOutput("table_data_ref")
-  #
-  # observeEvent(input$contain_ref,{
-  #     if(input$contain_ref==TRUE) reactive_values$show_ref <- TRUE else reactive_values$show_ref <- FALSE
-  # })
-  #
-  # observeEvent(input$contain_cit,{
-  #   if(input$contain_cit==TRUE) reactive_values$show_cit <- TRUE else reactive_values$show_cit <- FALSE
-  #
-  
 }#end serveur 
 
 

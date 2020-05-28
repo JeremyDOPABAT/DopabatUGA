@@ -20,9 +20,6 @@ library(plyr)
 
 #------------------------------------------importation d'un fichier wos _________________
 
-table(data_wos$PY)
-max(data_wos$PY,na.rm = TRUE)-min(data_wos$PY,na.rm = TRUE)!=0
-#data_wos
 
 source("applitodeploy/global.R")
 
@@ -47,16 +44,6 @@ source("applitodeploy/global.R")
 #SN issn
 #PU journal 
 #bibtag()
-path=choose.files(caption = "chosse your data file")
-data_wos<-convert2df(readFiles(path),dbsource = "wos",format = "bibtex")
-
-
-
-
-res_wos$position_name=2
-res_wos$sep=";"
-res_wos$source="WOS"
-
 
 res_data_nasa_ads=extraction_data_api_nasa_ads(data_pub=res_wos,ti_name=ti_name,au_name=au_name,token=token,pas=8,value_same_min_accept=0.95,value_same_min_ask = 0,type="all",sep_vector_in_data ="sep",position_vector_in_data = "position_name",source_name = 'source' )
 res_arxiv=extraction_data_api_arxiv(data_pub=ths,ti_name=ti_name,au_name=au_name,pas=1,value_same_min_accept=0.95,value_same_min_ask = 0.85,type = "all",sep_vector_in_data ="sep",position_vector_in_data = "position_name")
@@ -86,6 +73,17 @@ res_pumed=extract_data_api_pumed(data_pub=res_wos,ti_name,au_name,pas=8,value_sa
 
 
 
+
+path=choose.files(caption = "chosse your data file")
+data_wos<-convert2df(readFiles(path),dbsource = "wos",format = "bibtex")
+
+data_wos$AU[1]
+
+
+
+res_wos$position_name=2
+res_wos$sep=";"
+res_wos$source="WOS"
 
 
 

@@ -108,9 +108,6 @@ journal_table_ref$Source_title<-gsub("[(#$%*,.:;<=>@^_`{|}~.)]","",journal_table
 names(journal_table_ref)
 
 
-journal_data=test$`citing journal`
-#test$`citing journal`
-names(journal_table_ref)
 
 
 
@@ -155,30 +152,9 @@ type="ref"
 df_global=test 
 prescence_ref_wos=TRUE
 
-combine_analyse_data<-function(df_global,journal_table_ref,prescence_ref_wos,type){
-  if(type=="ref"){
-    if(prescence_ref_wos==TRUE){
-      dom_wos=NULL
-      dom_not_wos=NULL
-      df_global=df_global[order(df_global$source),]
-      df_global_wos=df_global[df_global$source=="WOS",]
-      
-      if(dim(df_global_wos)[1]!=0) dom_wos<-find_journal_domaine(journal_data = df_global_wos$`refered journal`,journal_table_ref = journal_table_ref,issn = test$`refered issn`,source ="JCR.Abbreviated.Title" )
-      df_global_not_wos=df_global[df_global$source!="WOS",]
-      if(dim(df_global_not_wos)[1]!=0) dom_not_wos<-find_journal_domaine(journal_data = df_global_not_wos$`refered journal`,journal_table_ref = journal_table_ref,issn = test$`refered issn` )
-      dom=c(dom_not_wos,dom_wos)
-      
-    }else {
-      dom<-find_journal_domaine(journal_data = df_global$`refered journal`,journal_table_ref = journal_table_ref,issn = test$`refered issn` )
-    }
-    df_global$refered_journal_domaine=dom
-  }else{#pour les citation il n'y a pas de patricularité dans le wos
-    dom<-find_journal_domaine(journal_data = df_global$`citing journal`,journal_table_ref = journal_table_ref,issn = test$`refered issn` )
-    df_global$refered_journal_domaine=dom
-  }
-  return(df_global)  
-}
-test<-combine_analyse_data(test,journal_table_ref,prescence_ref=TRUE,type="ref" )
+
+
+
 # #dom<-find_journal_domaine(journal_data = test$`refering journal`,journal_table_ref = journal_table_ref,issn = test$`refering issn`)
 # #.old 11min
 
@@ -217,37 +193,44 @@ test<-combine_analyse_data(test,journal_table_ref,prescence_ref=TRUE,type="ref" 
 
 
 
+path=choose.files(caption = "chosse your data file")
+data_wos<-convert2df(readFiles(path),dbsource = "wos",format = "bibtex")
 
 
 
-nb_categ=unlist(test$refered_journal_domaine)
-list_categ<-names(table(nb_categ))
 
-matrice_prop=as.data.frame(matrix(0,ncol=length(list_categ)))
-names(matrice_prop)=c(list_categ)
-precedent=""
-for(i in 1:dim(test)[1]){
-  if(!is.null(test$refered_journal_domaine[[i]])){
-    if(precedent!=test$`refering identifier`[[i]]){
-      line=rep(0,length(list_categ))
-      matrice_prop=rbind(matrice_prop,line)
-    }
-    col_ind=match(unique(test$refered_journal_domaine[[i]]),names(matrice_prop))
-    
-    col_ind=col_ind[!is.na(col_ind)]
-    matrice_prop[dim(matrice_prop)[1],col_ind]= matrice_prop[dim(matrice_prop)[1],col_ind]+1
-    precedent=test$`refering identifier`[[i]]
-  }
-}
-matrice_prop<-matrice_prop[-1,]
-matrice_prop<-type.convert(matrice_prop)
-sumcol=colSums(matrice_prop)
-matrice_prop=rbind(matrice_prop,sumcol)
-sumrow=rowSums(matrice_prop)
 
-table_dist<-read.table(file="data/data_journal/category_similarity_matrix.txt",header = TRUE,sep = " ",dec ="." )
+res_wos$position_name=2
+res_wos$sep=";"
+res_wos$source="WOS"
 
-dim(matrice_prop)
+
+
+
+voici_un_test<-extract_ref_wos(data_wos)
+
+test=as.data.frame(voici_un_test,stringsAsFactors = FALSE)
+dim(test)
+View(test)
+
+test<-combine_analyse_data(test,journal_table_ref,type="ref" )
+
+
+data_gl=test
+
+
+
+
+res_matrice=interdis_matrice_creation_and_calcul(data_gl = test,path_dist_table="data/data_journal/category_similarity_matrix.txt",type = "ref" )
+
+
+dim(res_matrice)
+
+res_matrice$md
+
+
+#rajouter id dans matrice pop 
+
 
 
 
@@ -257,43 +240,43 @@ interdis_calcul<-function(matrice_prop, table_dist){
     cal=0
     matrice_prop[x,]=matrice_prop[x,]/sumrow[[x]]
     lien<-list()
+    sum=0
     for(i in 1:dim(matrice_prop)[2]){
       
       for(j in 1:dim(matrice_prop)[2]){
         
         if(matrice_prop[x,i]!=0 && matrice_prop[x,j]!=0){
+          sum=sum+1
           n1=names(matrice_prop)[i]
           n2=names(matrice_prop)[j]
           dij=table_dist[n1,n2]
           lien=append(list(c(n1,n2)),lien)
           cal=cal+matrice_prop[x,i]*matrice_prop[x,j]*dij
-          }
+        }
       }
     }
     return(list(valeur=cal,couple=lien))
   }
   )
-
+  
   (DD=unlist(dia["valeur",][length(dia["valeur",])]))
-
+  
   (ID=mean(unlist(dia["valeur",][-length(dia["valeur",])])))
-
-
+  
+  
   (MD=DD-ID)
-  matrice_prop=cbind(matrice_prop,c(unique(test$`refering identifier`),"Total"))
   
   resultat<-list(dia=dia["valeur",],md=MD,id=ID,dd=DD,prop=matrice_prop,couple=dia["couple",])
   return(resultat)
 }
-#rajouter id dans matrice pop 
 
-
-
-
-
-
-resultat=interdis_calcul(matrice_prop, table_dist)
+resultat=interdis_calcul(matrice_prop = res_matrice$proportion, table_dist = res_matrice$distance)
 resultat$couple[[1]]
+unlist(resultat$dia)
+resultat$md
+resultat$dd
+resultat$id
+
 
 
 

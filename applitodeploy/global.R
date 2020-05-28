@@ -26,31 +26,34 @@ make_input_notwork_graph<-function(keywords) {
   from=c()# liste des mot d?part 
   to=c()# liste des mot "arriver" enssemble ces deux variable crees les arrettes du graph 
   
-  wei=table(unlist(keywords))# poid de chaque terme au niveau des noeuds 
-  term<-unique(unlist(keywords))# les mot ck? unique pour faire les noeud du graph 
-  term<-term[order(factor(term, levels=names(wei)))]# on odonne les nom dans le m?me ordre que l'ordre de poid pour les faire correspondre ensuite 
   
-  
-  if(is_empty(which(names(wei)==""))==FALSE){ 
-    wei<-wei[-(which(names(wei)==""))]
-    term<-term[-(which(term==""))]
-  }
-  
-  
-  
-  for(i in(1:length(keywords))){
-    if(length(keywords[[i]])>1){
-      for(j in(1:length(keywords[[i]]))){
-        if(length(keywords[[i]])>j){
-          add_from=rep(keywords[[i]][j],length(keywords[[i]])-j)
-          add_to=c(keywords[[i]][(j+1):length(keywords[[i]])])
-          from=c(from,add_from)
-          to=c(to,add_to)
+  ind=which(is.na(keywords))
+  if(length(ind)!=length(keywords)){
+    wei=table(unlist(keywords))# poid de chaque terme au niveau des noeuds 
+    term<-unique(unlist(keywords))# les mot ck? unique pour faire les noeud du graph 
+    term<-term[order(factor(term, levels=names(wei)))]# on odonne les nom dans le m?me ordre que l'ordre de poid pour les faire correspondre ensuite 
+    
+    
+    if(is_empty(which(names(wei)==""))==FALSE){ 
+      wei<-wei[-(which(names(wei)==""))]
+      term<-term[-(which(term==""))]
+    }
+    
+    
+    
+    for(i in(1:length(keywords))){
+      if(length(keywords[[i]])>1){
+        for(j in(1:length(keywords[[i]]))){
+          if(length(keywords[[i]])>j){
+            add_from=rep(keywords[[i]][j],length(keywords[[i]])-j)
+            add_to=c(keywords[[i]][(j+1):length(keywords[[i]])])
+            from=c(from,add_from)
+            to=c(to,add_to)
+          }
         }
       }
     }
-  }
-  
+  } else term=NULL
   if(length(term)!=0){  
     edge_list <- tibble(from = from, to = to)
     
@@ -85,47 +88,64 @@ make_input_domain_graph<-function(domainall){
   #            node_list liste de sommet de graph 
   #            wei poids de chaque sommet (d?termine la taille du sommet )             
   
-  domainall_split<-(strsplit(domainall,","))
   
-  
-  wei=table(unlist(domainall_split))# poid de chaque terme au niveau des noeuds 
-  term<-unique(unlist(domainall_split))# les mot ck? unique pour faire les noeud du graph 
-  term<-term[order(factor(term, levels=names(wei)))]# on odonne les nom dans le m?me ordre que l'ordre de poid pour les faire correspondre ensuite 
-  
-  
-  if(is_empty(which(names(wei)==""))==FALSE){ 
-    wei<-wei[-(which(names(wei)==""))]
-    term<-term[-(which(term==""))]
-  }
-  
-  
-  from=c()# liste des mot d?part 
-  to=c()# liste des mot "arriver" enssemble ces deux variable crees les arrettes du graph 
-  
-  
-  for(i in(1:length(domainall))){
-    if(length(domainall_split[[i]])>1){
-      add_from=rep(domainall_split[[i]][1],length(domainall_split[[i]])-1)
-      add_to=c(domainall_split[[i]][(2):length(domainall_split[[i]])])
-      from=c(from,add_from)
-      to=c(to,add_to)
+  ind=which(is.na(domainall))
+  if(length(ind)!=length(domainall)){
       
+    domainall_split<-(strsplit(domainall,","))
+    
+    
+    wei=table(unlist(domainall_split))# poid de chaque terme au niveau des noeuds 
+    term<-unique(unlist(domainall_split))# les mot ck? unique pour faire les noeud du graph 
+    term<-term[order(factor(term, levels=names(wei)))]# on odonne les nom dans le m?me ordre que l'ordre de poid pour les faire correspondre ensuite 
+    
+    
+    if(is_empty(which(names(wei)==""))==FALSE){ 
+      wei<-wei[-(which(names(wei)==""))]
+      term<-term[-(which(term==""))]
     }
+    
+    
+    from=c()# liste des mot d?part 
+    to=c()# liste des mot "arriver" enssemble ces deux variable crees les arrettes du graph 
+    
+    
+    for(i in(1:length(domainall))){
+      if(length(domainall_split[[i]])>1){
+        add_from=rep(domainall_split[[i]][1],length(domainall_split[[i]])-1)
+        add_to=c(domainall_split[[i]][(2):length(domainall_split[[i]])])
+        from=c(from,add_from)
+        to=c(to,add_to)
+        
+      }
+    }
+    
+    
+    edge_list <- tibble(from = from, to = to)
+    
+    node_list <- tibble(id = term)
+    
+    
+    data_edge <- edge_list %>%  
+      group_by(from, to) %>%
+      dplyr::summarise(weight = n()) %>% 
+      ungroup()
+    if(length(which(data_edge["to"]==data_edge["from"])!=0)) data_edge<-data_edge[-(which(data_edge["to"]==data_edge["from"])),]
+    
+    
+    
+  }else term=NULL
+  
+  
+  if(length(term)==0){  
+    data_edge <- tibble(from = "no data as been found", to = "no data as been found")
+    
+    node_list <- tibble(id = "no data as been found")
+    wei=table(c("no data as been found"))
   }
-  
-  
-  edge_list <- tibble(from = from, to = to)
-  
-  node_list <- tibble(id = term)
-  
-  
-  data_edge <- edge_list %>%  
-    group_by(from, to) %>%
-    dplyr::summarise(weight = n()) %>% 
-    ungroup()
-  if(length(which(data_edge["to"]==data_edge["from"])!=0)) data_edge<-data_edge[-(which(data_edge["to"]==data_edge["from"])),]
   
   res_list=list(data_edge,node_list,wei)
+  
   return(res_list)
 }
 
@@ -645,7 +665,7 @@ querry_warning_message<-function(r){
 
 
 
-get_cit_or_ref<-function(resdt,type="cit"){# on r?cup?re les infodes citation uniquement 
+get_cit_or_ref<-function(resdt,type="cit",token){# on r?cup?re les infodes citation uniquement 
   #permet de recup?r? les citation et les reference d'ads grace a une base de publie en entr?e, 
   #fonction interne 
   last_good_result=NULL
@@ -1254,7 +1274,7 @@ find_journal_domaine<-function(journal_data,journal_table_ref,issn="",essn="",so
   
   
   dom=sapply(1:length(journal_data),FUN=function(x){
-    
+    print(x)
     for(h in 1:inter){# boucle principale qui parcour les donn?es 
       start=c(start,Sys.time())
       
@@ -1278,25 +1298,25 @@ find_journal_domaine<-function(journal_data,journal_table_ref,issn="",essn="",so
         }
         #on seach le nom exacte du journal dans la liste de reférence 
         #tryCatch({
-        tp=grep(paste0("^",tolower(trimws(gsub("[(#$%*,.:;<=>@^_`{|}~.)]","",gsub("\\s*\\([^\\)]+\\)","",journal_data[x])))),"$"),tolower(trimws(journal_courant[[source]])))
+        tp=grep(paste0("^",tolower(trimws(gsub("\\[|\\]", "",gsub("[(#$%*,.:;<=>@^_`{|}~.)]","",gsub("\\s*\\([^\\)]+\\)","",journal_data[x]))))),"$"),tolower(trimws(journal_courant[[source]])))
         #}, error = function(e) { return(NA)})
         
         if(length(tp)>0){
           return((journal_courant$Abreviation[tp]))
-        }else{
-          # on cherche une correspondance de reference qui commence par le debut
-          tp=grep(paste0("^",tolower(trimws(gsub("[(#$%*,.:;<=>@^_`{|}~.)]","",gsub("\\s*\\([^\\)]+\\)","",journal_data[x]))))),tolower(trimws(journal_courant[[source]])))
-          if(length(tp)==1){
-            return((journal_courant$Abreviation[tp]))
-          } else {
-            #on cherche une référence corespondans partout dans le nom
-            tp=grep(paste0(tolower(trimws(gsub("[(#$%*,.:;<=>@^_`{|}~.)]","",gsub("\\s*\\([^\\)]+\\)","",journal_data[x]))))),tolower(trimws(journal_courant[[source]])))
-            if(length(tp)==1){
-              return((journal_courant$Abreviation[tp]))
-            }
-            
-          }
-        }
+        }# else{
+        #   # on cherche une correspondance de reference qui commence par le debut
+        #   tp=grep(paste0("^",tolower(trimws(gsub("\\[|\\]", "",gsub("[(#$%*,.:;<=>@^_`{|}~.)]","",gsub("\\s*\\([^\\)]+\\)","",journal_data[x])))))),tolower(trimws(journal_courant[[source]])))
+        #   if(length(tp)>0){
+        #     return((journal_courant$Abreviation[tp]))
+        #   } else {
+        #     #on cherche une référence corespondans partout dans le nom
+        #     tp=grep(paste0(tolower(trimws(gsub("\\[|\\]", "",gsub("[(#$%*,.:;<=>@^_`{|}~.)]","",gsub("\\s*\\([^\\)]+\\)","",journal_data[x])))))),tolower(trimws(journal_courant[[source]])))
+        #     if(length(tp)==1){
+        #       return((journal_courant$Abreviation[tp]))
+        #     }
+        #     
+        #   }
+        # }
         
       }
     }
@@ -1913,7 +1933,7 @@ extraction_data_api_nasa_ads<-function(data_pub,ti_name,au_name,token,pas=8,valu
   if(type=="all"|| type=="cit"){
     
     
-    res_cite=get_cit_or_ref(resdt,type="cit")# citation 
+    res_cite=get_cit_or_ref(resdt,type="cit",token)# citation 
     total_res=res_cite$res_cit_ref[res_cite$res_cit_ref$check>=value_same_min_accept,]
     total_res_ask=res_cite$res_cit_ref[(res_cite$res_cit_ref$check>=value_same_min_ask) & (res_cite$res_cit_ref$check<value_same_min_accept),]
     if(!is.null(total_res)[1]){
@@ -1938,7 +1958,7 @@ extraction_data_api_nasa_ads<-function(data_pub,ti_name,au_name,token,pas=8,valu
     if(source_name==""){
       res_rest=resdt
     }
-    res_ref=get_cit_or_ref(res_rest,type="ref")  #ref?rence
+    res_ref=get_cit_or_ref(res_rest,type="ref",token)  #ref?rence
     total_res_ref=res_ref$res_cit_ref[res_ref$res_cit_ref$check>=value_same_min_accept,]
     total_res_ref_ask=res_ref$res_cit_ref[(res_ref$res_cit_ref$check>=value_same_min_ask) & (res_ref$res_cit_ref$check<value_same_min_accept),]
     if(!is.null(total_res_ref)[1]){
@@ -2468,19 +2488,20 @@ extract_ref_wos<-function(data_wos){
       year<-courant[2]
       journ<-courant[3]
       id=paste0("_",i,"_")
-      return(list(id,auth,year,journ))
+      real_id=paste0("_",paste0(i,x),"_")
+      return(list(id,real_id,auth,year,journ))
     })   
     res<-rbind(res, t(temp))
   }
   res_ref<-as.data.frame(res)
-  names(res_ref)=c("id","author","year", "journ")
+  names(res_ref)=c("id_to_sup","id","author","year", "journ")
   
   
   
   #View(res_ref)
   
   
-  ind_id<-sapply(res_ref$id,function(x){
+  ind_id<-sapply(res_ref$id_to_sup,function(x){
     return(grep(x,res_wos$idw,fixed = TRUE))
   })
   
@@ -2491,9 +2512,160 @@ extract_ref_wos<-function(data_wos){
   
   res_ref_final=cbind(res_wos[unlist(ind_id),],res_ref)
   res_ref_final<-res_ref_final[,-which(names(res_ref_final)=="keywords")]
+  res_ref_final<-res_ref_final[,-which(names(res_ref_final)=="id_to_sup")]
   
   #length(names(res_ref_final))
   names(res_ref_final)<- c("refering title",'refering auth',"refering domaine","refering date","refering identifier","refered identifier","refered auth","refered date","refered journal" )
   res_ref_final["source"]="WOS"
   return(res_ref_final)
+}
+
+
+
+
+
+
+
+
+
+
+
+combine_analyse_data<-function(df_global,journal_table_ref,type){
+  #cette fonction est une fonction interne permettant de retrouuver les journaux a partir des nom, abréviation ou issn.
+  #cette fonction s'adapte à la demande : ref cit et a type de données 
+  #input: 
+  # dg_global : the data table of the cit and ref 
+  #journal_table : big data table of all the journal 
+  #type type of analyse, reference or citation 
+  
+  #output : la table de données avec une colone en plus ref ou cit 
+  
+  
+  if(type=="ref"){# si type=ref 
+    if(dim(df_global[df_global$source=="WOS",])[1]>0){# si il y a des données wos dans la table de données on doit passé par les abréviation
+      dom_wos=NULL
+      dom_not_wos=NULL
+      df_global=df_global[order(df_global$source),]
+      df_global_wos=df_global[df_global$source=="WOS",]
+      
+      if(dim(df_global_wos)[1]!=0) dom_wos<-find_journal_domaine(journal_data = df_global_wos$`refered journal`,journal_table_ref = journal_table_ref,issn = test$`refered issn`,source ="JCR.Abbreviated.Title" )
+      df_global_not_wos=df_global[df_global$source!="WOS",]
+      if(dim(df_global_not_wos)[1]!=0) dom_not_wos<-find_journal_domaine(journal_data = df_global_not_wos$`refered journal`,journal_table_ref = journal_table_ref,issn = test$`refered issn` )
+      dom=c(dom_not_wos,dom_wos)
+      
+    }else {# if  there is not wos in data 
+      dom<-find_journal_domaine(journal_data = df_global$`refered journal`,journal_table_ref = journal_table_ref,issn = test$`refered issn` )
+    }
+    df_global$refered_journal_domaine=dom
+  }else{#pour les citation il n'y a pas de patricularité dans le wos
+    dom<-find_journal_domaine(journal_data = df_global$`citing journal`,journal_table_ref = journal_table_ref,issn = test$`citing issn` )
+    df_global$citing_journal_domaine=dom
+  }
+  return(df_global)  
+}
+
+
+
+
+interdis_matrice_creation_and_calcul<-function(data_gl,path_dist_table,type){
+  
+  
+  if(type=="ref"){
+    journal_domaine="refered_journal_domaine"
+    identifier="refering identifier"
+  }else{
+    journal_domaine="citing_journal_domain"
+    identifier="cited identifier"
+  }
+  nb_categ=unlist(data_gl[[journal_domaine]])
+  list_categ<-names(table(nb_categ))
+  
+  matrice_prop=as.data.frame(matrix(0,ncol=length(list_categ)))
+  names(matrice_prop)=c(list_categ)
+  precedent=""
+  for(i in 1:dim(data_gl)[1]){
+    if(!is.null(data_gl[[journal_domaine]][[i]])){
+      if(precedent!=data_gl[[identifier]][[i]]){
+        line=rep(0,length(list_categ))
+        matrice_prop=rbind(matrice_prop,line)
+      }
+      col_ind=match(unique(data_gl[[journal_domaine]][[i]]),names(matrice_prop))
+      
+      col_ind=col_ind[!is.na(col_ind)]
+      matrice_prop[dim(matrice_prop)[1],col_ind]= matrice_prop[dim(matrice_prop)[1],col_ind]+1
+      precedent=data_gl[[identifier]][[i]]
+    }
+  }
+  matrice_prop<-matrice_prop[-1,]
+  matrice_prop<-type.convert(matrice_prop)
+  sumcol=colSums(matrice_prop)
+  matrice_prop=rbind(matrice_prop,sumcol)
+  sumrow=rowSums(matrice_prop)
+  
+  table_dist<-read.table(file=path_dist_table,header = TRUE,sep = " ",dec ="." )
+  
+  dia=sapply(1:dim(matrice_prop)[1],FUN = function(x){
+    
+    cal=0
+    matrice_prop[x,]=matrice_prop[x,]/sumrow[[x]]
+    lien<-list()
+    sum=0
+    for(i in 1:dim(matrice_prop)[2]){
+      
+      for(j in 1:dim(matrice_prop)[2]){
+        
+        if(matrice_prop[x,i]!=0 && matrice_prop[x,j]!=0){
+          sum=sum+1
+          n1=names(matrice_prop)[i]
+          n2=names(matrice_prop)[j]
+          dij=table_dist[n1,n2]
+          lien=append(list(c(n1,n2)),lien)
+          cal=cal+matrice_prop[x,i]*matrice_prop[x,j]*dij
+        }
+      }
+    }
+    matrice_prop=cbind(matrice_prop,c(unique(data_gl[[identifier]]),"Total"))
+    
+    return(list(valeur=cal,couple=lien))
+    
+    
+    #return(list(proportion=matrice_prop,distance=table_dist))
+  })
+  
+  (DD=unlist(dia["valeur",][length(dia["valeur",])]))
+  
+  (ID=mean(unlist(dia["valeur",][-length(dia["valeur",])])))
+  
+  
+  (MD=DD-ID)
+  
+  resultat<-list(dia=dia["valeur",],md=MD,id=ID,dd=DD,prop=matrice_prop,couple=dia["couple",])
+  return(resultat)
+}
+
+
+
+
+
+conforme_bibtext<-function(data_wos){
+  error=tryCatch({#rep?rage des erreur 
+    data_wos["SC"]
+  },
+  
+  error=function(cond){
+    return(NA)
+  })
+  
+  if(is.null(dim(error)[1])) if(is.na(error)) data_wos["SC"]=NA
+  
+  error=tryCatch({#rep?rage des erreur 
+    data_wos["DE"]
+  },
+  
+  error=function(cond){
+    return(NA)
+  })
+  if(is.null(dim(error)[1])) if(is.na(error)) data_wos["DE"]=NA
+  
+  return(data_wos)   
 }
