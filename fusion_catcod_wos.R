@@ -43,3 +43,23 @@ dim(table_merge)
 names(table_merge)=c("JCR.Abbreviated.Title", "Full.Journal.Title","Issn","Subject.Category","Discipline.Scientifique.OST", "Origine","Abreviation" )                
 
 write.csv2(table_merge, file = "data/data_journal/table_categ_wos.csv")
+
+
+
+
+
+
+table_categ<-read.csv("table_categ_wos.csv",header = TRUE,sep = ";")
+dim(table_categ)
+grand_dis<-read.csv("grandes_diciplines.csv",header = TRUE,sep = ";")
+dim(grand_dis)
+
+
+
+
+col_abrv=sapply(1:dim(grand_dis)[1],FUN = function(x){
+  tp=grep(paste0("^",grand_dis$Discipline[x],"$"),table_categ$Discipline.Scientifique.OST)  
+  
+  return(catco$catcod[tp])
+  
+})

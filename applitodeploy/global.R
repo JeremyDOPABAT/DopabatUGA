@@ -10,10 +10,14 @@ library(pdftools)
 library(httr)
 library(lubridate)
 library(tm)
+library(plyr)
+
+jsResetCode <- "shinyjs.reset = function() {history.go(0)}" # Define the js method that resets the page
+
 #library(rlang)
 library(tidyverse)
 library(readr)
-
+library(ggplot2)
 
 make_input_notwork_graph<-function(keywords) { 
   # fonction interne cr?an les diff?rentes liste pour cr?e le graph
@@ -1257,7 +1261,8 @@ shinyInput <- function(FUN, len, id, ...) {
 find_journal_domaine<-function(journal_data,journal_table_ref,issn="",essn="",source=""){
   if(source=="") col_journal="Full.Journal.Title" else col_journal=source
   journal_table_ref$Abreviation[journal_table_ref$Abreviation==""]=NA
-  
+  ab=c()
+  cat=c()
   #Cette fonction permet de retrouver le domaine avec le nom du journal
   
   #input
@@ -1274,6 +1279,7 @@ find_journal_domaine<-function(journal_data,journal_table_ref,issn="",essn="",so
   
   
   dom=sapply(1:length(journal_data),FUN=function(x){
+    trouver=FALSE
     print(x)
     for(h in 1:inter){# boucle principale qui parcour les donn?es 
       start=c(start,Sys.time())
@@ -1288,22 +1294,32 @@ find_journal_domaine<-function(journal_data,journal_table_ref,issn="",essn="",so
       if(!is.na(journal_data[x])) {
         if(length(issn)!=0){ if(!is.null(issn[x]) &&issn[x]!="" && !is.na(issn[x]) ){# on trouve l'iissn si il est présent 
           ind=which(issn[x]==journal_courant$issn) 
-          if(length(ind)>0) return((journal_courant$Abreviation[ind]))
+            if(length(ind)>0){
+              ab=c(ab,journal_courant$Abreviation[ind])
+              cat=c(cat,journal_courant$Discipline.Scientifique.OST[ind])
+              trouver=TRUE
+          } 
         }}
-        if(length(essn)!=0){ 
+        if(length(essn)!=0 && trouver==FALSE){ 
           if(!is.null(essn[x]) && essn[x]!=""&& !is.na(essn[x])){# pareil pour l'essn
           ind=which(essn[x]==journal_courant$essn) 
-          if(length(ind)>0) return((journal_courant$Abreviation[ind]))
+            if(length(ind)>0) {
+              ab=c(ab,journal_courant$Abreviation[ind])
+              cat=c(cat,journal_courant$Discipline.Scientifique.OST[ind])
+              trouver=TRUE
+            }
           }
         }
         #on seach le nom exacte du journal dans la liste de reférence 
-        #tryCatch({
-        tp=grep(paste0("^",tolower(trimws(gsub("\\[|\\]", "",gsub("[(#$%*,.:;<=>@^_`{|}~.)]","",gsub("\\s*\\([^\\)]+\\)","",journal_data[x]))))),"$"),tolower(trimws(journal_courant[[source]])))
+        if(trouver==FALSE){
+          tp=grep(paste0("^",tolower(trimws(gsub("\\[|\\]", "",gsub("[(#$%*,.:;<=>@^_`{|}~.)]","",gsub("\\s*\\([^\\)]+\\)","",journal_data[x]))))),"$"),tolower(trimws(journal_courant[[source]])))
         #}, error = function(e) { return(NA)})
         
-        if(length(tp)>0){
-          return((journal_courant$Abreviation[tp]))
-        }# else{
+          if(length(tp)>0){
+            ab=c(ab,journal_courant$Abreviation[tp])
+            cat=c(cat,journal_courant$Discipline.Scientifique.OST[tp])
+          }# else{
+        }
         #   # on cherche une correspondance de reference qui commence par le debut
         #   tp=grep(paste0("^",tolower(trimws(gsub("\\[|\\]", "",gsub("[(#$%*,.:;<=>@^_`{|}~.)]","",gsub("\\s*\\([^\\)]+\\)","",journal_data[x])))))),tolower(trimws(journal_courant[[source]])))
         #   if(length(tp)>0){
@@ -1320,6 +1336,7 @@ find_journal_domaine<-function(journal_data,journal_table_ref,issn="",essn="",so
         
       }
     }
+    return(list(ab=ab,cat=cat))
   })
   # dom_length<-sapply(1:length(dom), FUN=function(x) length(unlist(dom[x])))
   # ind<-which(dom_length>1)
@@ -2551,15 +2568,21 @@ combine_analyse_data<-function(df_global,journal_table_ref,type){
       if(dim(df_global_wos)[1]!=0) dom_wos<-find_journal_domaine(journal_data = df_global_wos$`refered journal`,journal_table_ref = journal_table_ref,issn = test$`refered issn`,source ="JCR.Abbreviated.Title" )
       df_global_not_wos=df_global[df_global$source!="WOS",]
       if(dim(df_global_not_wos)[1]!=0) dom_not_wos<-find_journal_domaine(journal_data = df_global_not_wos$`refered journal`,journal_table_ref = journal_table_ref,issn = test$`refered issn` )
-      dom=c(dom_not_wos,dom_wos)
-      
+      dom=c(dom_not_wos[1,],dom_wos[1,])
+      dicipline=c(dom_not_wos[2,],dom_wos[2,])
     }else {# if  there is not wos in data 
-      dom<-find_journal_domaine(journal_data = df_global$`refered journal`,journal_table_ref = journal_table_ref,issn = test$`refered issn` )
-    }
+      res<-find_journal_domaine(journal_data = df_global$`refered journal`,journal_table_ref = journal_table_ref,issn = test$`refered issn` )
+      dom=res[1,]
+      dicipline=res[2,]
+      }
     df_global$refered_journal_domaine=dom
+    df_global$refered_global_dicipline=dicipline
   }else{#pour les citation il n'y a pas de patricularité dans le wos
-    dom<-find_journal_domaine(journal_data = df_global$`citing journal`,journal_table_ref = journal_table_ref,issn = test$`citing issn` )
-    df_global$citing_journal_domaine=dom
+    res<-find_journal_domaine(journal_data = df_global$`citing journal`,journal_table_ref = journal_table_ref,issn = test$`citing issn` )
+    df_global$citing_journal_domaine=res[1,]
+    print("nb_result")
+    print(length(res[1,]))
+    df_global$citing_global_dicipline=res[2,]
   }
   return(df_global)  
 }
@@ -2574,12 +2597,15 @@ interdis_matrice_creation_and_calcul<-function(data_gl,path_dist_table,type){
     journal_domaine="refered_journal_domaine"
     identifier="refering identifier"
   }else{
-    journal_domaine="citing_journal_domain"
+    journal_domaine="citing_journal_domaine"
     identifier="cited identifier"
   }
+  print(type)
+  print(journal_domaine)
   nb_categ=unlist(data_gl[[journal_domaine]])
   list_categ<-names(table(nb_categ))
-  
+  print(dim(list_categ))
+  print(names(data_gl))
   matrice_prop=as.data.frame(matrix(0,ncol=length(list_categ)))
   names(matrice_prop)=c(list_categ)
   precedent=""
@@ -2624,7 +2650,8 @@ interdis_matrice_creation_and_calcul<-function(data_gl,path_dist_table,type){
         }
       }
     }
-    matrice_prop=cbind(matrice_prop,c(unique(data_gl[[identifier]]),"Total"))
+    
+    
     
     return(list(valeur=cal,couple=lien))
     
@@ -2635,11 +2662,44 @@ interdis_matrice_creation_and_calcul<-function(data_gl,path_dist_table,type){
   (DD=unlist(dia["valeur",][length(dia["valeur",])]))
   
   (ID=mean(unlist(dia["valeur",][-length(dia["valeur",])])))
-  
+  dia=dia[,-dim(dia)[2]] 
   
   (MD=DD-ID)
   
-  resultat<-list(dia=dia["valeur",],md=MD,id=ID,dd=DD,prop=matrice_prop,couple=dia["couple",])
+  path_gd="data/categ_wos.csv"
+  
+  table_categ_gd=read.csv(file=path_gd,header = TRUE,stringsAsFactors = FALSE,sep = ";")
+  
+  
+  table_conversion=sapply(1:length(names(matrice_prop)),FUN=function(x){
+    ind=grep(names(matrice_prop)[[x]],table_categ_gd$catcod)
+    return(c(table_categ_gd$OST.Category[ind],table_categ_gd$catcod[ind]))
+  })
+  table_conversion=t(table_conversion)
+  new_col=unique(table_conversion[,1])
+  new_matrice_prop=as.data.frame(matrix(0,ncol=length(new_col),nrow = dim(matrice_prop)[1]))
+  names(new_matrice_prop)=new_col
+  
+    for(i in 1:dim(matrice_prop)[1]){
+      for(j in 1:dim(matrice_prop)[2]){
+        if(matrice_prop[i,j]!=0){
+          print("i")
+          print(i)
+          print("j")
+          print(j)
+          print(names(matrice_prop)[j])
+          print(dim(table_conversion))
+          ind=grep(names(matrice_prop)[j],table_conversion[,2])
+          new_matrice_prop[i,table_conversion[ind,1]]=new_matrice_prop[i,table_conversion[ind,1]]+matrice_prop[i,j]
+      }
+    }
+  }
+  
+
+  matrice_prop=cbind(matrice_prop,c(unique(data_gl[[identifier]]),"Total"))
+  
+  
+  resultat<-list(dia=dia["valeur",],md=MD,id=ID,dd=DD,prop=matrice_prop,prop_grande_discipline=new_matrice_prop)
   return(resultat)
 }
 
@@ -2668,4 +2728,56 @@ conforme_bibtext<-function(data_wos){
   if(is.null(dim(error)[1])) if(is.na(error)) data_wos["DE"]=NA
   
   return(data_wos)   
+}
+
+
+
+merge_result_data_base<-function(ads,arxiv,pumed,wos,type){
+  if(type=="ref"){
+    ads_data=ads$dataframe_ref_accept
+    arxi_data=arxiv$res_reference_accept
+    pumed_data=pumed$dataframe_ref_accept
+    
+  }
+  else {
+    ads_data=ads$dataframe_citation_accept
+    arxi_data=arxiv$res_citation_accept
+    pumed_data=pumed$dataframe_citation_accept
+    
+  }
+  data_merge=as.data.frame(rbind.fill(ads_data,arxi_data),stringsAsFactors = FALSE)
+  data_merge=as.data.frame(rbind.fill(data_merge,pumed_data),stringsAsFactors = FALSE)
+  if(type=="ref")   data_merge=as.data.frame(rbind.fill(data_merge,wos),stringsAsFactors = FALSE)
+  
+  return(data_merge) 
+}
+
+
+
+global_merge_and_cal_interdis<-function(ads=NULL,arxiv=NULL,pumed=NULL,wos=NULL,journal_table_ref,type){
+  #wos pumed arxiv et ads sont les matrice de citation ou reference 
+  if(type=="all"){
+    merge_data<-merge_result_data_base(ads,arxiv,pumed,wos,type="ref")
+    merge_data<-combine_analyse_data(merge_data,journal_table_ref,type="ref" )
+    res_matrice_ref=interdis_matrice_creation_and_calcul(data_gl = merge_data,path_dist_table="data/category_similarity_matrix.txt",type = "ref" )
+    
+    merge_data<-combine_analyse_data(merge_data,journal_table_ref,type="cit" )
+    res_matrice_cit=interdis_matrice_creation_and_calcul(data_gl = merge_data,path_dist_table="data/category_similarity_matrix.txt",type = "cit" )
+    result=list(res_ref=res_matrice_ref,res_cit=res_matrice_cit)
+    }else{
+    merge_data<-merge_result_data_base(ads,arxiv,pumed,NULL,type)
+    print("merge anvant combine")
+    print(names(merge_data))
+    merge_data<-combine_analyse_data(merge_data,journal_table_ref,type )
+    print("merge après combine")
+    print(names(merge_data))
+    
+    
+    
+    res_matrice=interdis_matrice_creation_and_calcul(data_gl = merge_data,path_dist_table="data/category_similarity_matrix.txt",type =type )
+    result=list(res=res_matrice)
+  }
+  
+  return(result)
+  
 }

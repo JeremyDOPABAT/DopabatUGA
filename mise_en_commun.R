@@ -101,12 +101,6 @@ res_cit[t,c("bibcode","titre")]
 
 
 
-path_journal="data/data_journal/table_categ_wos.csv"
-journal_table_ref=read.csv(path_journal, sep = ";",header = TRUE,stringsAsFactors = FALSE)
-journal_table_ref$Source_title<-gsub("\\s*\\([^\\)]+\\)","",journal_table_ref$Full.Journal.Title)
-journal_table_ref$Source_title<-gsub("[(#$%*,.:;<=>@^_`{|}~.)]","",journal_table_ref$Full.Journal.Title)
-names(journal_table_ref)
-
 
 
 
@@ -199,10 +193,11 @@ data_wos<-convert2df(readFiles(path),dbsource = "wos",format = "bibtex")
 
 
 
-
-res_wos$position_name=2
-res_wos$sep=";"
-res_wos$source="WOS"
+path_journal="data/table_categ_wos.csv"
+journal_table_ref=read.csv("data/table_categ_wos.csv", sep = ";",header = TRUE,stringsAsFactors = FALSE)
+journal_table_ref$Full.Journal.Title<-gsub("\\s*\\([^\\)]+\\)","",journal_table_ref$Full.Journal.Title)
+journal_table_ref$Full.Journal.Title<-gsub("[(#$%*,.:;<=>@^_`{|}~.)]","",journal_table_ref$Full.Journal.Title)
+names(journal_table_ref)
 
 
 
@@ -212,70 +207,37 @@ voici_un_test<-extract_ref_wos(data_wos)
 test=as.data.frame(voici_un_test,stringsAsFactors = FALSE)
 dim(test)
 View(test)
-
+#dom_wos<-find_journal_domaine(journal_data = df_global_wos$`refered journal`,journal_table_ref = journal_table_ref,issn =  df_global_wos$`refered issn`,source ="JCR.Abbreviated.Title" )
 test<-combine_analyse_data(test,journal_table_ref,type="ref" )
-
-
-data_gl=test
-
-
+names(test)
 
 
 res_matrice=interdis_matrice_creation_and_calcul(data_gl = test,path_dist_table="data/data_journal/category_similarity_matrix.txt",type = "ref" )
 
+path_gd="data/data_journal/categ_wos.csv"
 
-dim(res_matrice)
-
-res_matrice$md
-
-
-#rajouter id dans matrice pop 
+table_categ_gd=read.csv(file=path_gd,header = TRUE,stringsAsFactors = FALSE,sep = ";")
 
 
-
-
-interdis_calcul<-function(matrice_prop, table_dist){
-  dia=sapply(1:dim(matrice_prop)[1],FUN = function(x){
-    
-    cal=0
-    matrice_prop[x,]=matrice_prop[x,]/sumrow[[x]]
-    lien<-list()
-    sum=0
-    for(i in 1:dim(matrice_prop)[2]){
-      
-      for(j in 1:dim(matrice_prop)[2]){
-        
-        if(matrice_prop[x,i]!=0 && matrice_prop[x,j]!=0){
-          sum=sum+1
-          n1=names(matrice_prop)[i]
-          n2=names(matrice_prop)[j]
-          dij=table_dist[n1,n2]
-          lien=append(list(c(n1,n2)),lien)
-          cal=cal+matrice_prop[x,i]*matrice_prop[x,j]*dij
-        }
-      }
-    }
-    return(list(valeur=cal,couple=lien))
-  }
-  )
-  
-  (DD=unlist(dia["valeur",][length(dia["valeur",])]))
-  
-  (ID=mean(unlist(dia["valeur",][-length(dia["valeur",])])))
-  
-  
-  (MD=DD-ID)
-  
-  resultat<-list(dia=dia["valeur",],md=MD,id=ID,dd=DD,prop=matrice_prop,couple=dia["couple",])
-  return(resultat)
-}
-
-resultat=interdis_calcul(matrice_prop = res_matrice$proportion, table_dist = res_matrice$distance)
-resultat$couple[[1]]
 unlist(resultat$dia)
 resultat$md
 resultat$dd
 resultat$id
+
+
+
+
+
+
+matrice_res<-global_merge_and_cal_interdis(ads=NULL,NULL,NULL,wos=test,journal_table_ref,"ref")
+
+
+
+
+
+
+
+
 
 
 
