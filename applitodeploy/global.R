@@ -11,6 +11,8 @@ library(httr)
 library(lubridate)
 library(tm)
 library(plyr)
+library(bibliometrix)
+library(V8)
 
 jsResetCode <- "shinyjs.reset = function() {history.go(0)}" # Define the js method that resets the page
 
@@ -547,7 +549,17 @@ pdf_extract_data<-function(path_folder){
 }
 
 supress_unfit_entry<-function(title_vector,author_vector,sep="",max_aut=8){
-  # fonction pertmettant de supprimer les entr? ind?cisrable (ou de les rendre compatible )
+  #' Title
+  #'
+  #' @param title_vector vector de titre 
+  #' @param author_vector  vector de auteur 
+  #' @param sep sep between author 
+  #' @param max_aut max auteur autorisÈ  (pour la requÍte )
+  #'
+  #' @return deux vecteur 
+  
+  
+    # fonction pertmettant de supprimer les entr? ind?cisrable (ou de les rendre compatible )
   # input pdf_folder : lien du dossier dans lequel se trouve le fichier pdf 
   
   #output   une dataframe avec les m?tadonner qui nous interesse 
@@ -984,6 +996,15 @@ get_cit_or_ref_arxiv<-function(resdt,type){
 
 
 fit_name_position<-function(au_data,position_base,position_togo,sep=""){
+  #' Title
+  #'
+  #' @param au_data vecteur/list auteur  
+  #' @param position_base entier position 1 nom-prenom position 2 prenom nom 
+  #' @param position_togo position a aller en fct de la base
+  #' @param sep sepatateur entre auteur
+  #'
+  #' @return vecteur author 
+  
   if(length(sep)==1) if(sep=="") sep=rep(",",length(au_data)) 
   au_sep=sapply(1:length(au_data),FUN=function(x) strsplit(au_data[x],sep[x]))
   
@@ -1015,8 +1036,23 @@ fit_name_position<-function(au_data,position_base,position_togo,sep=""){
 
 
 
+
 ads_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,value_same_min_accept,token,sep){
   #m?me chose que les fonction pr?c?dente du m?me nom mais avec ads, cette fonction permet de recup?r? les m?ta donner de publi sur l'api d'ads en se servant d'un vecteur titre/ auteur 
+  
+  #' Title
+  #'
+  #' @param au_data vecteur/list  nom auteur
+  #' @param ti_data vecteur/list titre publi 
+  #' @param position_name interger 1ou 2 selon la place du nom et prenom 
+  #' @param pas pas d'avancement de la boucle 
+  #' @param value_same_min_ask valeur reel pourcentage similitude pour ne pas validÈe doffice , en dessous de ca c'est non validÈe 
+  #' @param value_same_min_accept pourcentage de similitude ou on valide d'office
+  #' @param token identifiant ads 
+  #' @param sep separateur 
+  #'
+  #' @return dataframe 
+  
   last_good_result=NULL
   
   res=c()#variable resultat 
@@ -1056,10 +1092,10 @@ ads_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,val
      message='Please wait',
      detail='Doing reasearche of publication in ads...',
      value=0, {
-  for(h in 1:inter){
+  for(h in 1:inter){# on parcoure les auteur et les titre par pas et on fait les roquette correspondante 
     first<-(h-1)*pas+1
     last<-h*pas
-    incProgress(1/inter)
+  incProgress(1/inter)
     if(last>length(au_data)) last<-length(au_data)
     
     #ti_test="M31 Globular Clusters: Colors and Metallicities"
@@ -1088,7 +1124,7 @@ ads_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,val
       
     },
     
-    warning=function(cond){
+    warning=function(cond){# mise en forme en cas d'erreur 
       titre_error=as.data.frame(ti_data[first:last])
       names(titre_error)=c("Publication title")
       titre_error["Status error"]=r$status
@@ -1123,7 +1159,7 @@ ads_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,val
         if(is.null(keyword)) keyword<-NA
         if(is.null(reference)) reference<-NA
         
-        if(length(unlist(titre))>1){
+        if(length(unlist(titre))>1){# on met en forme le titre en cas de liste(plusieurs titre pour une seul oevre )
           titre2<-sapply(1:length(titre),FUN=function(x) return(list(unlist(titre[x])[1])))
           titre=titre2
         }
@@ -1176,11 +1212,11 @@ pumed_get_element_id<-function(id_list,type){
   # output: liste de 2 
   # error : erreur treouver 
   # temps : donn?es trouver  
-  id_list_string=paste0(id_list,collapse = ",")
+  id_list_string=paste0(id_list,collapse = ",")# on sÈpare les nombre d'une virgule 
   
   querry<-paste0('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&id=',id_list_string,'&retmode=json')
-  
-  r <- GET(querry)
+  # redaction de la querry 
+  r <- GET(querry)# get 
   
   
   
@@ -1189,7 +1225,7 @@ pumed_get_element_id<-function(id_list,type){
     
   },
   
-  warning=function(cond){
+  warning=function(cond){# si erreur on met en forme les informations 
     titre_error=as.data.frame(ti_data[first:last])
     names(titre_error)=c("Publication title")
     titre_error["Status error"]=r$status
@@ -1200,11 +1236,11 @@ pumed_get_element_id<-function(id_list,type){
   })
   
   if(length(error)==0) {#si il n'y a pas d'erreur  
-    Sys.sleep(0.34)
-    result <- jsonlite::fromJSON(txt = httr::content(r, 'text'), simplifyDataFrame = TRUE)
+    Sys.sleep(0.34)#oblogatoire pour respecter les regle de pumbmed 
+    result <- jsonlite::fromJSON(txt = httr::content(r, 'text'), simplifyDataFrame = TRUE)# on recupËre les resultat du json 
     
     
-    temp<-sapply(1:length(id_list),FUN=function(x){
+    temp<-sapply(1:length(id_list),FUN=function(x){# en fct fes tag on recupËre les info de chaque article trouver car l'id listte ontient tous les article trouver 
       id=result$result[[id_list[x]]]$uid
       au=list(result$result[[id_list[x]]]$authors$name)
       ti=result$result[[id_list[x]]]$title
@@ -1218,7 +1254,7 @@ pumed_get_element_id<-function(id_list,type){
       return(c(id,au,ti,da,essn,issn,jou))
     })
   }
-  return(list(error=error,temp=temp))
+  return(list(error=error,temp=temp)) # on renvois le tout dans une liste. 
 }
 
 
@@ -1226,20 +1262,20 @@ pumed_get_element_id<-function(id_list,type){
 #---------------------------------------------
 
 df_flatten<-function(res){
-  
+  res# data tble 
   #fonction qui permet le bonne affichage des tables dans l'interface  
   res_f=res
   #date_name="date"
   
-  for(i in names(res_f)){
+  for(i in names(res_f)){# on parcourt les colonne 
     ind=which(is.null(res_f[,i]))
     res_f[ind,i]=NA
     if(length(unlist(res_f[,i]))>length(res_f[,i])){
-      res_f[,i]=sapply(1:length(res_f[,i]),FUN = function(x) paste(res_f[,i][[x]],collapse = ";"))
+      res_f[,i]=sapply(1:length(res_f[,i]),FUN = function(x) paste(res_f[,i][[x]],collapse = ";"))# si il y a plusieur element sur une mÍme ligne 
     }
     ind=which(is.na(res_f[,i]))
-    res_f[ind,i]="NULL"
-    if(typeof(i)=="list") res_f[,x]<-unlist(res_f[,x])
+    res_f[ind,i]="NULL"#na ne peu pas Ítre afficher dans la table donc on le remplace par "null" 
+    if(typeof(i)=="list") res_f[,i]<-unlist(res_f[,i]) #si c'est une liste on l'enl'f
     #if(date_name!="") res_f[date_name]=as.character(res_f[date_name])
   }
   
@@ -1259,10 +1295,6 @@ shinyInput <- function(FUN, len, id, ...) {
 
 
 find_journal_domaine<-function(journal_data,journal_table_ref,issn="",essn="",source=""){
-  if(source=="") col_journal="Full.Journal.Title" else col_journal=source
-  journal_table_ref$Abreviation[journal_table_ref$Abreviation==""]=NA
-  ab=c()
-  cat=c()
   #Cette fonction permet de retrouver le domaine avec le nom du journal
   
   #input
@@ -1270,6 +1302,14 @@ find_journal_domaine<-function(journal_data,journal_table_ref,issn="",essn="",so
   #issn vecteur contenant des issn,
   #essn veteur essn
   #journal_table_ref table de jounaux 
+  
+  
+  
+  
+  col_journal=source
+  journal_table_ref$Abreviation[journal_table_ref$Abreviation==""]=NA
+  ab=c()
+  cat=c()
   
   pas=ceiling(dim(journal_table_ref)[1]/2)
   inter=ceiling(dim(journal_table_ref)[1]/pas)
@@ -1286,23 +1326,23 @@ find_journal_domaine<-function(journal_data,journal_table_ref,issn="",essn="",so
       
       first<-(h-1)*pas+1# premier individu a prendre en compte(ligne)
       last<-h*pas       # dernier ""   "      "       "   "
-      if(last>length(dim(journal_table_ref)[1])) last<-dim(journal_table_ref)[1]
+      if(last>dim(journal_table_ref)[1]) last<-dim(journal_table_ref)[1]
       journal_courant=journal_table_ref[first:last,]
       
       
       #print(x)
-      if(!is.na(journal_data[x])) {
+      if(!is.na(journal_data[[x]])) {
         if(length(issn)!=0){ if(!is.null(issn[x]) &&issn[x]!="" && !is.na(issn[x]) ){# on trouve l'iissn si il est pr√©sent 
-          ind=which(issn[x]==journal_courant$issn) 
-            if(length(ind)>0){
-              ab=c(ab,journal_courant$Abreviation[ind])
-              cat=c(cat,journal_courant$Discipline.Scientifique.OST[ind])
-              trouver=TRUE
+          ind=which(issn[[x]]==journal_courant$issn) 
+          if(length(ind)>0){
+            ab=c(ab,journal_courant$Abreviation[ind])
+            cat=c(cat,journal_courant$Discipline.Scientifique.OST[ind])
+            trouver=TRUE
           } 
         }}
         if(length(essn)!=0 && trouver==FALSE){ 
           if(!is.null(essn[x]) && essn[x]!=""&& !is.na(essn[x])){# pareil pour l'essn
-          ind=which(essn[x]==journal_courant$essn) 
+            ind=which(essn[x]==journal_courant$essn) 
             if(length(ind)>0) {
               ab=c(ab,journal_courant$Abreviation[ind])
               cat=c(cat,journal_courant$Discipline.Scientifique.OST[ind])
@@ -1312,9 +1352,10 @@ find_journal_domaine<-function(journal_data,journal_table_ref,issn="",essn="",so
         }
         #on seach le nom exacte du journal dans la liste de ref√©rence 
         if(trouver==FALSE){
-          tp=grep(paste0("^",tolower(trimws(gsub("\\[|\\]", "",gsub("[(#$%*,.:;<=>@^_`{|}~.)]","",gsub("\\s*\\([^\\)]+\\)","",journal_data[x]))))),"$"),tolower(trimws(journal_courant[[source]])))
-        #}, error = function(e) { return(NA)})
-        
+          tp=grep(paste0("^",tolower(trimws(gsub("\\[|\\]", "",gsub("[(#$%*,.:;<=>@^_`{|}~.)]","",gsub("\\s*\\([^\\)]+\\)","",journal_data[[x]]))))),"$"),tolower(trimws(journal_courant[[col_journal[[x]]]])))
+          
+          #}, error = function(e) { return(NA)})
+          
           if(length(tp)>0){
             ab=c(ab,journal_courant$Abreviation[tp])
             cat=c(cat,journal_courant$Discipline.Scientifique.OST[tp])
@@ -1346,7 +1387,7 @@ find_journal_domaine<-function(journal_data,journal_table_ref,issn="",essn="",so
   # temp<-sapply(ind, function(x){
   #   cat<-names(table(dom[x]))
   #   if(length(cat)==1) return(cat) else return(NA)
- # })
+  # })
   
   #dom[ind]<-temp
   return(dom) 
@@ -1975,6 +2016,12 @@ extraction_data_api_nasa_ads<-function(data_pub,ti_name,au_name,token,pas=8,valu
     if(source_name==""){
       res_rest=resdt
     }
+    
+    if(type=="ref"){
+      total_res=NULL
+      total_res_ask=NULL
+      error_querry_cit=NULL
+    }
     res_ref=get_cit_or_ref(res_rest,type="ref",token)  #ref?rence
     total_res_ref=res_ref$res_cit_ref[res_ref$res_cit_ref$check>=value_same_min_accept,]
     total_res_ref_ask=res_ref$res_cit_ref[(res_ref$res_cit_ref$check>=value_same_min_ask) & (res_ref$res_cit_ref$check<value_same_min_accept),]
@@ -1989,11 +2036,7 @@ extraction_data_api_nasa_ads<-function(data_pub,ti_name,au_name,token,pas=8,valu
       
       
       
-      if(type=="ref"){
-        total_res=NULL
-        total_res_ask=NULL
-        error_querry_cit=NULL
-      }
+      
     }
   }
   return(list(dataframe_citation_accept=total_res,error_querry_publi=error_querry,title_vector=ti_data,author_vector=au_data,dataframe_citation_ask=total_res_ask,
@@ -2139,6 +2182,7 @@ extraction_data_api_arxiv<-function(data_pub,ti_name,au_name,pas=8,value_same_mi
       
       error_querry_cit=list_citation$error_querry
       error_querry=rbind(error_querry,list_citation$error_querry)
+      print("laaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
       if( type=="cit"){
         res_reference=NA
         error_querry_ref=NA
@@ -2181,9 +2225,22 @@ extraction_data_api_arxiv<-function(data_pub,ti_name,au_name,pas=8,value_same_mi
 }
 
 
-
 arxiv_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,value_same_min_accept,sep,id){
   #fonction interne qui permet de r?cup?r? les publication de l'api d'arxiv avecc un vecteur de titre et d'auteur, on pr?sice aussi le pourcentage de cimilitude a avoir pour le concerver 
+  
+  
+  #' Title
+  #'fonction interne pour l'appli, cette fonction rÈcupËre les publi arxiv
+  #' @param au_data vecteur data d'auteur 
+  #' @param ti_data vecteur de titre 
+  #' @param position_name entier 1 ou 2 selon la position du nom par rapport au prenom 
+  #' @param pas pas d'avancement de la boucle de rÍquete 
+  #' @param value_same_min_ask rÈelle entre 0 et 1 selon le pourcentage de cimilitude des titre que l'on veut appliquer pour demander a l'utilisateur
+  #' @param value_same_min_accept rÈelle entre 0 et 1 selon le pourcentage de cimilitude des titre que l'on veut appliquer pour accepter le titre  
+  #' @param sep caratËre de separation des auteur 
+  #' @param id colone des id arxiv 
+  #'
+  #' @return datafrale des pubLII
   
   
   
@@ -2484,6 +2541,11 @@ arxiv_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,v
 
 extract_ref_wos<-function(data_wos){
   
+  #' Title
+  #'fct interne qui met en place les donner wos ou bibtext et la rand accessible pour l'appli
+  #' @param data_wos data bibtext 
+  #'
+  #' @return dataframe 
   
   res_wos=data_wos[,c("TI","AU","DE","SC","PY")]
   names(res_wos)<-c('title','author','keywords','domain','date')
@@ -2547,167 +2609,23 @@ extract_ref_wos<-function(data_wos){
 
 
 
-combine_analyse_data<-function(df_global,journal_table_ref,type){
-  #cette fonction est une fonction interne permettant de retrouuver les journaux a partir des nom, abr√©viation ou issn.
-  #cette fonction s'adapte √† la demande : ref cit et a type de donn√©es 
-  #input: 
-  # dg_global : the data table of the cit and ref 
-  #journal_table : big data table of all the journal 
-  #type type of analyse, reference or citation 
-  
-  #output : la table de donn√©es avec une colone en plus ref ou cit 
-  
-  
-  if(type=="ref"){# si type=ref 
-    if(dim(df_global[df_global$source=="WOS",])[1]>0){# si il y a des donn√©es wos dans la table de donn√©es on doit pass√© par les abr√©viation
-      dom_wos=NULL
-      dom_not_wos=NULL
-      df_global=df_global[order(df_global$source),]
-      df_global_wos=df_global[df_global$source=="WOS",]
-      
-      if(dim(df_global_wos)[1]!=0) dom_wos<-find_journal_domaine(journal_data = df_global_wos$`refered journal`,journal_table_ref = journal_table_ref,issn = test$`refered issn`,source ="JCR.Abbreviated.Title" )
-      df_global_not_wos=df_global[df_global$source!="WOS",]
-      if(dim(df_global_not_wos)[1]!=0) dom_not_wos<-find_journal_domaine(journal_data = df_global_not_wos$`refered journal`,journal_table_ref = journal_table_ref,issn = test$`refered issn` )
-      dom=c(dom_not_wos[1,],dom_wos[1,])
-      dicipline=c(dom_not_wos[2,],dom_wos[2,])
-    }else {# if  there is not wos in data 
-      res<-find_journal_domaine(journal_data = df_global$`refered journal`,journal_table_ref = journal_table_ref,issn = test$`refered issn` )
-      dom=res[1,]
-      dicipline=res[2,]
-      }
-    df_global$refered_journal_domaine=dom
-    df_global$refered_global_dicipline=dicipline
-  }else{#pour les citation il n'y a pas de patricularit√© dans le wos
-    res<-find_journal_domaine(journal_data = df_global$`citing journal`,journal_table_ref = journal_table_ref,issn = test$`citing issn` )
-    df_global$citing_journal_domaine=res[1,]
-    print("nb_result")
-    print(length(res[1,]))
-    df_global$citing_global_dicipline=res[2,]
-  }
-  return(df_global)  
-}
 
 
 
 
-interdis_matrice_creation_and_calcul<-function(data_gl,path_dist_table,type){
-  
-  
-  if(type=="ref"){
-    journal_domaine="refered_journal_domaine"
-    identifier="refering identifier"
-  }else{
-    journal_domaine="citing_journal_domaine"
-    identifier="cited identifier"
-  }
-  print(type)
-  print(journal_domaine)
-  nb_categ=unlist(data_gl[[journal_domaine]])
-  list_categ<-names(table(nb_categ))
-  print(dim(list_categ))
-  print(names(data_gl))
-  matrice_prop=as.data.frame(matrix(0,ncol=length(list_categ)))
-  names(matrice_prop)=c(list_categ)
-  precedent=""
-  for(i in 1:dim(data_gl)[1]){
-    if(!is.null(data_gl[[journal_domaine]][[i]])){
-      if(precedent!=data_gl[[identifier]][[i]]){
-        line=rep(0,length(list_categ))
-        matrice_prop=rbind(matrice_prop,line)
-      }
-      col_ind=match(unique(data_gl[[journal_domaine]][[i]]),names(matrice_prop))
-      
-      col_ind=col_ind[!is.na(col_ind)]
-      matrice_prop[dim(matrice_prop)[1],col_ind]= matrice_prop[dim(matrice_prop)[1],col_ind]+1
-      precedent=data_gl[[identifier]][[i]]
-    }
-  }
-  matrice_prop<-matrice_prop[-1,]
-  matrice_prop<-type.convert(matrice_prop)
-  sumcol=colSums(matrice_prop)
-  matrice_prop=rbind(matrice_prop,sumcol)
-  sumrow=rowSums(matrice_prop)
-  
-  table_dist<-read.table(file=path_dist_table,header = TRUE,sep = " ",dec ="." )
-  
-  dia=sapply(1:dim(matrice_prop)[1],FUN = function(x){
-    
-    cal=0
-    matrice_prop[x,]=matrice_prop[x,]/sumrow[[x]]
-    lien<-list()
-    sum=0
-    for(i in 1:dim(matrice_prop)[2]){
-      
-      for(j in 1:dim(matrice_prop)[2]){
-        
-        if(matrice_prop[x,i]!=0 && matrice_prop[x,j]!=0){
-          sum=sum+1
-          n1=names(matrice_prop)[i]
-          n2=names(matrice_prop)[j]
-          dij=table_dist[n1,n2]
-          lien=append(list(c(n1,n2)),lien)
-          cal=cal+matrice_prop[x,i]*matrice_prop[x,j]*dij
-        }
-      }
-    }
-    
-    
-    
-    return(list(valeur=cal,couple=lien))
-    
-    
-    #return(list(proportion=matrice_prop,distance=table_dist))
-  })
-  
-  (DD=unlist(dia["valeur",][length(dia["valeur",])]))
-  
-  (ID=mean(unlist(dia["valeur",][-length(dia["valeur",])])))
-  dia=dia[,-dim(dia)[2]] 
-  
-  (MD=DD-ID)
-  
-  path_gd="data/categ_wos.csv"
-  
-  table_categ_gd=read.csv(file=path_gd,header = TRUE,stringsAsFactors = FALSE,sep = ";")
-  
-  
-  table_conversion=sapply(1:length(names(matrice_prop)),FUN=function(x){
-    ind=grep(names(matrice_prop)[[x]],table_categ_gd$catcod)
-    return(c(table_categ_gd$OST.Category[ind],table_categ_gd$catcod[ind]))
-  })
-  table_conversion=t(table_conversion)
-  new_col=unique(table_conversion[,1])
-  new_matrice_prop=as.data.frame(matrix(0,ncol=length(new_col),nrow = dim(matrice_prop)[1]))
-  names(new_matrice_prop)=new_col
-  
-    for(i in 1:dim(matrice_prop)[1]){
-      for(j in 1:dim(matrice_prop)[2]){
-        if(matrice_prop[i,j]!=0){
-          print("i")
-          print(i)
-          print("j")
-          print(j)
-          print(names(matrice_prop)[j])
-          print(dim(table_conversion))
-          ind=grep(names(matrice_prop)[j],table_conversion[,2])
-          new_matrice_prop[i,table_conversion[ind,1]]=new_matrice_prop[i,table_conversion[ind,1]]+matrice_prop[i,j]
-      }
-    }
-  }
-  
 
-  matrice_prop=cbind(matrice_prop,c(unique(data_gl[[identifier]]),"Total"))
-  
-  
-  resultat<-list(dia=dia["valeur",],md=MD,id=ID,dd=DD,prop=matrice_prop,prop_grande_discipline=new_matrice_prop)
-  return(resultat)
-}
 
 
 
 
 
 conforme_bibtext<-function(data_wos){
+  #' Title
+  #' mise en place des keyword  et des source si elle y son ou pas 
+  #' @param data_wos data bitext   
+  #'
+  #' @return
+
   error=tryCatch({#rep?rage des erreur 
     data_wos["SC"]
   },
@@ -2731,13 +2649,131 @@ conforme_bibtext<-function(data_wos){
 }
 
 
+interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd,type){
+  #' Title
+  #' Fonction interne 
+  #' @param data_gl dataglobal cit ou ref ou all 
+  #' @param table_dist distance catÈgorivow
+  #' @param table_categ_gd  table de dysipline 
+  #' @param type type of analyse 
+  #'
+  #' @return list of result et analyse
 
-merge_result_data_base<-function(ads,arxiv,pumed,wos,type){
+  
+  if(type=="ref"){# chois  du type 
+    journal_domaine="refered_journal_domaine"
+    identifier="refering identifier"
+  }else{
+    journal_domaine="citing_journal_domaine"
+    identifier="cited identifier"
+  }
+  nb_categ=unlist(data_gl[[journal_domaine]]) #on prÈparer les colonne de la table de containgence 
+  list_categ<-names(table(nb_categ))
+  matrice_prop=as.data.frame(matrix(0,ncol=length(list_categ)))# initialisation de la matrice 
+  names(matrice_prop)=list_categ
+  precedent=""# initialisation , a chaque nouvelle article(id diffÈrent) on ceÈe une nouvelle ligne.
+  for(i in 1:dim(data_gl)[1]){
+    if(!is.null(data_gl[[journal_domaine]][[i]])){
+      if(precedent!=data_gl[[identifier]][[i]]){
+        line=rep(0,length(list_categ))
+        matrice_prop=rbind(matrice_prop,line)
+      }
+      col_ind=match(unique(data_gl[[journal_domaine]][[i]]),names(matrice_prop))#donne les bon indice de colonne 
+      
+      col_ind=col_ind[!is.na(col_ind)]
+      matrice_prop[dim(matrice_prop)[1],col_ind]= matrice_prop[dim(matrice_prop)[1],col_ind]+1 #mis a jour des compteur 
+      precedent=data_gl[[identifier]][[i]]#avancement du curseur 
+    }
+  }
+  matrice_prop<-matrice_prop[-1,]# on enlËve la prermiËre ligne consitituer uniquement de 0
+  matrice_prop<-type.convert(matrice_prop) # chiffre en chiffre 
+  sumcol=colSums(matrice_prop)
+  matrice_prop=rbind(matrice_prop,sumcol)
+  sumrow=rowSums(matrice_prop)
+  
+  dia=sapply(1:dim(matrice_prop)[1],FUN = function(x){# calvule des dia par article et du total en derni_re ligne 
+    
+    cal=0
+    matrice_prop[x,]=matrice_prop[x,]/sumrow[[x]]# contingence a pourcentage 
+    lien<-list()
+    
+    for(i in 1:dim(matrice_prop)[2]){# il faut adittionner les couple donc parcourir les colonne deux fois 
+      
+      for(j in 1:dim(matrice_prop)[2]){
+        
+        if(matrice_prop[x,i]!=0 && matrice_prop[x,j]!=0){
+        
+          n1=names(matrice_prop)[i]
+          n2=names(matrice_prop)[j]
+          dij=table_dist[n1,n2]
+          lien=append(list(c(n1,n2)),lien)
+          cal=cal+matrice_prop[x,i]*matrice_prop[x,j]*dij
+        }
+      }
+    }
+    
+    
+    
+    return(list(valeur=cal,couple=lien))
+    
+    
+    #return(list(proportion=matrice_prop,distance=table_dist))
+  })
+  (DD=unlist(dia["valeur",][length(dia["valeur",])]))
+  
+  (ID=mean(unlist(dia["valeur",][-length(dia["valeur",])])))
+  dia=dia[,-dim(dia)[2]] 
+  
+  (MD=DD-ID)
+  
+  # path_gd="data/categ_wos.csv"
+  # 
+  # table_categ_gd=read.csv(file=data/categ_wos.csv,header = TRUE,stringsAsFactors = FALSE,sep = ";")
+  # 
+  
+  table_conversion=sapply(1:length(names(matrice_prop)),FUN=function(x){#construction de la table de conversion 
+    ind=grep(names(matrice_prop)[[x]],table_categ_gd$catcod)
+    return(unique(c(table_categ_gd$OST.Category[ind],table_categ_gd$catcod[ind])))
+  })#affectation des catÈgorie OST
+  table_conversion=t(table_conversion)
+  new_col=unique(table_conversion[,1])
+  new_matrice_prop=as.data.frame(matrix(0,ncol=length(new_col),nrow = dim(matrice_prop)[1]))
+  names(new_matrice_prop)=new_col
+  
+  for(i in 1:dim(matrice_prop)[1]){
+    for(j in 1:dim(matrice_prop)[2]){
+      if(matrice_prop[i,j]!=0){
+        
+        ind=grep(names(matrice_prop)[j],table_conversion[,2])
+        new_matrice_prop[i,table_conversion[ind,1]]=new_matrice_prop[i,table_conversion[ind,1]]+matrice_prop[i,j]
+      }
+    }
+  }
+  
+  
+  matrice_prop=cbind(matrice_prop,c(unique(data_gl[[identifier]]),"Total"))
+  
+  
+  resultat<-list(dia=dia["valeur",],md=MD,id=ID,dd=DD,prop=matrice_prop,prop_grande_discipline=new_matrice_prop)
+  return(resultat)
+}
+
+merge_result_data_base<-function(ads,arxiv,pumed,wos,col_journal=c(NULL,NULL,NULL,NULL),type){
+  
+  #' @param ads matrice cit/ref venant d'ads 
+  #' @param arxiv matrice cit/ref venant d'arxiv
+  #' @param pumed matrice cit/ref venant d'pumed
+  #' @param wos matrice cit/ref venant d'un fichier bibtext
+  #' @param col_journal vecteur de 4, les colone de journal a utiliser pour les 4 matrice(1 par matrice). aprÈviation ou nom plein
+  #' @param type type de traitement cit/ref/all (les deux)
+  #' @return dataframe fusionner 
+
+  
   if(type=="ref"){
     ads_data=ads$dataframe_ref_accept
     arxi_data=arxiv$res_reference_accept
     pumed_data=pumed$dataframe_ref_accept
-    
+    if(!is.null(wos)) wos$source=col_journal[4]
   }
   else {
     ads_data=ads$dataframe_citation_accept
@@ -2745,6 +2781,13 @@ merge_result_data_base<-function(ads,arxiv,pumed,wos,type){
     pumed_data=pumed$dataframe_citation_accept
     
   }
+  
+  
+  if(!is.null(ads)) ads_data$source=col_journal[1]
+  if(!is.null(arxiv)) arxi_data$source=col_journal[2]
+  if(!is.null(pumed)) pumed_data$source=col_journal[3]
+  
+  
   data_merge=as.data.frame(rbind.fill(ads_data,arxi_data),stringsAsFactors = FALSE)
   data_merge=as.data.frame(rbind.fill(data_merge,pumed_data),stringsAsFactors = FALSE)
   if(type=="ref")   data_merge=as.data.frame(rbind.fill(data_merge,wos),stringsAsFactors = FALSE)
@@ -2752,29 +2795,68 @@ merge_result_data_base<-function(ads,arxiv,pumed,wos,type){
   return(data_merge) 
 }
 
+combine_analyse_data<-function(df_global,journal_table_ref,type){
+  #' 
+  #'#cette fonction est une fonction interne permettant de retrouuver les journaux a partir des nom, abr√©viation ou issn.
+  #cette fonction s'adapte √† la demande : ref cit et a type de donn√©es 
+  
+  #' @param df_global table de donnÈes   
+  #' @param journal_table_ref table de donnÈes de journal  
+  #' @param type type of analyse, reference or citation  
+  #'
+  #' @return la table de donn√©es avec une colone en plus ref ou cit
+  
+  
+  
+ 
+    
+  
+  if(type=="ref"){# si type=ref 
+    # si il y a des donn√©es wos dans la table de donn√©es on doit pass√© par les abr√©viation
+    
+    dom<-find_journal_domaine(journal_data = df_global$`refered journal`,journal_table_ref = journal_table_ref,issn = df_global$`refered issn`,source =df_global$source )
+    
+    df_global$refered_journal_domaine=dom[1,]
+    df_global$refered_global_dicipline=dom[2,]
+  }else{#pour les citation il n'y a pas de patricularit√© dans le wos
+    res<-find_journal_domaine(journal_data = df_global$`citing journal`,journal_table_ref = journal_table_ref,issn = df_global$`citing issn`,source =df_global$source )
+    df_global$citing_journal_domaine=res[1,]
+    df_global$citing_global_dicipline=res[2,]
+  }
+  return(df_global)  
+}
 
 
-global_merge_and_cal_interdis<-function(ads=NULL,arxiv=NULL,pumed=NULL,wos=NULL,journal_table_ref,type){
+
+global_merge_and_cal_interdis<-function(ads=NULL,arxiv=NULL,pumed=NULL,wos=NULL,journal_table_ref,table_dist,table_categ_gd,col_journal=c(NULL,NULL,NULL,NULL),type){
+  #' Title fct de rassemblement qui permet de caluler l'interdiciplinaritÈ  
+  #'avec les citations et reference des differente base. cette fonction est une fonction interne n'ayant pas pour but d'Ítre appelÈ en dehor de l'appli
+  #' @param ads matrice cit/ref venant d'ads 
+  #' @param arxiv matrice cit/ref venant d'arxiv
+  #' @param pumed matrice cit/ref venant d'pumed
+  #' @param wos matrice cit/ref venant d'un fichier bibtext
+  #' @param journal_table_ref table contenant l'information des journaux (abrÈviasion, issn, full name )
+  #' @param table_dist matrice de distances des catÈgorie wos 
+  #' @param table_categ_gd matrice des grandes catÈgorie ost avec les catÈgorie wos 
+  #' @param col_journal vecteur de 4, les colone de journal a utiliser pour les 4 matrice(1 par matrice). aprÈviation ou nom plein
+  #' @param type type de traitement cit/ref/all (les deux)
+  #'
+  #' @return list de de list resultat 
+  
   #wos pumed arxiv et ads sont les matrice de citation ou reference 
-  if(type=="all"){
-    merge_data<-merge_result_data_base(ads,arxiv,pumed,wos,type="ref")
-    merge_data<-combine_analyse_data(merge_data,journal_table_ref,type="ref" )
-    res_matrice_ref=interdis_matrice_creation_and_calcul(data_gl = merge_data,path_dist_table="data/category_similarity_matrix.txt",type = "ref" )
+  if(type=="all"){# qi on veux les reference et les citation 
+    merge_data<-merge_result_data_base(ads,arxiv,pumed,wos,type="ref",col_journal = col_journal)# on merge les difÈrente matrice 
+    merge_data<-combine_analyse_data(merge_data,journal_table_ref,type="ref")# on recupËre leurs nom de journal pour les associÈ au catÈgorie wos 
+    res_matrice_ref=interdis_matrice_creation_and_calcul(data_gl = merge_data,table_dist,table_categ_gd,type = "ref" ) # on  calcule l'interdiciplinaritÈ et les diffÈrent indicateurs 
     
+    merge_data<-merge_result_data_base(ads,arxiv,pumed,wos,type="cit",col_journal = col_journal)
     merge_data<-combine_analyse_data(merge_data,journal_table_ref,type="cit" )
-    res_matrice_cit=interdis_matrice_creation_and_calcul(data_gl = merge_data,path_dist_table="data/category_similarity_matrix.txt",type = "cit" )
+    res_matrice_cit=interdis_matrice_creation_and_calcul(data_gl = merge_data,table_dist,table_categ_gd,type = "cit" )
     result=list(res_ref=res_matrice_ref,res_cit=res_matrice_cit)
-    }else{
-    merge_data<-merge_result_data_base(ads,arxiv,pumed,NULL,type)
-    print("merge anvant combine")
-    print(names(merge_data))
+  }else{
+    merge_data<-merge_result_data_base(ads,arxiv,pumed,wos,type,col_journal = col_journal)
     merge_data<-combine_analyse_data(merge_data,journal_table_ref,type )
-    print("merge apr√®s combine")
-    print(names(merge_data))
-    
-    
-    
-    res_matrice=interdis_matrice_creation_and_calcul(data_gl = merge_data,path_dist_table="data/category_similarity_matrix.txt",type =type )
+    res_matrice=interdis_matrice_creation_and_calcul(data_gl = merge_data,table_dist,table_categ_gd,type=type )
     result=list(res=res_matrice)
   }
   

@@ -1,0 +1,683 @@
+Author;FA;IN;Tttre;Source;;CF;AB;Keyword;Keyword 2;Keyword 3;FTURL;OI;ND;CH
+"Kasianenko EM
+
+Omelchenko AI";"Kasianenko Ekaterina M.
+
+Omelchenko Alexander I.";"Kasianenko EM. Omelchenko AI. : Institute of Photon Technologies of Federal Scientific Research Centre ""Crystallography and Photonics"", 59 Leninskyi Prospect, Moscow 119333, Russia";Electromechanical behavior of cartilage tissue during laser-induced stresses and relaxation;Saratov Fall Meeting 2019: Optical and Nano-Technologies for Biology and Medicine. SPIE. Proceedings of the SPIE - Progress in Biomedical Optics and Imaging, vol.11457, 2020, 114570T (7 pp.).  USA.;2019;Saratov Fall Meeting 2019: Optical and Nano-Technologies for Biology and Medicine. Saratov, Russia. 23-27 Sept. 2019.;Laser surgery of the changing cartilage shape is based on photothermal effect on tissue components, which leads to its plasticization and, consequently, reshaping of this tissue. With the rapid laser heating, an optoacoustic wave is generated in the tissue, by the propagation and amplitude of which one can understand the changes in the mechanical properties of the tissue. In this work, data were obtained on the relative time variation of the mechanical stresses of the cartilage tissue upon heating and its temporal characteristics (relaxation time and system response time). A simultaneous recording of the electrical conductivity response of the cartilaginous tissue and mechanical stresses on a pulsed - periodic laser exposure is presented. As a result of this study, it was found that the mechanical stresses in the tissue are in good agreement with the electrical response of the tissue and a drop in resistance. It has been found that the continuation of tissue impedance falling down after the laser exposure switched off causes relaxation of the internal stresses. These studies are the base for the development of a control system for laser operations on cartilage tissue. (16 References).;"biological effects of laser radiation
+
+biological tissues
+
+biomechanics
+
+biothermics
+
+electrical conductivity
+
+internal stresses
+
+laser applications in medicine
+
+laser materials processing
+
+photothermal effects
+
+surgery";"Surgical instruments, devices or methods, e.g. tourniquets [A61B17/00]
+
+Biological material, e.g. blood, urine; Haemocytometers [G01N33/48]";"Optical and laser radiation (medical uses) [A8760F]
+
+Patient diagnostic methods and instrumentation [A8770E]
+
+Laser materials processing [A4262A]
+
+Cellular biophysics [A8725]
+
+Bio-optics (effects of microwaves, light, laser and other electromagnetic waves) [A8750E]
+
+Biological and medical applications of lasers [B4360H]";Click here for full text options;;;
+"Hui Xu
+
+Zhenxi Zhang
+
+Hongguang Zhou
+
+Yunfeng Bi";;Hui Xu. Zhenxi Zhang. Hongguang Zhou. Yunfeng Bi. : School of Mechanicals, Electrical & Information Engineering, Shandong University, Weihai 264209, China;Structural optimization and algorithm design for temperature control system of mid-infrared diode laser;Optik, vol.207, April 2020, 163854 (10 pp.). Publisher: Elsevier B.V., Netherlands.;2020;;Mid-infrared tunable diode laser absorption spectroscopy (TDLAS) has been extensively applied in high-sensitivity gas detection. Diode laser temperature control systems exert considerable influence on the comprehensive performance of gas detection systems. The overall design of temperature control systems for mid-infrared diode lasers is established in this research on the basis of the system's structural optimization, thermoelectric cooler (TEC) selection, transfer function identification and control algorithm optimization, and the first-stage fuzzy PID combined with a second-stage PID control algorithm is applied to the actual system finally. The system can be quickly stabilized at any setting temperature between 10 degreeC-50 degreeC with a precision of +/-10 m degreeC, and the energy consumption efficiency is high. The results lay the foundation for the optimization of the TDLAS systems' overall performance. [All rights reserved Elsevier]. (14 References).;"absorption
+
+fuzzy control
+
+gas sensors
+
+measurement by laser beam
+
+semiconductor lasers
+
+stability
+
+temperature control
+
+three-term control
+
+transfer functions";"Control of temperature [G05D23/00]
+
+Semiconductor lasers [H01S5/00]";"Chemical sensors [A8280T]
+
+Metrological applications of lasers [A4262E]
+
+Chemical sensors [B7230L]
+
+Metrological applications of lasers [B4360E]
+
+Semiconductor lasers [B4320J]
+
+Transducers and sensing devices [C3240]
+
+Stability in control theory [C1320]
+
+Fuzzy control [C1340F]
+
+Thermal variables control [C3120N]";Click here for full text options;12589;temperature 2.8315E+02 to 3.2315E+02 K;
+"Ming Pang
+
+Quan-Xiu Liu
+
+Xiao-Han Zhang
+
+Guang Liu";;"Ming Pang. Quan-Xiu Liu. Xiao-Han Zhang. : Airport College, Civil Aviation University of China, Tianjin 300300, China
+
+Guang Liu. : Chinese Weapons Science Academy Ningbo Branch, Ningbo 315103, China";Simulation research on the thermal-mechanical coupling of YSZ thermal protective coatings prepared by laser-plasma composite heat source on the surface of high-intensity diesel engine cylinder head;Optik, vol.207, April 2020, 164425 (17 pp.). Publisher: Elsevier B.V., Netherlands.;2020;;To improve the reliability of the coating, a laser-plasma composite heat source was used to prepare the YSZ coating. Based on the thermo-elastoplastic finite element theory and using ANSYS simulation software, a numerical model of laser-plasma composite heat source for YSZ coating was established. The model took into account the thermophysical performance parameters of the material at different temperatures and the latent heat of the phase transition of the material. The paper focused on the value and distribution of the temperature and the residual stress of coatings when the powder deposition temperature was 300 degreeC, 500 degreeC, 700 degreeC, and 900 degreeC. The results showed that with the increase of powder deposition temperature, the maximum temperature of the component increased. The micro-metallurgical morphology existed at the interface between the coating and the substrate prepared by the laser-plasma composite heat source. With the increase of powder deposition temperature, the depth and width of the molten pool of the substrate tended to increase further under the combined effects of the thermal conductivity of the component itself and the convective heat transfer between the component and the external environment. With the increase of powder deposition temperature, both the lateral maximum residual tensile stress and the lateral maximum residual compressive stress of the component increased. With the increase of powder deposition temperature, the longitudinal maximum residual compressive stress of the component increased and the longitudinal maximum residual tensile stress decreased. [All rights reserved Elsevier]. (36 References).;"convection
+
+diesel engines
+
+elastoplasticity
+
+engine cylinders
+
+finite element analysis
+
+plasma heating by laser
+
+plasma production by laser
+
+thermal barrier coatings
+
+thermal conductivity
+
+thermal stresses
+
+yttrium compounds
+
+zirconium compounds";"Internal-combustion piston engines; Combustion engines in general [F02B]
+
+Cylinders; Cylinder heads [F02F1/00]
+
+Engine or like cylinders; Features of hollow, e.g. cylindrical, bodies in general [F16J10/00]
+
+Thermal insulation in general [F16L59/00]
+
+Arrangements for confining plasma by electric or magnetic fields; Arrangements for heating plasma [H05H1/02]
+
+Using applied electromagnetic fields, e.g. high frequency or microwave energy [H05H1/46]";"Plasma production and heating by laser beams [A5250J]
+
+Corrosion, oxidation, etching, and other surface treatments [A8160]
+
+Numerical approximation and analysis [A0260]
+
+Convection and heat transfer [A4725Q]
+
+Engines [E2320]
+
+Automobile industry [E3650A]
+
+Numerical analysis [E0210L]
+
+Surface treatment and coating techniques [E1520N]
+
+Engineering materials [E1710]
+
+Heat and thermodynamic processes (mechanical engineering) [E2120]
+
+Mechanical components [E2210]";Click here for full text options;12673;"temperature 7.7315E+02 K
+
+temperature 9.7315E+02 K
+
+temperature 1.17315E+03 K
+
+temperature 5.7315E+02 K";"ZrO2Y2O3/sur
+
+O3/sur
+
+O2/sur
+
+Y2/sur
+
+Zr/sur
+
+O/sur
+
+Y/sur
+
+ZrO2Y2O3/ss
+
+O3/ss
+
+O2/ss
+
+Y2/ss
+
+Zr/ss
+
+O/ss
+
+Y/ss"
+"Shehab AA
+
+Sadrnezhaad SK
+
+Torkamany MJ
+
+Fakouri Hasanabadi M
+
+Alali M
+
+Mahmoud AK
+
+Abass MH
+
+Kokabi AH";"Shehab Abeer A.
+
+Sadrnezhaad S. K.
+
+Torkamany M. J.
+
+Fakouri Hasanabadi M.
+
+Alali Muhaed
+
+Mahmoud A. K.
+
+Abass Mohammed H.
+
+Kokabi A. H.";"Shehab AA. Mahmoud AK. : Department of Materials Science and Engineering, University of Diyala, Diyala, Iraq
+
+Sadrnezhaad SK. Fakouri Hasanabadi M. Kokabi AH. : Department of Materials Science and Engineering, Sharif University of Technology, Tehran, Iran
+
+Torkamany MJ. : Iranian National Center for Laser Science and Technology, Tehran, Iran
+
+Alali M. : Department of Materials Science and Engineering, University of Kufa, Baghdad, Iraq
+
+Abass MH. : Ministry of Oil, Midland Oil Company, Baghdad, Iraq";Ring-like laser spot welding of Ti grade2 to AAl3105-O using AlSiMg filler metal;Optik, vol.206, March 2020, 1279-89. Publisher: Elsevier B.V., Netherlands.;2020;;A pulsed Nd:YAG laser welding of 1 mm thick Ti (grade 2) to 0.5 mm thick AA3105-O was performed by a ring-like spot joining. A 0.15 mm thick Al-12Si-2.5 Mg alloy was used as a filler metal. Intermetallic compounds of Ti3Al, Ti2Al, TiAl, Ti(Al,Si)3 and Mg2Si were observed respectively from Ti towards Al sides at the fusion zone. Si and Mg increased the strength of the Al re-solidified zone near the Ti-Al interface because of their easy dissolution in the Al. Exothermic effect of the Mg addition resulted in porosity in the welding zone. Joint strength of up to 98% of the Al base metal was obtained, which was much 14% higher than that achieved by autogenous welding. [All rights reserved Elsevier]. (28 References).;"aluminium alloys
+
+filler metals
+
+laser beam welding
+
+magnesium alloys
+
+porosity
+
+silicon alloys
+
+spot welding
+
+stainless steel
+
+titanium
+
+titanium alloys
+
+welds";"Spot welding [B23K11/11]
+
+Working by laser beam, e.g. welding, cutting, boring [B23K26/00]
+
+Alloys based on titanium [C22C14/00]
+
+Alloys based on aluminium [C22C21/00]
+
+Alloys based on magnesium [C22C23/00]";"Laser materials processing [A4262A]
+
+Laser materials processing [B4360B]
+
+Joining processes and welding [E1520E]
+
+Engineering materials [E1710]";Click here for full text options;68260;"wavelength 1.0E-03 m
+
+wavelength 5.0E-04 m
+
+size 1.5E-04 m";"AlSiMg/ss
+
+Mg/ss
+
+Si/ss
+
+Al/int
+
+Ti/int
+
+Al/ss
+
+Ti/el"
+"Khandandel SE
+
+Hossein Seyedkashi SM
+
+Moradi M";"Khandandel S. Esmaeil
+
+Hossein Seyedkashi S. M.
+
+Moradi Mahmoud";"Khandandel SE. Hossein Seyedkashi SM. : Department of Mechanical Engineering, University of Birjand, Birjand 97175-376, Iran
+
+Moradi M. : Department of Mechanical Engineering, Malayer University, Malayer, Iran";"A novel path strategy design for precise 2D and 3D laser tube forming process; experimental and numerical investigation";Optik, vol.206, March 2020, 164302 (12 pp.). Publisher: Elsevier B.V., Netherlands.;2020;;Laser tube forming is a flexible process in which the heat generated by the laser beam scanning on the tube surface results in bending. Unlike laser sheet forming, few studies have been carried out on laser tube forming. This originates from the complexity of this process compared to the sheet forming, as well as the limited applicability of the forming strategies. In this research, a new idea is proposed based on the circular scanning method, which is presented in the form of two step-by-step and reverse schemes. Using this new strategy, it would be easy to precisely extract the laser scanning path for all 2D and 3D shapes. Since this strategy is programmable, it can be designed and implemented in a variety of forms only by changing the input parameters. In order to form a desired 2D and 3D shapes on a tube based on this idea, the proposed strategy was verified with both finite element and experimental methods. Fiber laser was used to form the AISI 304L tubes with certain parameters to achieve a specific bend angle. The experimental results are in a very good agreement with the designed path strategy and FE simulations, which confirms the efficiency and effectiveness of the path scanning strategy proposed in this paper. [All rights reserved Elsevier]. (17 References).;"bending
+
+finite element analysis
+
+forming processes
+
+laser materials processing";;"Numerical approximation and analysis [A0260]
+
+Laser materials processing [A4262A]
+
+Numerical analysis [E0210L]
+
+Forming processes [E1520G]
+
+Engineering materials [E1710]";Click here for full text options;48528;;
+"Gotovski P
+
+Slevas P
+
+Nacius E
+
+Jukna V
+
+Orlov S
+
+Ulcinas O
+
+Baltrukonis J
+
+Gertus T";"Gotovski P.
+
+Slevas P.
+
+Nacius E.
+
+Jukna V.
+
+Orlov S.
+
+Ulcinas O.
+
+Baltrukonis J.
+
+Gertus T.";"Gotovski P. Slevas P. Nacius E. Jukna V. Orlov S. Ulcinas O. Baltrukonis J. : State Research Institute Center for Physical Sciences and Technology, Sauletekio av. 3, Vilnius, Lithuania
+
+Gertus T. : Light Conversion, Keramiku st. 2B, Vilnius, Lithuania";Design of efficient Gauss to top-hat converters using geometrical phase elements inscribed in the glass by femtosecond laser pulses;Laser Resonators, Microresonators, and Beam Control XXII. SPIE. Proceedings of the SPIE, vol.11266, 2020, 112661J (10 pp.).  USA.;2020;Laser Resonators, Microresonators, and Beam Control XXII. San Francisco, CA, USA. 3-6 Feb. 2020.;Beam profile engineering, where a desired optical intensity distribution is generated by phase shifting and/or amplitude changing elements, is a promising approach in various laser-related applications. For example, vector geometrical phase elements enable various flat special optical elements such as top-hat converters. We present a study on engineering efficient top-hat converters inscribed in the glass by femtosecond laser pulses. We start with an amplitude encoded top hat converter and demonstrate how its efficiency can be further increased by introduction of phase masks and by the polarization of the incident beam. Experimental verification of the concept is also presented. (12 References).;"diffractive optical elements
+
+high-speed optical techniques
+
+laser beams
+
+light polarisation
+
+optical elements
+
+optical fibre fabrication
+
+optical pulse shaping";"Manufacture of glass fibres or filaments [C03B37/01]
+
+Diffraction optics [G02B27/42]
+
+Mode locking; Mode suppression [H01S3/098]
+
+Controlling the intensity, frequency, phase, polarisation or direction of the emitted radiation, e.g. switching, gating, modulating or demodulating [H01S3/10]";"Ultrafast optical techniques [A4280W]
+
+Optical fibre fabrication, cladding, splicing, joining [A4281B]
+
+Numerical approximation and analysis [A0260]
+
+Laser beam modulation, pulsing and switching; mode locking and tuning [A4260F]
+
+Laser beam characteristics and interactions [A4260H]
+
+Laser materials processing [A4262A]
+
+Fibre optics [B4125]
+
+Laser materials processing [B4360B]
+
+Other topics in statistics [B0240Z]";Click here for full text options;;;
+"Toporovsky V
+
+Kudryashov A
+
+Samarkin V
+
+Sheldakova J
+
+Rukosuev A";"Toporovsky Vladimir
+
+Kudryashov Alexis
+
+Samarkin Vadim
+
+Sheldakova Julia
+
+Rukosuev Alexey";"Toporovsky V. Kudryashov A. Samarkin V. Sheldakova J. : Institute of Geosphere Dynamics, Moscow, Russia
+
+Rukosuev A. : Moscow Polytechnic University, Moscow, Russia";Applicability of small size wavefront correctors to compensate for wavefront distortions in laser systems;Laser Resonators, Microresonators, and Beam Control XXII. SPIE. Proceedings of the SPIE, vol.11266, 2020, 1126619 (12 pp.).  USA.;2020;Laser Resonators, Microresonators, and Beam Control XXII. San Francisco, CA, USA. 3-6 Feb. 2020.;As well known, the quality of radiation of laser beam is reduced during propagation along optical trace, because of various reasons (for example, atmospheric turbulence, scattering, thermal fluctuations etc.). We propose small-size deformable mirrors with high spatial resolution of control elements, that will allow to compensate for wavefront aberrations in wide range. Developed wavefront corrector could be used in different scientific areas: free-space communications, destruction of space debris, etc. (28 References).;"aberrations
+
+adaptive optics
+
+atmospheric turbulence
+
+deformation
+
+laser beams
+
+lenses
+
+mirrors
+
+optical design techniques
+
+wavefront sensors";"Simple or compound lenses [G02B3/00]
+
+Mirrors [G02B5/08]";"Optical lenses and mirrors [A4280A]
+
+Optical system design [A4215E]
+
+Laser beam characteristics and interactions [A4260H]
+
+Other optical system components [B4190]";Click here for full text options;54744;;
+"Schleuning D
+
+Droz P-Y";"Schleuning David
+
+Droz Pierre-Yves";Schleuning D. Droz P-Y. : Waymo, 100 Mayfield Ave, Mountain View, CA 94043, USA;Lidar sensors for autonomous driving;High-Power Diode Laser Technology XVIII. SPIE. Proceedings of the SPIE, vol.11262, 2020, 112620D (6 pp.).  USA.;2020;High-Power Diode Laser Technology XVIII. San Francisco, CA, USA. 2-4 Feb. 2020.;We present an overview of autonomous driving with examples of real world problems. Core to this technology are lidar sensors. Lidar provides three dimensional maps with depth perception on targets with a range of reflectivity in a scene. Sensors need to provide high angular resolution, large field of view, and low latency. We review different lidar technologies and discuss the tradeoffs with laser performance. In particular, we discuss the implications on output power, short pulse operation, and etendue for high power semiconductor lasers. (8 References).;"optical radar
+
+remote sensing by laser beam
+
+semiconductor lasers";"Systems using the reflection or reradiation of electromagnetic waves other than radio waves, e.g. lidar systems [G01S17/00]
+
+Image data processing or generation, in general [G06T]
+
+Semiconductor lasers [H01S5/00]";"Optical radar [B6320C]
+
+Sensing devices and transducers [B7230]
+
+Semiconductor lasers [B4320J]
+
+Optical, image and video signal processing [B6135]";Click here for full text options;;;
+"Yamagata Y
+
+Kaifuchi Y
+
+Nogawa R
+
+Yoshida K
+
+Morohashi R
+
+Yamaguchi M";"Yamagata Yuji
+
+Kaifuchi Yoshikazu
+
+Nogawa Ryozaburo
+
+Yoshida Kyohei
+
+Morohashi Rintaro
+
+Yamaguchi Masayuki";"Yamagata Y. Nogawa R. Yoshida K. Morohashi R. Yamaguchi M. : Optical Technologies R&D Center, Fujikura Ltd., 1440, Mutsuzaki, Sakura, Chiba 285-8550, Japan
+
+Kaifuchi Y. : Optoenergy Inc., 1440, Mutsuzaki, Sakura, Chiba 285-8550, Japan";Highly efficient 9xx-nm band single emitter laser diodes optimized for high output power operation;High-Power Diode Laser Technology XVIII. SPIE. Proceedings of the SPIE, vol.11262, 2020, 1126203 (6 pp.).  USA.;2020;High-Power Diode Laser Technology XVIII. San Francisco, CA, USA. 2-4 Feb. 2020.;We report the highest power conversion efficiency (PCE) of 74.6% at peak and more than 70% PCE maintained up to high output power of 20W in broad stripe laser diodes (LDs) lasing at a 9xx-nm band. Optimal layer structure design including enhancement of asymmetry in waveguide structure and elimination of nonlinear resistance due to band discontinuity enables electric resistance to be reduced by 33% compared to conventional LDs without notable increase in optical internal loss. These PCE values from middle to high output power range marks the highest record reported so far. (8 References).;"gallium compounds
+
+III-V semiconductors
+
+laser beams
+
+power conversion
+
+quantum well lasers
+
+semiconductor lasers";"Semiconductor lasers [H01S5/00]
+
+comprising quantum well or superlattice structures, e.g. single quantum well lasers (SQW-lasers), multiple quantum well lasers (MQW-lasers), graded index separate confinement heterostructure lasers (GRINSCH-lasers) [H01S5/34]";"Lasing action in semiconductors [A4255P]
+
+Design of specific laser systems [A4260B]
+
+Laser beam characteristics and interactions [A4260H]
+
+Semiconductor lasers [B4320J]";Click here for full text options;199791;;
+"Lafon RE
+
+Li S
+
+Micalizzi F
+
+Lebair S";"Lafon Robert E.
+
+Li Steven
+
+Micalizzi Frankie
+
+Lebair Stephen";Lafon RE. Li S. Micalizzi F. Lebair S. : NASA-Goddard Space Flight Center, 8800 Greenbelt Road, Greenbelt, MD 20771, USA;Ultrafast laser bonding of glasses and crystals to metals for epoxy-free optical instruments;Components and Packaging for Laser Systems VI. SPIE. Proceedings of the SPIE, vol.11261, 2020, 1126103 (15 pp.).  USA.;2020;Components and Packaging for Laser Systems VI. San Francisco, CA, USA. 3-5 Feb. 2020.;The use of epoxies in space-based instruments is often unavoidable in situations where the bonding of dissimilar materials such as glass and metal is required. While there are epoxies that exhibit low total mass loss (TML) and collected volatile condensable materials (CVCM) in vacuum, in some applications they can still be a source of problematic contamination. Epoxies can also be incompatible with exposure to chemical environments some space instrumentation may be exposed to. In high power laser instruments such as LIDAR systems where optical components must be securely bonded to metal mounts, the impact of epoxy outgassing can be especially acute. Even with very low outgassing levels, the intense laser can break down the outgassed material and preferentially deposit it on optics that handle high optical power. This laser induced contamination in turn leads to laser induced damage, leading to degradation of optical components and reducing the reliability and operational lifetime of laser instruments [1-6]. Alternative bonding methods that avoid introducing additional contaminants could greatly improve reliability and operational lifetime of space instruments. (20 References).;"aerospace materials
+
+contamination
+
+laser beam effects
+
+optical radar
+
+outgassing";Systems using the reflection or reradiation of electromagnetic waves other than radio waves, e.g. lidar systems [G01S17/00];"Reliability [B0170N]
+
+Optical radar [B6320C]
+
+Engineering materials [E1710]
+
+Testing [E1630]";Click here for full text options;53523;;
+"Cameron S
+
+Barber R
+
+Scott C
+
+Casimero C
+
+Hegarty C
+
+O'Loughlin L
+
+Pourshahidi K
+
+Papakonstantinou P
+
+Roy S
+
+Davis J
+
+Mathur A";"Cameron Sarah
+
+Barber Robert
+
+Scott Cameron
+
+Casimero Charnete
+
+Hegarty Catherine
+
+O'Loughlin Lauren
+
+Pourshahidi Kirsty
+
+Papakonstantinou Pagona
+
+Roy Souradeep
+
+Davis James
+
+Mathur Ashish";"Cameron S. Barber R. Scott C. Casimero C. Hegarty C. O'Loughlin L. Papakonstantinou P. Davis J. : School of Engineering, Ulster University, Jordanstown, UK
+
+Pourshahidi K. : School of Biomedical Sciences, Ulster University, Coleraine, UK
+
+Roy S. Mathur A. : Amity Institute of Nanotechnology, Amity University, Noida 201313, India";Laser Scribed Polyimide as a Platform for Monitoring pH within Smart Bandages;2020 7th International Conference on Signal Processing and Integrated Networks (SPIN). IEEE. 2020, 654-8. Piscataway, NJ, USA.;2020;2020 7th International Conference on Signal Processing and Integrated Networks (SPIN). Noida, India. 27-28 Feb. 2020.;The design of a laser scribed polyimide sensor for the measurement of pH within wound environments is described. A number of probe formats have been characterized with both potentiometric and voltammetric methodologies shown to provide a robust means of determining pH. The versatility of the laser patterning on polyimide is shown to yield a mechanically flexible double sided probe that could be suitable for use in a wide variety of clinical applications. (25 References).;"chemical sensors
+
+intelligent sensors
+
+measurement by laser beam
+
+optical sensors
+
+pH measurement
+
+voltammetry (chemical analysis)";"By investigating electrochemical variables; By using electrolysis or electrophoresis [G01N27/26]";"Chemical sensors [A8280T]
+
+Sensing and detecting devices [A0670D]
+
+Metrological applications of lasers [A4262E]
+
+Electrochemical analytical methods [A8280F]
+
+Chemical sensors [B7230L]
+
+Intelligent sensors [B7230S]
+
+Chemical variables measurement [B7320T]
+
+Metrological applications of lasers [B4360E]";Click here for full text options;2596;;
+"Hirata K
+
+Murakawa R
+
+Okano K
+
+Samei M
+
+Adachi T
+
+Sugiyama R";"Hirata Kentaro
+
+Murakawa Ryo
+
+Okano Kunihisa
+
+Samei Masahiro
+
+Adachi Tomoya
+
+Sugiyama Ryohhei";"Hirata K. Murakawa R. Okano K. : Graduate School of Natural Science and Technology, Okayama University, Kita, Okayama 700-8530, Japan
+
+Samei M. Adachi T. Sugiyama R. : Office Solution Design & Development Division, Electro Photography Development Center, Kanagawa, Ebina 243-0460, Japan";Temperature Control for Fusing Process of Laser Printers with Preview Action;2020 IEEE International Conference on Industrial Technology (ICIT). IEEE. 2020, 101-6. Piscataway, NJ, USA.;2020;2020 IEEE International Conference on Industrial Technology (ICIT). Buenos Aires, Argentina. 26-28 Feb. 2020.;In this paper, the temperature control of the fusing process of laser printers is considered. The central issue is how to determine the feedforward heater input along with the quick start-up strategy. The process is modeled to fit the preview control framework and the H optimization is applied to obtain a controller. To overcome the modeling related problem that the preview signal (disturbance input) is not exogenous, a disturbance observer is introduced. The effectiveness of the proposed method is demonstrated though numerical simulations. (10 References).;"feedforward
+
+laser printers
+
+observers
+
+predictive control
+
+temperature control";Control of temperature [G05D23/00];"Control of optical systems [C3380P]
+
+Simulation, modelling and identification [C1220]
+
+Optimal control [C1330]
+
+Thermal variables control [C3120N]";Click here for full text options;12997;;
+"Dorscher S
+
+Al-Masoudi A
+
+Bober M
+
+Schwarz R
+
+Hobson R
+
+Sterr U
+
+Lisdat C";"Dorscher Soren
+
+Al-Masoudi Ali
+
+Bober Marcin
+
+Schwarz Roman
+
+Hobson Richard
+
+Sterr Uwe
+
+Lisdat Christian";"Dorscher S. Al-Masoudi A. Schwarz R. Sterr U. Lisdat C. : Physikalisch-Technische Bundesanstalt, Bundesallee 100, Braunschweig 38116, Germany
+
+Bober M. : Institute of Physics, Nicolaus Copernicus University, Grudziadzka 5, Torun 87-100, Poland
+
+Hobson R. : National Physical Laboratory, Middlesex, Teddington TW11 0LW, UK";Dynamic decoupling of laser phase noise in compound atomic clocks [arXiv];arXiv, 29 Nov. 2019, 14 pp.. Publisher: arXiv, USA.;2019;;The frequency stability achieved by an optical atomic clock ultimately depends on the coherence of its local oscillator. Even the best ultrastable lasers only allow interrogation times of a few seconds, at present. Here we present a universal measurement protocol that overcomes this limitation. Engineered dynamic decoupling of laser phase noise allows any optical atomic clock with high signal-to-noise ratio in a single interrogation to reconstruct the laser's phase well beyond its coherence limit. A compound clock is then formed in combination with another optical clock of any type, allowing the latter to achieve significantly higher frequency stability than on its own. We demonstrate implementation of the protocol in a realistic proof-of-principle experiment with a phase reconstruction fidelity of 99%. The protocol enables minute-long interrogation for the best ultrastable laser systems. Likewise, it can improve clock performance where less stable local oscillators are used, such as in transortable systems. (36 References).;"atomic clocks
+
+clocks
+
+frequency stability
+
+laser frequency stability
+
+oscillators
+
+phase noise";"Testing or calibrating of apparatus or arrangements provided for in groups G01D1/00 to G01D15/00 [G01D18/00]
+
+Horology [G04]
+
+Generating or distributing clock signals or signals derived directly therefrom [G06F1/04]
+
+Calibrating of instruments or apparatus [G12B13/00]
+
+using atomic clocks [G04F5/14]";"Time and frequency measurement [A0630F]
+
+Probability theory, stochastic processes, and statistics [A0250]
+
+Measurement standards and calibration [A0620H]
+
+Measurement standards and calibration [B7130]";Click here for full text options;39428;;
+"Li Xue
+
+Zhaokun Zhu
+
+Wentang Wu
+
+Meiya Duan
+
+Kunpeng Wang
+
+Dongya Wang";;Zhaokun Zhu. Wentang Wu. Meiya Duan. Kunpeng Wang. Dongya Wang. : Key Laboratory of Space Object Measurements, Beijing Institute of Tracking and Telecommunications Technology, Beijing, China;Simulated Analysis of Processing Satellite Laser Ranging Data Using Neural Networks Trained by DeepLabCut;2019 IEEE 5th International Conference on Computer and Communications (ICCC). IEEE. 2019, 468-72. Piscataway, NJ, USA.;2019;2019 IEEE 5th International Conference on Computer and Communications (ICCC). Chengdu, China. 6-9 Dec. 2019.;With the development of high-repetition rate laser ranging, huge amount of laser ranging data are generated. DeepLabCut is a novel automatic annotation method for markerless motion capture from Big Data. With the advantage of only small size of training dataset needed, it has been successfully applied to various research fields. However, few researches can be found related to data processing for satellite laser ranging using DeepLabCut method. In this paper, different satellite laser ranging data are simulated by two polynomials according to the characteristics of echoes and noise. Secondly, two extraction strategies of time-drift and global-uniform are proposed for key points extraction to generate training datasets as ground truth. And two training datasets including 50 key points from 10 frames and 5 frames are generated, respectively. Then, deep neural networks are trained using DeepLabCut based on the training datasets. Finally, satellite laser ranging data as videos are tested with the trained neural networks. Results show that the key points suffered from drift and mismatching without uniform distribution, which indicates that DeepLabCut is not an applicable method based on the two proposed extraction strategies for satellite laser ranging data processing. Possible reasons including image textures, indiscrimination of echoes and noise are concluded. The simulation analysis in this paper is useful for deciding whether to apply DeepLabCut to process satellite laser ranging data. (12 References).;"artificial satellites
+
+feature extraction
+
+image motion analysis
+
+image texture
+
+laser ranging
+
+learning (artificial intelligence)
+
+neural nets
+
+polynomials";"Measuring distances in line of sight; Optical rangefinders [G01C3/00]
+
+Systems using the reflection or reradiation of electromagnetic waves other than radio waves, e.g. lidar systems [G01S17/00]
+
+Image data processing or generation, in general [G06T]
+
+Analysis of motion [G06T7/20]
+
+Analysis of texture [G06T7/40]
+
+Machine learning [G06N20/00]";"Optical radar [B6320C]
+
+Algebra [B0210]
+
+Optical, image and video signal processing [B6135]
+
+Aerospace engineering computing [C7460]
+
+Algebra [C1110]
+
+Computer vision and image processing techniques [C5260B]
+
+Neural computing techniques [C5290]";Click here for full text options;;;

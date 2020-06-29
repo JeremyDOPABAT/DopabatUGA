@@ -1,0 +1,28 @@
+@ARTICLE{1999AJ....117.1995L,
+author = {{Lavezzi}, T.~E. and {Dickey}, John M. and {Casoli}, Fabienne and
+{Kaz{\`e}s}, Ilya},
+"title = ""{A Dual-Transition Survey of CO in the Coma Cluster of Galaxies}"","
+journal = {\aj},
+keywords = {GALAXIES: CLUSTERS: INDIVIDUAL (COMA, ABELL 1367), GALAXIES: ISM, ISM: MOLECULES, RADIO EMISSION LINES},
+year = 1999,
+month = may,
+volume = {117},
+number = {5},
+pages = {1995-2009},
+doi = {10.1086/300845},
+adsurl = {https://ui.adsabs.harvard.edu/abs/1999AJ....117.1995L},
+adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+}
+
+@INBOOK{1994LNP...431..300H,
+author = {{Horellou}, Cathy and {Casoli}, Fabienne and {Dupraz}, Christophe},
+"title = ""{CO deficiency in galaxies of the Fornax cluster?}"","
+booktitle = {Star Formation and Techniques in Infrared and mm-Wave Astronomy},
+year = 1994,
+editor = {{Ray}, T.~P. and {Beckwith}, Steve V.~W.},
+volume = {431},
+pages = {300-302},
+doi = {10.1007/3-540-58196-0_49},
+adsurl = {https://ui.adsabs.harvard.edu/abs/1994LNP...431..300H},
+adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+}

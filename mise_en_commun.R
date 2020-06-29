@@ -15,7 +15,6 @@ library(plyr)
 ths$position_name=1
 ths$sep=","
 
-res_data_nasa_ads=extraction_data_api_nasa_ads(data_pub=ths,ti_name=ti_name,au_name=au_name,token=token,pas=8,value_same_min_accept=0.95,value_same_min_ask = 0,type="all",sep_vector_in_data ="sep",position_vector_in_data = "position_name" )
 
 
 
@@ -187,18 +186,18 @@ prescence_ref_wos=TRUE
 
 
 
-path=choose.files(caption = "chosse your data file")
-data_wos<-convert2df(readFiles(path),dbsource = "wos",format = "bibtex")
 
 
 
 
-path_journal="data/table_categ_wos.csv"
-journal_table_ref=read.csv("data/table_categ_wos.csv", sep = ";",header = TRUE,stringsAsFactors = FALSE)
+path_journal="applitodeploy/data/table_categ_wos.csv"
+journal_table_ref=read.csv("applitodeploy/data/table_categ_wos.csv", sep = ";",header = TRUE,stringsAsFactors = FALSE)
 journal_table_ref$Full.Journal.Title<-gsub("\\s*\\([^\\)]+\\)","",journal_table_ref$Full.Journal.Title)
 journal_table_ref$Full.Journal.Title<-gsub("[(#$%*,.:;<=>@^_`{|}~.)]","",journal_table_ref$Full.Journal.Title)
 names(journal_table_ref)
 
+path=choose.files(caption = "chosse your data file")
+data_wos<-convert2df(readFiles(path),dbsource = "wos",format = "bibtex")
 
 
 
@@ -208,28 +207,46 @@ test=as.data.frame(voici_un_test,stringsAsFactors = FALSE)
 dim(test)
 View(test)
 #dom_wos<-find_journal_domaine(journal_data = df_global_wos$`refered journal`,journal_table_ref = journal_table_ref,issn =  df_global_wos$`refered issn`,source ="JCR.Abbreviated.Title" )
+
+test$source="JCR.Abbreviated.Title"
+
 test<-combine_analyse_data(test,journal_table_ref,type="ref" )
 names(test)
 
 
-res_matrice=interdis_matrice_creation_and_calcul(data_gl = test,path_dist_table="data/data_journal/category_similarity_matrix.txt",type = "ref" )
+res_matrice=interdis_matrice_creation_and_calcul(data_gl = test,table_dist = table_dist,table_categ_gd = table_categ_gd,type = "ref" )
+
+
 
 path_gd="data/data_journal/categ_wos.csv"
 
 table_categ_gd=read.csv(file=path_gd,header = TRUE,stringsAsFactors = FALSE,sep = ";")
 
 
-unlist(resultat$dia)
-resultat$md
-resultat$dd
-resultat$id
+
+
+res_data_nasa_ads=extraction_data_api_nasa_ads(data_pub=ths,ti_name=ti_name,au_name=au_name,token=token,pas=8,value_same_min_accept=0.95,value_same_min_ask = 0.85,type="all",sep_vector_in_data ="sep",position_vector_in_data = "position_name" )
+dim(res_data_nasa_ads$dataframe_ref_accept)
 
 
 
 
 
 
-matrice_res<-global_merge_and_cal_interdis(ads=NULL,NULL,NULL,wos=test,journal_table_ref,"ref")
+error=tryCatch({
+  matrice_res<-global_merge_and_cal_interdis(ads=NULL,arxiv=NULL,pumed=NULL,wos=test,journal_table_ref = journal_table_ref,table_dist = table_dist,table_categ_gd = table_categ_gd,col_journal=c("Full.Journal.Title",NULL,NULL,"JCR.Abbreviated.Title"),type="cit")
+  
+  
+},
+  
+error=function(cond){ 
+    print("error in the pack")
+    return(NULL)
+  })
+
+
+
+merge_data<-merge_result_data_base(ads,arxiv,pumed,wos,col_journal=c("Full.Journal.Title",NULL,NULL,NULL) ,type = type)
 
 
 
@@ -237,6 +254,7 @@ matrice_res<-global_merge_and_cal_interdis(ads=NULL,NULL,NULL,wos=test,journal_t
 
 
 
+merge_data<-combine_analyse_data(merge_data,journal_table_ref,type )
 
 
 
@@ -322,54 +340,12 @@ visIgraph(c_igraph, idToLabel = TRUE, layout = "layout_nicely",
           physics = FALSE, smooth = FALSE, type = "square",
           randomSeed = NULL)
 V(c_igraph)$group="node(keyword)"
-#if(length(which(data_edge["to"]==data_edge["from"])!=0)) data_edge<-data_edge[-(which(data_edge["to"]==data_edge["from"])),]
-
-# t_read=read_lines(path_tester,skip = 1)
-# head(t_read,10)
-# tap=read.table(path_tester, header = TRUE, sep = "\t", dec = ".")
-# t_split=strsplit(t_read,"[\\]")
-# write.csv(tap,"tableauUGA.CSV")
-# dim(tap)
-
-#citing subject fait plant? 
-
-# tabPanel("ArXiv",actionButton("arxiv_ref_accept", "Show references"),
-#          actionButton("arxiv_cit_accept", "Show citations"),
-#          dataTableOutput("table_data_ref2")),
-# tabPanel("Pubmed",actionButton("pubmed_ref_accept", "Show references"),
-#          actionButton("pubmed_cit_accept", "Show citations"),
-#          dataTableOutput("table_data_ref3"))
-# 
-
-
-# actionButton("ads_ref_accept", "Show references"),
-# actionButton("ads_cit_accept", "Show citations"),
-# dataTableOutput("table_data_ref")
-# 
-# observeEvent(input$contain_ref,{
-#     if(input$contain_ref==TRUE) reactive_values$show_ref <- TRUE else reactive_values$show_ref <- FALSE
-# })
-# 
-# observeEvent(input$contain_cit,{
-#   if(input$contain_cit==TRUE) reactive_values$show_cit <- TRUE else reactive_values$show_cit <- FALSE
-# })
-# 
-
-
- 
-
-domine_test<-find_journal_domaine_v2(test$`cited journal`,test$`cited issn`,test$`cited essn`,journal_table_ref)
- 
-  
- 
- 
+#
   
   
   
   
   
-  
-  #traiiter le pluri danns le if et le esle !!!
   
   
 

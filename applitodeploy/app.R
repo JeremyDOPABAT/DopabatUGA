@@ -123,17 +123,17 @@ ui <-dashboardPage(skin = "red",
                                         fluidRow(
                                           conditionalPanel('output.show_header',
                                                            tags$div(title="complete the column selection before analysing the corpus",box(width = 12, title = "Headers selection", solidHeader = TRUE, status = "danger",
-                                                                                                                                          fluidRow( 
-                                                                                                                                            column(width=3, selectInput("title_selection", "Title column", choices = "", width = "300px"),
-                                                                                                                                                   selectInput("author_selection", "Author column", choices = "", width = "300px")),
-                                                                                                                                            column(3,offset = 1,selectInput("keyword_selection", "Keywords column", choices = "", width = "300px"),
-                                                                                                                                                   selectInput("domain_selection", "Domain column", choices = "", width = "300px")),
-                                                                                                                                            column(3,offset = 1,selectInput("date_selection", "Date publication column", choices = "", width = "300px"),
-                                                                                                                                                   selectInput("id_arxiv_selection", "arxiv id column", choices = "", width = "300px")),
-                                                                                                                                            #,conditionalPanel('output.show_ref',
-                                                                                                                                            #column(3,offset = 1,selectInput("ref_selection", "Reference column", choices = "", width = "300px"))
-                                                                                                                                            #),
-                                                                                                                                            # conditionalPanel('output.show_cit',
+                                                              fluidRow( 
+                                                                column(width=3, selectInput("title_selection", "Title column", choices = "", width = "300px"),
+                                                                       selectInput("author_selection", "Author column", choices = "", width = "300px")),
+                                                                column(3,offset = 1,selectInput("keyword_selection", "Keywords column", choices = "", width = "300px"),
+                                                                       selectInput("domain_selection", "Domain column", choices = "", width = "300px")),
+                                                                column(3,offset = 1,selectInput("date_selection", "Date publication column", choices = "", width = "300px"),
+                                                                       selectInput("id_arxiv_selection", "arxiv id column", choices = "", width = "300px")),
+                                                                #,conditionalPanel('output.show_ref',
+                                                                #column(3,offset = 1,selectInput("ref_selection", "Reference column", choices = "", width = "300px"))
+                                                                #),
+                                                                                                                  # conditionalPanel('output.show_cit',
                                                                                                                                             #                  column(3,selectInput("cit_selection", "Citation column", choices = "", width = "300px"))
                                                                                                                                             # )
                                                                                                                                           )
@@ -195,7 +195,7 @@ ui <-dashboardPage(skin = "red",
                                     choices = c("Complet journal name" = "Full.Journal.Title",
                                                 "Abreviation journal name" = "JCR.Abbreviated.Title"
                                     ),
-                                    selected = "Full.Journal.Title"),
+                                    selected = "JCR.Abbreviated.Title"),
                        
               
                        radioButtons("disp_wos", "Display",
@@ -312,9 +312,14 @@ ui <-dashboardPage(skin = "red",
                                                                          conditionalPanel('output.show_cit',
                                                                           actionButton("ads_cit_accept", "Show citations")),
                                                                          actionButton("ads_error", "Show error(s)"),
-                                                                         actionButton("ads_cit_ask","Show publication found with doute"),
+                                                                         actionButton("ads_cit_ask","Show publication with doute"),
                                                                          dataTableOutput("table_data_ref1"))),
                                         tabPanel("ArXiv", conditionalPanel('output.show_arxiv_res_window',
+                                                                           radioButtons("col_journal_arxiv", "How is the journal names?",
+                                                                                        choices = c("Complet journal name" = "Full.Journal.Title",
+                                                                                                    "Abreviation journal name" = "JCR.Abbreviated.Title"
+                                                                                        ),
+                                                                                        selected = "Full.Journal.Title",inline = TRUE),
                                                                            conditionalPanel('output.show_ref',
                                                                                             actionButton("arxiv_ref_accept", "Show references")),
                                                                            conditionalPanel('output.show_cit',
@@ -323,15 +328,20 @@ ui <-dashboardPage(skin = "red",
                                                                            actionButton("arxiv_ask","Show publication found with doute"),
                                                                            dataTableOutput("table_data_ref2"))),
                                         tabPanel("Pubmed", conditionalPanel('output.show_pumed_res_window',
+                                                                            radioButtons("col_journal_pumed", "How is the journal names?",
+                                                                                         choices = c("Complet journal name" = "Full.Journal.Title",
+                                                                                                     "Abreviation journal name" = "JCR.Abbreviated.Title"
+                                                                                         ),
+                                                                                         selected = "Full.Journal.Title",inline = TRUE),
                                                                             conditionalPanel('output.show_ref',
                                                                                              actionButton("pubmed_ref_accept", "Show references")),
                                                                             conditionalPanel('output.show_cit',
                                                                                              actionButton("pubmed_cit_accept", "Show citations")),
                                                                             actionButton("pubmed_error", "Show error(s)"),
-                                                                            actionButton("pubmed_ask","Show publication found with doute"),
+                                                                            actionButton("pubmed_ask","Show publication with doute"),
                                                                             dataTableOutput("table_data_ref3"))),
                                         
-                                        tabPanel("WOS",conditionalPanel('output.show_wos_res_window', dataTableOutput("table_data_ref4")))
+                                        tabPanel("Bibtext",conditionalPanel('output.show_wos_res_window', dataTableOutput("table_data_ref4")))
                                         
                                         
                                         
@@ -347,15 +357,22 @@ ui <-dashboardPage(skin = "red",
                           tabBox(width = 12,height = 600, title = "result interdisciplinarity(soon)",
                             tabPanel("ref",
                                      column(width = 6,
-                                        plotOutput("plot_article")
+                                        plotOutput("plot_article_ref")
                                      ),
                                      column(width = 6,
-                                            plotOutput("plot_total")
+                                            plotOutput("plot_total_ref")
                                     ),
                                     textOutput("test_ref")
                             ),
-                            tabPanel("cit"
-                                   
+                            tabPanel("cit",
+                                     column(width = 6,
+                                            plotOutput("plot_article_cit")
+                                     ),
+                                     column(width = 6,
+                                            plotOutput("plot_total_cit")
+                                     ),
+                                     textOutput("test_cit")
+                              
                             )
                         )
                       )         
@@ -432,10 +449,14 @@ server <- function(input, output, session) {
     ref_wos=c(),
     table_to_show_ref=NULL,
     journal_table_ref=NULL,
+    table_dist=NULL,
     fmts=c("%d/%m/%y","%Y", "%Y-%m", "%m/%d/%y","%d-%m-%Y","%B %d, %Y","%Y-%m-%d"),
     active_source=NULL,
     value_same_min_accept=0.95,
-    value_same_min_ask=0.85
+    value_same_min_ask=0.85,
+    matrice_res_ref=NULL,
+    matrice_res_cit=NULL,
+    table_categ_gd=NULL
   )  
   
   output$show_header <- reactive({
@@ -1694,45 +1715,6 @@ h3("The Blog"), "here is the adress of the blog to see the back ground of the pr
   # reactive_values$journal_table_ref$Source_title<-gsub("\\s*\\([^\\)]+\\)","",journal_table_ref$Full.Journal.Title)
   # reactive_values$journal_table_ref$Source_title<-gsub("[(#$%*,.:;<=>@^_`{|}~.)]","",journal_table_ref$Full.Journal.Title)
   # #plot2
-  updateSelectInput(session, inputId = "select_article", choices = 1:(dim(res_matrice$prop_grande_discipline)[1]-1))
-  
-  output$plot_article<-renderPlot({
-    
-    ind=which(res_matrice$prop_grande_discipline[input$select_article,]!=0)
-    df <- data.frame(
-      group = names(res_matrice$prop_grande_discipline[input$select_article,])[ind],
-      value = unlist(res_matrice$prop_grande_discipline[input$select_article,ind])/sum(res_matrice$prop_grande_discipline[input$select_article,ind])
-    )
-    
-    
-    bp<- ggplot(df, aes(x="", y=value, fill=group))+
-      geom_bar(width = 1, stat = "identity")
-    
-    
-    pie <- bp + coord_polar("y", start=0)+ggtitle(paste0("Main subjects  \n of article",input$select_article))
-    return(pie)
-    
-  })
-  
-  output$plot_total<-renderPlot({
-    
-    ind=which(res_matrice$prop_grande_discipline[dim(res_matrice$prop_grande_discipline)[1],]!=0)
-    df <- data.frame(
-      group = names(res_matrice$prop_grande_discipline[dim(res_matrice$prop_grande_discipline)[1],])[ind],
-      value = unlist(res_matrice$prop_grande_discipline[dim(res_matrice$prop_grande_discipline)[1],ind])
-    )
-    
-    
-    bp<- ggplot(df, aes(x="", y=value, fill=group))+
-      geom_bar(width = 1, stat = "identity")
-    
-    
-    pie <- bp + coord_polar("y", start=0)+ggtitle(paste0("Main subjects  \n of the whole corpus"))
-    return(pie)
-    
-  })   
-  
-  output$test_ref<-renderText({paste("ID:",round(res_matrice$id,2),"DD;",round(res_matrice$dd,2),"MD:",round(res_matrice$md,2),"DIA:",paste(round(unlist(res_matrice$dia),digits = 2),collapse = ","),collapse = "\n")})
   
   observeEvent({input$valid_data_research}, {
   
@@ -1741,16 +1723,136 @@ h3("The Blog"), "here is the adress of the blog to see the back ground of the pr
   
     print("yesssssssssssss")
     reactive_values$journal_table_ref=read.csv("data/table_categ_wos.csv", sep = ";",header = TRUE,stringsAsFactors = FALSE)
-    reactive_values$journal_table_ref$Full.Journal.Title<-gsub("\\s*\\([^\\)]+\\)","",reactive_values$journal_table_ref$Full.Journal.Title)
-    reactive_values$journal_table_ref$Full.Journal.Title<-gsub("[(#$%*,.:;<=>@^_`{|}~.)]","",reactive_values$journal_table_ref$Full.Journal.Title)
-   print(input$type)
-     matrice_res<-global_merge_and_cal_interdis(ads=reactive_values$res_ads,arxiv=NULL,pumed=NULL,wos=reactive_values$ref_wos,reactive_values$journal_table_ref,input$type)
-     #col_journal_csv
-     
+    reactive_values$table_dist<-read.table(file="data/category_similarity_matrix.txt",header = TRUE,sep = " ",dec ="." )
+    reactive_values$table_categ_gd=read.csv(file="data/categ_wos.csv",header = TRUE,stringsAsFactors = FALSE,sep = ";")
+    print(input$type)
+    if(reactive_values$ok_analyse==FALSE){
+        showModal(modalDialog(
+          title = "no file in analyse",
+          "The is no file in the current analyse, please ad some data",
+          easyClose = TRUE,
+          footer = NULL
+        ))
+        
+        
+    }else{
+        print("passe else ")
+        error=tryCatch({
+          res_temp<-global_merge_and_cal_interdis(ads=reactive_values$res_ads,arxiv=reactive_values$res_arxiv,pumed=reactive_values$res_pumed,wos=reactive_values$ref_wos,journal_table_ref = reactive_values$journal_table_ref,table_categ_gd = reactive_values$table_categ_gd,type = input$type,table_dist =reactive_values$table_dist,col_journal=c(input$col_journal_ads,input$col_journal_arxiv,input$col_journal_pumed,input$col_journal_wos))
+          
+          
+        },
+        
+      error=function(cond){ 
+        print("aiie")  #reactive_values$ok_analyse=FALSE
+        showModal(modalDialog(
+          title = paste0("ERROR : no",input$type,"in the analyse"),
+          paste0("Could be an error on the parameters choice, or else there is no",input$type,"in your data"),
+          easyClose = TRUE,
+          footer = NULL
+        ))
 
-     
-     
-     
+
+          return(NULL)
+        })
+    
+    if(!is.null(error)){
+      
+      if(input$type=="ref"||input$type=="all" ){    
+        if(input$type=="ref") reactive_values$matrice_res_ref=res_temp$res else reactive_values$matrice_res_ref=res_temp$res_ref
+          updateSelectInput(session, inputId = "select_article", choices = 1:(dim(reactive_values$matrice_res_ref$prop_grande_discipline)[1]-1))
+             output$plot_article_ref<-renderPlot({
+             
+             ind=which(reactive_values$matrice_res_ref$prop_grande_discipline[input$select_article,]!=0)
+             df <- data.frame(
+               group = names(reactive_values$matrice_res_ref$prop_grande_discipline[input$select_article,])[ind],
+               value = unlist(reactive_values$matrice_res_ref$prop_grande_discipline[input$select_article,ind])/sum(reactive_values$matrice_res_ref$prop_grande_discipline[input$select_article,ind])
+             )
+             
+             
+             bp<- ggplot(df, aes(x="", y=value, fill=group))+
+               geom_bar(width = 1, stat = "identity")
+             
+             
+             pie <- bp + coord_polar("y", start=0)+ggtitle(paste0("Main subjects  \n of article",input$select_article))
+             return(pie)
+             
+           })
+           
+           output$plot_total_ref<-renderPlot({
+             
+             
+             df <- data.frame(
+               group = names(reactive_values$matrice_res_ref$prop_grande_discipline),
+               value = unlist(reactive_values$matrice_res_ref$prop_grande_discipline[dim(reactive_values$matrice_res_ref$prop_grande_discipline)[1],]/sum(unlist(reactive_values$matrice_res_ref$prop_grande_discipline[dim(reactive_values$matrice_res_ref$prop_grande_discipline)[1],])))
+             )
+             
+             
+             bp<- ggplot(df, aes(x="", y=value, fill=group))+
+               geom_bar(width = 1, stat = "identity")
+             
+             
+             pie <- bp + coord_polar("y", start=0)+ggtitle(paste0("Main subjects  \n of the whole corpus"))
+             return(pie)
+             
+           })   
+           
+           
+           
+           output$test_ref<-renderText({paste("ID:",round(reactive_values$matrice_res_ref$id,2),"DD;",round(reactive_values$matrice_res_ref$dd,2),"MD:",round(reactive_values$matrice_res_ref$md,2),"DIA:",paste(round(unlist(reactive_values$matrice_res_ref$dia),digits = 2),collapse = ","),collapse = "\n")})
+        }
+        
+        if(input$type=="cit"||input$type=="all") {
+          if(input$type=="cit") reactive_values$matrice_res_cit=res_temp$res else reactive_values$matrice_res_cit=res_temp$res_cit
+          updateSelectInput(session, inputId = "select_article", choices = 1:(dim(reactive_values$matrice_res_cit$prop_grande_discipline)[1]-1))
+          output$plot_article_cit<-renderPlot({
+            
+            ind=which(reactive_values$matrice_res_cit$prop_grande_discipline[input$select_article,]!=0)
+            df <- data.frame(
+              group = names(reactive_values$matrice_res_cit$prop_grande_discipline[input$select_article,])[ind],
+              value = unlist(reactive_values$matrice_res_cit$prop_grande_discipline[input$select_article,ind])/sum(reactive_values$matrice_res_cit$prop_grande_discipline[input$select_article,ind])
+            )
+            
+            
+            bp<- ggplot(df, aes(x="", y=value, fill=group))+
+              geom_bar(width = 1, stat = "identity")
+            
+            
+            pie <- bp + coord_polar("y", start=0)+ggtitle(paste0("Main subjects  \n of article",input$select_article))
+            return(pie)
+            
+          })
+          
+          output$plot_total_cit<-renderPlot({
+            
+            
+            df <- data.frame(
+              group = names(reactive_values$matrice_res_cit$prop_grande_discipline),
+              value = unlist(reactive_values$matrice_res_cit$prop_grande_discipline[dim(reactive_values$matrice_res_cit$prop_grande_discipline)[1],]/sum(unlist(reactive_values$matrice_res_cit$prop_grande_discipline[dim(reactive_values$matrice_res_cit$prop_grande_discipline)[1],])))
+            )
+            
+            
+            bp<- ggplot(df, aes(x="", y=value, fill=group))+
+              geom_bar(width = 1, stat = "identity")
+            
+            
+            pie <- bp + coord_polar("y", start=0)+ggtitle(paste0("Main subjects  \n of the whole corpus"))
+            return(pie)
+            
+          })   
+          
+          
+          
+          output$test_cit<-renderText({paste("ID:",round(reactive_values$matrice_res_cit$id,2),"DD;",round(reactive_values$matrice_res_cit$dd,2),"MD:",round(reactive_values$matrice_res_cit$md,2),"DIA:",paste(round(unlist(reactive_values$matrice_res_cit$dia),digits = 2),collapse = ","),collapse = "\n")})
+        }
+      showModal(modalDialog(
+        title = "Result ready",
+        "The calculation is over you can see your result in the interdiciplinarity result page.",
+        easyClose = TRUE,
+        footer = NULL
+      ))
+      }
+    }
   })
   
 
