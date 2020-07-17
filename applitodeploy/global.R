@@ -554,7 +554,7 @@ supress_unfit_entry<-function(title_vector,author_vector,sep="",max_aut=8){
   #' @param title_vector vector de titre 
   #' @param author_vector  vector de auteur 
   #' @param sep sep between author 
-  #' @param max_aut max auteur autorisé  (pour la requête )
+  #' @param max_aut max auteur autoris
   #'
   #' @return deux vecteur 
   
@@ -881,9 +881,7 @@ get_cit_or_ref_arxiv<-function(resdt,type){
       deb<-grep("<dd>",text_base)
       fin<-grep("</dd>",text_base)
       
-      
-      print(deb)
-      
+     
       
       if(length(deb)>0){# si il ya as des citation  
         # cited_title=gsub("\\s+"," ",tps[[ar]])
@@ -1046,7 +1044,7 @@ ads_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,val
   #' @param ti_data vecteur/list titre publi 
   #' @param position_name interger 1ou 2 selon la place du nom et prenom 
   #' @param pas pas d'avancement de la boucle 
-  #' @param value_same_min_ask valeur reel pourcentage similitude pour ne pas validée doffice , en dessous de ca c'est non validée 
+  #' @param value_same_min_ask valeur reel pourcentage similitude pour ne pas valid?e doffice , en dessous de ca c'est non valid?e 
   #' @param value_same_min_accept pourcentage de similitude ou on valide d'office
   #' @param token identifiant ads 
   #' @param sep separateur 
@@ -1212,7 +1210,7 @@ pumed_get_element_id<-function(id_list,type){
   # output: liste de 2 
   # error : erreur treouver 
   # temps : donn?es trouver  
-  id_list_string=paste0(id_list,collapse = ",")# on sépare les nombre d'une virgule 
+  id_list_string=paste0(id_list,collapse = ",")# on s?pare les nombre d'une virgule 
   
   querry<-paste0('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&id=',id_list_string,'&retmode=json')
   # redaction de la querry 
@@ -1237,10 +1235,10 @@ pumed_get_element_id<-function(id_list,type){
   
   if(length(error)==0) {#si il n'y a pas d'erreur  
     Sys.sleep(0.34)#oblogatoire pour respecter les regle de pumbmed 
-    result <- jsonlite::fromJSON(txt = httr::content(r, 'text'), simplifyDataFrame = TRUE)# on recupère les resultat du json 
+    result <- jsonlite::fromJSON(txt = httr::content(r, 'text'), simplifyDataFrame = TRUE)# on recup?re les resultat du json 
     
     
-    temp<-sapply(1:length(id_list),FUN=function(x){# en fct fes tag on recupère les info de chaque article trouver car l'id listte ontient tous les article trouver 
+    temp<-sapply(1:length(id_list),FUN=function(x){# en fct fes tag on recup?re les info de chaque article trouver car l'id listte ontient tous les article trouver 
       id=result$result[[id_list[x]]]$uid
       au=list(result$result[[id_list[x]]]$authors$name)
       ti=result$result[[id_list[x]]]$title
@@ -1271,10 +1269,10 @@ df_flatten<-function(res){
     ind=which(is.null(res_f[,i]))
     res_f[ind,i]=NA
     if(length(unlist(res_f[,i]))>length(res_f[,i])){
-      res_f[,i]=sapply(1:length(res_f[,i]),FUN = function(x) paste(res_f[,i][[x]],collapse = ";"))# si il y a plusieur element sur une même ligne 
+      res_f[,i]=sapply(1:length(res_f[,i]),FUN = function(x) paste(res_f[,i][[x]],collapse = ";"))# si il y a plusieur element sur une m?me ligne 
     }
     ind=which(is.na(res_f[,i]))
-    res_f[ind,i]="NULL"#na ne peu pas être afficher dans la table donc on le remplace par "null" 
+    res_f[ind,i]="NULL"#na ne peu pas ?tre afficher dans la table donc on le remplace par "null" 
     if(typeof(i)=="list") res_f[,i]<-unlist(res_f[,i]) #si c'est une liste on l'enl'f
     #if(date_name!="") res_f[date_name]=as.character(res_f[date_name])
   }
@@ -1319,10 +1317,15 @@ find_journal_domaine<-function(journal_data,journal_table_ref,issn="",essn="",so
   
   
   dom=sapply(1:length(journal_data),FUN=function(x){
+    #marker
     trouver=FALSE
     print(x)
+    withProgress(
+      message='Please wait',
+      detail=paste0("matching journal"),
+      value=0, {
     for(h in 1:inter){# boucle principale qui parcour les donn?es 
-      start=c(start,Sys.time())
+      incProgress(1/inter)
       
       first<-(h-1)*pas+1# premier individu a prendre en compte(ligne)
       last<-h*pas       # dernier ""   "      "       "   "
@@ -1377,6 +1380,7 @@ find_journal_domaine<-function(journal_data,journal_table_ref,issn="",essn="",so
         
       }
     }
+  })
     return(list(ab=ab,cat=cat))
   })
   # dom_length<-sapply(1:length(dom), FUN=function(x) length(unlist(dom[x])))
@@ -1972,8 +1976,11 @@ extraction_data_api_nasa_ads<-function(data_pub,ti_name,au_name,token,pas=8,valu
     if(dim(data_pub)[1]!=0) {
       resdt_all=ads_get_publi(au_data,ti_data,position_name,pas,value_same_min_ask,value_same_min_accept,token,sep = sep)
       error_querry=resdt_all$error
+      print("yooooooooooooooooooooooooyoyoyoy")
       res=resdt_all$res
+      print("yaaaaaaaaaaaaaaaaaaaaaaaaa")
       reject=resdt_all$reject
+      print("the last print is here ")
       lastresult=resdt_all$lastresult
     }
   }  
@@ -2032,7 +2039,7 @@ extraction_data_api_nasa_ads<-function(data_pub,ti_name,au_name,token,pas=8,valu
       if(dim(total_res_ref_ask)[1]>0) row.names(total_res_ref_ask)<-1:dim(total_res_ref_ask)[1]
       
       
-      error_querry=rbind(error_querry,res_cite$error_table)
+      error_querry=rbind(error_querry,res_ref$error_table)
       
       
       
@@ -2230,14 +2237,14 @@ arxiv_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,v
   
   
   #' Title
-  #'fonction interne pour l'appli, cette fonction récupère les publi arxiv
+  #'fonction interne pour l'appli, cette fonction r?cup?re les publi arxiv
   #' @param au_data vecteur data d'auteur 
   #' @param ti_data vecteur de titre 
   #' @param position_name entier 1 ou 2 selon la position du nom par rapport au prenom 
-  #' @param pas pas d'avancement de la boucle de rêquete 
-  #' @param value_same_min_ask réelle entre 0 et 1 selon le pourcentage de cimilitude des titre que l'on veut appliquer pour demander a l'utilisateur
-  #' @param value_same_min_accept réelle entre 0 et 1 selon le pourcentage de cimilitude des titre que l'on veut appliquer pour accepter le titre  
-  #' @param sep caratère de separation des auteur 
+  #' @param pas pas d'avancement de la boucle de r?quete 
+  #' @param value_same_min_ask r?elle entre 0 et 1 selon le pourcentage de cimilitude des titre que l'on veut appliquer pour demander a l'utilisateur
+  #' @param value_same_min_accept r?elle entre 0 et 1 selon le pourcentage de cimilitude des titre que l'on veut appliquer pour accepter le titre  
+  #' @param sep carat?re de separation des auteur 
   #' @param id colone des id arxiv 
   #'
   #' @return datafrale des pubLII
@@ -2653,7 +2660,7 @@ interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd
   #' Title
   #' Fonction interne 
   #' @param data_gl dataglobal cit ou ref ou all 
-  #' @param table_dist distance catégorivow
+  #' @param table_dist distance cat?gorivow
   #' @param table_categ_gd  table de dysipline 
   #' @param type type of analyse 
   #'
@@ -2667,11 +2674,11 @@ interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd
     journal_domaine="citing_journal_domaine"
     identifier="cited identifier"
   }
-  nb_categ=unlist(data_gl[[journal_domaine]]) #on préparer les colonne de la table de containgence 
+  nb_categ=unlist(data_gl[[journal_domaine]]) #on pr?parer les colonne de la table de containgence 
   list_categ<-names(table(nb_categ))
   matrice_prop=as.data.frame(matrix(0,ncol=length(list_categ)))# initialisation de la matrice 
   names(matrice_prop)=list_categ
-  precedent=""# initialisation , a chaque nouvelle article(id différent) on ceée une nouvelle ligne.
+  precedent=""# initialisation , a chaque nouvelle article(id diff?rent) on ce?e une nouvelle ligne.
   for(i in 1:dim(data_gl)[1]){
     if(!is.null(data_gl[[journal_domaine]][[i]])){
       if(precedent!=data_gl[[identifier]][[i]]){
@@ -2685,7 +2692,7 @@ interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd
       precedent=data_gl[[identifier]][[i]]#avancement du curseur 
     }
   }
-  matrice_prop<-matrice_prop[-1,]# on enlève la prermière ligne consitituer uniquement de 0
+  matrice_prop<-matrice_prop[-1,]# on enl?ve la prermi?re ligne consitituer uniquement de 0
   matrice_prop<-type.convert(matrice_prop) # chiffre en chiffre 
   sumcol=colSums(matrice_prop)
   matrice_prop=rbind(matrice_prop,sumcol)
@@ -2734,7 +2741,7 @@ interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd
   table_conversion=sapply(1:length(names(matrice_prop)),FUN=function(x){#construction de la table de conversion 
     ind=grep(names(matrice_prop)[[x]],table_categ_gd$catcod)
     return(unique(c(table_categ_gd$OST.Category[ind],table_categ_gd$catcod[ind])))
-  })#affectation des catégorie OST
+  })#affectation des cat?gorie OST
   table_conversion=t(table_conversion)
   new_col=unique(table_conversion[,1])
   new_matrice_prop=as.data.frame(matrix(0,ncol=length(new_col),nrow = dim(matrice_prop)[1]))
@@ -2764,7 +2771,7 @@ merge_result_data_base<-function(ads,arxiv,pumed,wos,col_journal=c(NULL,NULL,NUL
   #' @param arxiv matrice cit/ref venant d'arxiv
   #' @param pumed matrice cit/ref venant d'pumed
   #' @param wos matrice cit/ref venant d'un fichier bibtext
-  #' @param col_journal vecteur de 4, les colone de journal a utiliser pour les 4 matrice(1 par matrice). apréviation ou nom plein
+  #' @param col_journal vecteur de 4, les colone de journal a utiliser pour les 4 matrice(1 par matrice). apr?viation ou nom plein
   #' @param type type de traitement cit/ref/all (les deux)
   #' @return dataframe fusionner 
 
@@ -2800,8 +2807,8 @@ combine_analyse_data<-function(df_global,journal_table_ref,type){
   #'#cette fonction est une fonction interne permettant de retrouuver les journaux a partir des nom, abrÃ©viation ou issn.
   #cette fonction s'adapte Ã  la demande : ref cit et a type de donnÃ©es 
   
-  #' @param df_global table de données   
-  #' @param journal_table_ref table de données de journal  
+  #' @param df_global table de donn?es   
+  #' @param journal_table_ref table de donn?es de journal  
   #' @param type type of analyse, reference or citation  
   #'
   #' @return la table de donnÃ©es avec une colone en plus ref ou cit
@@ -2829,34 +2836,42 @@ combine_analyse_data<-function(df_global,journal_table_ref,type){
 
 
 global_merge_and_cal_interdis<-function(ads=NULL,arxiv=NULL,pumed=NULL,wos=NULL,journal_table_ref,table_dist,table_categ_gd,col_journal=c(NULL,NULL,NULL,NULL),type){
-  #' Title fct de rassemblement qui permet de caluler l'interdiciplinarité  
-  #'avec les citations et reference des differente base. cette fonction est une fonction interne n'ayant pas pour but d'être appelé en dehor de l'appli
+  #' Title fct de rassemblement qui permet de caluler l'interdiciplinarit?  
+  #'avec les citations et reference des differente base. cette fonction est une fonction interne n'ayant pas pour but d'?tre appel? en dehor de l'appli
   #' @param ads matrice cit/ref venant d'ads 
   #' @param arxiv matrice cit/ref venant d'arxiv
   #' @param pumed matrice cit/ref venant d'pumed
   #' @param wos matrice cit/ref venant d'un fichier bibtext
-  #' @param journal_table_ref table contenant l'information des journaux (abréviasion, issn, full name )
-  #' @param table_dist matrice de distances des catégorie wos 
-  #' @param table_categ_gd matrice des grandes catégorie ost avec les catégorie wos 
-  #' @param col_journal vecteur de 4, les colone de journal a utiliser pour les 4 matrice(1 par matrice). apréviation ou nom plein
+  #' @param journal_table_ref table contenant l'information des journaux (abr?viasion, issn, full name )
+  #' @param table_dist matrice de distances des cat?gorie wos 
+  #' @param table_categ_gd matrice des grandes cat?gorie ost avec les cat?gorie wos 
+  #' @param col_journal vecteur de 4, les colone de journal a utiliser pour les 4 matrice(1 par matrice). apr?viation ou nom plein
   #' @param type type de traitement cit/ref/all (les deux)
   #'
   #' @return list de de list resultat 
   
   #wos pumed arxiv et ads sont les matrice de citation ou reference 
   if(type=="all"){# qi on veux les reference et les citation 
-    merge_data<-merge_result_data_base(ads,arxiv,pumed,wos,type="ref",col_journal = col_journal)# on merge les diférente matrice 
-    merge_data<-combine_analyse_data(merge_data,journal_table_ref,type="ref")# on recupère leurs nom de journal pour les associé au catégorie wos 
-    res_matrice_ref=interdis_matrice_creation_and_calcul(data_gl = merge_data,table_dist,table_categ_gd,type = "ref" ) # on  calcule l'interdiciplinarité et les différent indicateurs 
+    merge_data<-merge_result_data_base(ads,arxiv,pumed,wos,type="ref",col_journal = col_journal)# on merge les dif?rente matrice 
+    if(dim(merge_data)[1]) {
+      merge_data<-combine_analyse_data(merge_data,journal_table_ref,type="ref")# on recup?re leurs nom de journal pour les associ? au cat?gorie wos 
+      res_matrice_ref=interdis_matrice_creation_and_calcul(data_gl = merge_data,table_dist,table_categ_gd,type = "ref" ) # on  calcule l'interdiciplinarit? et les diff?rent indicateurs 
+    }else res_ref=NULL
     
     merge_data<-merge_result_data_base(ads,arxiv,pumed,wos,type="cit",col_journal = col_journal)
-    merge_data<-combine_analyse_data(merge_data,journal_table_ref,type="cit" )
-    res_matrice_cit=interdis_matrice_creation_and_calcul(data_gl = merge_data,table_dist,table_categ_gd,type = "cit" )
+    if(dim(merge_data)[1]) {
+      merge_data<-combine_analyse_data(merge_data,journal_table_ref,type="cit" )
+      res_matrice_cit=interdis_matrice_creation_and_calcul(data_gl = merge_data,table_dist,table_categ_gd,type = "cit" )
+    }else ref_cit=NULL
     result=list(res_ref=res_matrice_ref,res_cit=res_matrice_cit)
   }else{
-    merge_data<-merge_result_data_base(ads,arxiv,pumed,wos,type,col_journal = col_journal)
-    merge_data<-combine_analyse_data(merge_data,journal_table_ref,type )
-    res_matrice=interdis_matrice_creation_and_calcul(data_gl = merge_data,table_dist,table_categ_gd,type=type )
+    
+      merge_data<-merge_result_data_base(ads,arxiv,pumed,wos,type,col_journal = col_journal)
+    if(dim(merge_data)[1]) {
+      merge_data<-combine_analyse_data(merge_data,journal_table_ref,type )
+      res_matrice=interdis_matrice_creation_and_calcul(data_gl = merge_data,table_dist,table_categ_gd,type=type )
+    } else res_matrice=NULL
+    
     result=list(res=res_matrice)
   }
   

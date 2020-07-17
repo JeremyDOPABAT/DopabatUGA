@@ -27,6 +27,7 @@ ui <-dashboardPage(skin = "red",
                    dashboardSidebar( sidebarMenu(
                      menuItem("Import_csv", tabName = "import_csv", icon = icon(name = "arrow-circle-up")),
                      #menuItem("Import_PDF", tabName = "import_pdf", icon = icon("file-pdf")),
+                     #si le probleme est  regle decommenter laligne du dessous 
                      menuItem("Import_bibext", tabName = "import_wos", icon = icon("file-export")),
                      menuItem("History", tabName = "history", icon = icon("address-card")),
                      menuItem("Worcloud Graphics", tabName = "wordcloud", icon = icon("th")),
@@ -38,36 +39,37 @@ ui <-dashboardPage(skin = "red",
                      #-------------------------------------------------------------------  
                    )),
                    dashboardBody(
-                     tabItems(#onglet import csv 
+                     tabItems(#onglet import csv ----
+                              #cet onglet permet d'imprter un csv comme donnees. 
                        # First tab content
                        tabItem(tabName = "import_csv",
                                
-                               # Sidebar layout with input and output definitions ----
+                               # Sidebar layout with input and output definitions
                                fluidRow(
                                  
-                                 box(width = 4, title = "Uploading files", solidHeader = TRUE,status = "danger",
+                                 box(width = 4, title = "Uploading files", solidHeader = TRUE,status = "danger", #danger=rouge 
                                      
-                                     # Input: Select a file ----
+                                     # Input: Select a file
                                      fileInput("file1", "Choose CSV File",
                                                multiple = TRUE,
                                                accept = c("text/csv",
                                                           "text/comma-separated-values,text/plain",
                                                           ".csv")),
-                                     
-                                     # Horizontal line ----
+                                     #parame du fichier ---------------------
+                                     # Horizontal line
                                      tags$hr(),
                                      
-                                     # Input: Checkbox if file has header ----
+                                     # Input: Checkbox if file has header
                                      checkboxInput("header", "Header", TRUE),
                                      
-                                     # Input: Select separator ----
+                                     # Input: Select separator
                                      radioButtons("sep", "Separator",
                                                   choices = c(Semicolon = ";",
                                                               Comma = ",",
                                                               Tab = "\t"),
                                                   selected = ";"),
                                      
-                                     # Input: Select quotes ----
+                                     # Input: Select quotes
                                      radioButtons("quote", "Quote",
                                                   choices = c("Double Quote" = '"',
                                                               "Single Quote" = "'"),
@@ -79,14 +81,7 @@ ui <-dashboardPage(skin = "red",
                                                               "Latin-1" = "Latin-1"
                                                               ),
                                                   selected = "Latin-1"),
-                                     # radioButtons("col_journal_csv", "How is the journal names?",
-                                     #              choices = c("Complet journal name" = "Full.Journal.Title",
-                                     #                          "Abreviation journal name" = "JCR.Abbreviated.Title"
-                                     #                          ),
-                                     #              selected = "Full.Journal.Title"),
-                                     # 
                                      
-                                     # Input: Select number of rows to display ----
                                      radioButtons("disp", "Display",
                                                   choices = c(Head = "head",
                                                               All = "all"),
@@ -98,15 +93,12 @@ ui <-dashboardPage(skin = "red",
                                                                                                                                                                     selected = "1")),
                                      tags$div(title="The character which sep each author in the column ",radioButtons("sep_author_csv", "Separator of author names",
                                                                                                                       choices = c("," = ",",
-                                                                                                                                  ";" = ";",
+                                    #----------------------------------------------                                                                                              ";" = ";",
                                                                                                                                     "saut de ligne"="\n"),
                                                                                                                       selected = ",")),
                                      
                                      
-                                     # checkboxInput("contain_ref", "This file contain the reference colonne", FALSE),
-                                     # checkboxInput("contain_cit", "This file contain the citation colonne", FALSE),
-                                     # conditionalPanel("output.show_ref",textInput("sep_ref",label = "separator",value =";",width ="30px"  )),
-                                     conditionalPanel('output.show_header',actionButton("valid_table", "validate"))
+                                     conditionalPanel('output.show_header',actionButton("valid_table", "validate"))# boutton de validation du fichier 
                                      
                                      
                                  ),
@@ -114,13 +106,14 @@ ui <-dashboardPage(skin = "red",
                                  
                                  
                                  
-                                 # Main panel for displaying outputs ----
+                                 # Main panel for displaying outputs
                                  column(8,
                                         
-                                        # Output: Data file ----
+                                        # Output: Data file
                                         dataTableOutput("contents"),
                                         br(),
                                         fluidRow(
+                                          #bouttons de selection de colone (header) poue fichuer csv 
                                           conditionalPanel('output.show_header',
                                                            tags$div(title="complete the column selection before analysing the corpus",box(width = 12, title = "Headers selection", solidHeader = TRUE, status = "danger",
                                                               fluidRow( 
@@ -148,6 +141,10 @@ ui <-dashboardPage(skin = "red",
                        
                        # Second tab content
                        tabItem(tabName = "import_pdf",
+                               #import pdf ----
+                               #cet onglet permet d'importe un pdf a partir d'un dossier 
+                               # il est actuellement hors service car la version de shiny ne permet pas un element central de la fct principal.
+                               
                                fluidRow(
                                  
                                  box(width = 5, title = "Uploading files", solidHeader = TRUE, status = "danger",
@@ -169,7 +166,7 @@ ui <-dashboardPage(skin = "red",
                                  ,column(12,
                                          mainPanel(
                                            
-                                           # Output: Data file ----
+                                           # Output: Data file
                                            dataTableOutput("table_pdf")
                                          )
                                  )
@@ -177,10 +174,13 @@ ui <-dashboardPage(skin = "red",
                                
                        ),
                        tabItem(tabName = "import_wos",
+                               #Onglet import bibtex----
+                               #cet onglet permet d'importer de fichier bibtext 
+                               #les variable se nom "wos" car avant on importait uniquement des fichier wos 
                                fluidRow(
                                  
-                                 box(width = 5, title = "Uploading bibtex files", solidHeader = TRUE, status = "danger",
-                                     tags$div(title="Choose bibtex file, bibtext only",fileInput("file2", "Choose WOS File",
+                                 box(width = 5, title = "Uploading bibtex files", solidHeader = TRUE, status = "danger",# le status "danger" permet la couleur rouge 
+                                     tags$div(title="Choose bibtex file, bibtext only",fileInput("file2", "Choose bibtext File",
                                                                                               multiple = TRUE,
                                                                                               accept = c(".bib"))),
                                      tags$hr(),
@@ -188,48 +188,43 @@ ui <-dashboardPage(skin = "red",
                                                                                                                                                                       choices = c("Lastname Firstname" = "2",
                                                                                                                                                                                    "Firstname Lastname" = "1"),
                                                                                                                                                                       selected = "1")),
-                                    
-                                     
-                                     
-                       radioButtons("col_journal_wos", "How is the journal names?",
-                                    choices = c("Complet journal name" = "Full.Journal.Title",
-                                                "Abreviation journal name" = "JCR.Abbreviated.Title"
-                                    ),
-                                    selected = "JCR.Abbreviated.Title"),
-                       
-              
-                       radioButtons("disp_wos", "Display",
-                            choices = c(Head = "head",
-                                        All = "all"),
-                            selected = "head"),
-               
-                                    checkboxInput("sup_wos_for_ref", "this file already countain reference, don't reasearch them",value = FALSE),
-                                     conditionalPanel('output.show_wos_valid',actionButton("valid_wos", "validate"))
+                                   radioButtons("disp_wos", "Display",
+                                                        choices = c(Head = "head",# mode de visualisation du fichier 
+                                                                    All = "all"),
+                                                        selected = "head"),
+                                           
+                                    checkboxInput("sup_wos_for_ref", "this file already countain reference, don't reasearch them",value = FALSE),# rechercher les ref dans le fichier ou pas 
+                                     conditionalPanel('output.show_wos_valid',actionButton("valid_wos", "validate"))# boutton de valiation 
                                      #
                                  ),
                                
                                    
-                              column(7,withSpinner(dataTableOutput("table_wos"),color="#c50d3e"))
+                              column(7,withSpinner(dataTableOutput("table_wos"),color="#c50d3e"))# visualisation de l'import 
                                  
                                )
                                
                        ),
-               tabItem(tabName = "history",
-                       titlePanel("Files already in the analyse"),
-                       textOutput("list_file"),
-                       useShinyjs(),                                           # Include shinyjs in the UI
-                       extendShinyjs(text = jsResetCode),                      # Add the js code to the page
-                       actionButton("reset_button", "Reset Page")
-               ),
-               
+             tabItem(tabName = "history",
+                     #onglet history----
+                     #cet onglet permet de voir quel fichier sont deja dans l'etude. il permet aussi de rest l'appli si l'utilisateur veut recommencer.
+                     # doit etre amelirer pour etre plus utile sur le serveur 
+                     titlePanel("Files already in the analyse"),
+                     textOutput("list_file"),
+                     useShinyjs(),                                           # Include shinyjs in the UI
+                     extendShinyjs(text = jsResetCode),                      # Add the js code to the page
+                     actionButton("reset_button", "Reset Page")
+             ),
+             
                        tabItem(tabName = "wordcloud",
+                               #onglet wordcloud ----
+                               #cet onglet permet la visualisation des mot clefs du corpus sous plusieurs forme. 
                                titlePanel("Words cloud graphics"),
                                
                                
                                #wordcloud
                                # Sidebar layout with input and output definitions ----
                                fluidRow( sidebarPanel(
-                                 selectInput("intervalyear","number of year per graphics",choices = ""),
+                                 tags$div(title="One graph per number of year",selectInput("intervalyear","number of year per graphics",choices = "")),
                                  numericInput("maxprint","max number of words on graph(s)",value=20,min=1,max=50,step=1)
                                  
                                  
@@ -251,7 +246,7 @@ ui <-dashboardPage(skin = "red",
                                
                                
                        ),
-                       #selectInput("title_selection", "Title column", choices = "", width = "300px")
+                       
                        tabItem(tabName = "network",
                                titlePanel("network graphics"),
                                htmlOutput("text_network"),
@@ -262,21 +257,23 @@ ui <-dashboardPage(skin = "red",
                                         column(width=3, tags$div(title="switch to domain network",checkboxInput("domain", "show domain study ", value = FALSE)))
                                         
                                         
-                                        #table_infos
+                                        
                                ),
+                               #visualisation 
                                fluidRow(uiOutput("plots")%>% withSpinner(color="#0dc5c1"),
                                         dataTableOutput("table_infos")
                                )
                                
                        ),
                        tabItem(tabName = "DB",
+                               #onglet database----
                                titlePanel("Research cit and ref "),
                                htmlOutput("text_database"),
                                fluidRow(
                                  
                                  box(width = 4, title = "Chose the databases you want to use", solidHeader = TRUE, status = "danger",
                                      
-                                     
+                                     #choix de la ou des bases 
                                      checkboxInput("ads", "ADS", FALSE),
                                      checkboxInput("pubmed", "Pubmed", FALSE),
                                      checkboxInput("arxiv", "ArXiv", FALSE),
@@ -296,11 +293,13 @@ ui <-dashboardPage(skin = "red",
                                      conditionalPanel('output.show_token_ads',textInput("token",label ="Token" )),
                                      
                                      
-                                     # Horizontal line ----
+                                     
                                  ),
                                  tabBox(width = 8, title = "result data tab ",
-                                        
+                                        #onglet resultat citation----
+                                        # dans cette onglet lutilisateur va pouvoir voir le resultat des recherche sur les et faire dfferent chois. 
                                         tabPanel("ADS", conditionalPanel('output.show_ads_res_window',
+                                                                         #un onglet par base, chaque base possede defferent boutons  
                                                                          radioButtons("col_journal_ads", "How is the journal names?",
                                                                                  choices = c("Complet journal name" = "Full.Journal.Title",
                                                                                              "Abreviation journal name" = "JCR.Abbreviated.Title"
@@ -341,7 +340,11 @@ ui <-dashboardPage(skin = "red",
                                                                             actionButton("pubmed_ask","Show publication with doute"),
                                                                             dataTableOutput("table_data_ref3"))),
                                         
-                                        tabPanel("Bibtext",conditionalPanel('output.show_wos_res_window', dataTableOutput("table_data_ref4")))
+                                        tabPanel("Bibtext",conditionalPanel('output.show_wos_res_window',radioButtons("col_journal_wos", "How is the journal names?",inline = TRUE,
+                                                                                                                      choices = c("Complet journal name" = "Full.Journal.Title",
+                                                                                                                                  "Abreviation journal name" = "JCR.Abbreviated.Title"
+                                                                                                                      ),
+                                                                                                                      selected = "JCR.Abbreviated.Title"), dataTableOutput("table_data_ref4")))
                                         
                                         
                                         
@@ -352,26 +355,32 @@ ui <-dashboardPage(skin = "red",
                                )
                        ),
                        tabItem(tabName = "calculinterdisciplinarity",
+                               #onglet resuultat et calcule d'interdiciplinarite 
+                               #dans cette onglet l'utilisateur vas pouvoir voir les resultat de l'interdiciplinarite, par article.
                         fluidPage(
                           selectInput("select_article", "Select the article for the graph",NULL),
                           tabBox(width = 12,height = 600, title = "result interdisciplinarity(soon)",
                             tabPanel("ref",
                                      column(width = 6,
-                                        plotOutput("plot_article_ref")
+                                        plotOutput("plot_article_ref"),#article ref 
+                                        downloadButton("downloadPlot_article_ref", "Download Plot")
                                      ),
                                      column(width = 6,
-                                            plotOutput("plot_total_ref")
+                                            plotOutput("plot_total_ref"),
+                                            downloadButton("downloadPlot_total_ref", "Download Plot")#total ref 
                                     ),
-                                    textOutput("test_ref")
+                                    textOutput("text_ref")
                             ),
                             tabPanel("cit",
                                      column(width = 6,
-                                            plotOutput("plot_article_cit")
+                                            plotOutput("plot_article_cit"),
+                                            downloadButton("downloadPlot_article_cit", "Download Plot")
                                      ),
                                      column(width = 6,
-                                            plotOutput("plot_total_cit")
+                                            plotOutput("plot_total_cit"),
+                                            downloadButton("downloadPlot_total_cit", "Download Plot")
                                      ),
-                                     textOutput("test_cit")
+                                     textOutput("text_cit")
                               
                             )
                         )
@@ -380,6 +389,8 @@ ui <-dashboardPage(skin = "red",
                       
                        
                        tabItem(tabName = "about",
+                               #onglet about----
+                               
                                titlePanel("DOPABAT Project"),
                                fluidPage(
                                  # Application title
@@ -397,9 +408,6 @@ ui <-dashboardPage(skin = "red",
                                    HTML('<br>'),
                                    HTML('<br>'),
                                    tags$div(HTML('<img src = "logo_cnrs.png" hight="100" width="100">' ),HTML('<img src = "logo_psl.png" hight="100" width="100">' ))
-                                   #tags$img(src = "logo_colex.png",hight="150px",width="150px",align="left"),
-                                   #tags$img(src = "logo_cnrs.png",hight="150px",width="150px",align="left"),
-                                   #tags$img(src = "logo_psl.png",hight="150px",width="150px",align="left")
                                  )
                                )
                        )
@@ -416,7 +424,7 @@ server <- function(input, output, session) {
   #Sys.setlocale( Sys.getlocale(category = "LC_TIME"), "C")
   
   options(shiny.maxRequestSize=32*1024^2)
-  
+  #variable reactive permetant l'interation utilisateur marchine 
   reactive_values <- reactiveValues(
     show_header = FALSE,
     df_csv = NULL,
@@ -433,6 +441,7 @@ server <- function(input, output, session) {
     path_folder=NULL,
     ok_analyse=FALSE,
     graph=NULL,
+    plots=NULL,
     numberwordcloud=1,
     show_token_ads=FALSE,
     show_id_arxiv=FALSE,
@@ -458,7 +467,7 @@ server <- function(input, output, session) {
     matrice_res_cit=NULL,
     table_categ_gd=NULL
   )  
-  
+  #copy des variable reactive dans les output pour leurs permetre d'etre invisible 
   output$show_header <- reactive({
     reactive_values$show_header
   })
@@ -494,7 +503,7 @@ server <- function(input, output, session) {
 output$show_wos_res_window<- reactive({
     reactive_values$show_wos_res_window
   })
-  
+  # on rand invisible les variable de conditionnemetn ainsi tous ce qui leurs et lie ne sera pas montrees 
   outputOptions(output, "show_header", suspendWhenHidden = FALSE)
   outputOptions(output, "show_pdf_valid", suspendWhenHidden = FALSE)
   outputOptions(output, "show_token_ads", suspendWhenHidden = FALSE)
@@ -506,23 +515,27 @@ output$show_wos_res_window<- reactive({
   outputOptions(output, "show_arxiv_res_window", suspendWhenHidden = FALSE)
   outputOptions(output, "show_id_arxiv", suspendWhenHidden = FALSE)
   outputOptions(output, "show_wos_res_window", suspendWhenHidden = FALSE)
+  
+  
+  
+  
+  #test 
   output$text <- renderText({
-    
-    paste( h3("DOPABAT, what is it ?"),"\n","DOPABAT (Développement d’outils d’analyse bibliométrique et d’audience des thèses) is a project funded by Collex-Persée.
+    paste( h3("DOPABAT, what is it ?"),"\n","DOPABAT (Développement d'outils d'analyse bibliométrique et d'audience des thèses) is a project funded by Collex-Persée.
            A national infrastructure of technique and sciences which supports French researchers. The objectives are, on the one hand, to know the importance of theses in the scientific production and, on the other hand, to know the importance of the cooperation between laboratories on the themes of Physics and Astronomy. 
-           At first this project was a researcher’s request that consisted in the analysis of PHDs coming from two universities. DOPABAT aims to analyse all the bibliometric data, keywords, domains of study, citations, references",
+           At first this project was a researcheress request that consisted in the analysis of PHDs coming from two universities. DOPABAT aims to analyse all the bibliometric data, keywords, domains of study, citations, references",
            h3("DOPABAT,who is it?"),"
   <ul>
-  <li>l’Université Grenoble Alpes</li>
+  <li>l'Université Grenoble Alpes</li>
 	  -DGD RIV\n
 	  -BAPSO\n
-	<li>L’Observatoire de Paris</li> 
-	  -BIbliothèque de l’Observatoire Paris
-	<li>l’Inist-CNRS</li>
+	<li>L'Observatoire de Paris</li> 
+	  -BIbliothèque de l'Observatoire Paris
+	<li>l'Inist-CNRS</li>
 </ul>",h3("The Team" ),"<ul>
   <li>Anne-Marie Badolato (INIST-CNRS)</li>
-	 <li>Aurélie Fayard (bibliothèque de l’Observatoire Paris)</li> 
-	 	<li>Frédéric Saconnet  (bibliothèque de l’Observatoire Paris)</li>
+	 <li>Aurélie Fayard (bibliothèque de l'Observatoire Paris)</li> 
+	 	<li>Frédéric Saconnet  (bibliothèque de l'Observatoire Paris)</li>
 	 	<li>Jeremy Moro--Guibbert (Université Grenoble Alpes)</li>
 	 <li>Didier Vercueil  (Université Grenoble Alpes)</li>
   <li>Lucie Albaret  (Université Grenoble Alpes)</li>
@@ -553,7 +566,7 @@ h3("The Blog"), "here is the adress of the blog to see the back ground of the pr
     }, {  
       
       output$list_file <- renderText({
-        paste("CSV:", reactive_values$privious_datapath_csv, "WOS:",reactive_values$privious_datapath_wos)
+        paste("CSV:", reactive_values$privious_datapath_csv, "Bibtext:",reactive_values$privious_datapath_wos)
       })
       
           })
@@ -575,7 +588,6 @@ h3("The Blog"), "here is the adress of the blog to see the back ground of the pr
       input$quote)
     },{
       #test_error=tryCatch({
-      
       df <- as.data.frame(data.table::fread(input$file1$datapath,
                      header = input$header,
                      sep = input$sep,
@@ -633,7 +645,7 @@ h3("The Blog"), "here is the adress of the blog to see the back ground of the pr
   observeEvent(
     input$valid_table, {
       print("you clique on validate")
-      if(input$file1$datapath %in% reactive_values$privious_datapath_csv){
+      if(input$file1$name %in% reactive_values$privious_datapath_csv){
         showModal(modalDialog(
           title = "File already analysed",
           "This file as been analysed already. Please go see the result in wordcloud and network sessions.",
@@ -642,13 +654,13 @@ h3("The Blog"), "here is the adress of the blog to see the back ground of the pr
         ))
         reactive_values$ok_analyse=FALSE
       }else{
-        reactive_values$privious_datapath_csv=c(reactive_values$privious_datapath_csv,input$file1$datapath)
+        reactive_values$privious_datapath_csv=c(reactive_values$privious_datapath_csv,input$file1$name)
         reactive_values$ok_analyse=TRUE
       }
 
 
       if(reactive_values$ok_analyse==TRUE){
-        print("dans le if" )
+        
         
         if(input$keyword_selection!="none") col_key<-reactive_values$df_csv[[input$keyword_selection]] else col_key=NA 
         if(input$domain_selection!="none") col_dom<-reactive_values$df_csv[[input$domain_selection]] else col_dom=NA
@@ -787,6 +799,17 @@ h3("The Blog"), "here is the adress of the blog to see the back ground of the pr
     # if(length(ind)!=0) keywords_lem_complet[ind]<-NULL
     # print("l'errreeeeeeeeeeeeeeeeeeeeeeeeeur n'est pas la ")
 
+    if(reactive_values$valide_csv==TRUE || reactive_values$valide_pdf==TRUE || reactive_values$valide_wos==TRUE){
+      #mark2
+      showModal(modalDialog(
+        title = "Graphics are build up",
+        "you can go to the wordcloud and netwoork page to see results",
+        easyClose = TRUE,
+        footer = NULL
+      ))
+      
+    }
+    
     reactive_values$valide_csv=FALSE
     reactive_values$valide_pdf=FALSE
     reactive_values$valide_wos=FALSE
@@ -1228,7 +1251,7 @@ h3("The Blog"), "here is the adress of the blog to see the back ground of the pr
   })
   observeEvent(input$valid_wos, {
     
-    if(input$file2$datapath %in% reactive_values$privious_datapath_wos){
+    if(input$file2$name %in% reactive_values$privious_datapath_wos){
       showModal(modalDialog(
         title = "file already analysed",
         "This file as been analysed already. Please go see the result in wordcloud and network sessions  ",
@@ -1238,7 +1261,7 @@ h3("The Blog"), "here is the adress of the blog to see the back ground of the pr
       reactive_values$ok_analyse=FALSE
       
     }else{
-      reactive_values$privious_datapath_wos=c(reactive_values$privious_datapath_wos,input$file2$datapath)
+      reactive_values$privious_datapath_wos=c(reactive_values$privious_datapath_wos,input$file2$name)
       reactive_values$ok_analyse=TRUE
     }
     if( reactive_values$ok_analyse==TRUE){
@@ -1357,6 +1380,17 @@ h3("The Blog"), "here is the adress of the blog to see the back ground of the pr
     }
 
     if(reactive_values$ok_analyse==TRUE){
+      print("voiciiiii la dim")
+      print(dim(reactive_values$df_global)[1])
+      if(dim(reactive_values$df_global)[1]>=10000){
+        showModal(modalDialog(
+          title = "Warning exceed capacity ",
+          "you have a dataframe of 10000 entries or more, the app can't analyse that much data, only the 10000 first will be analysed",
+          easyClose = TRUE,
+          footer = NULL
+        ))
+        reactive_values$df_global=as.data.frame(reactive_values$df_global[10000,],stringsAsFactors = FALSE)
+      }
       if(input$type=="ref" ||input$type=="all" ) reactive_values$show_ref=TRUE
       if(input$type=="cit" ||input$type=="all" ) reactive_values$show_cit=TRUE
       if(input$ads==TRUE){
@@ -1394,7 +1428,14 @@ h3("The Blog"), "here is the adress of the blog to see the back ground of the pr
           reactive_values$res_pumed=extract_data_api_pumed(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",pas=8,value_same_min_accept=reactive_values$value_same_min_accept, value_same_min_ask=reactive_values$value_same_min_ask,type = input$type,sep_vector_in_data ="sep",position_vector_in_data = "position_name")
         }
       }
-
+    #mark3
+      showModal(modalDialog(
+        title = "research ended",
+        "research ended you can press the calcul interdisciplinarity boutton.",
+        easyClose = TRUE,
+        footer = NULL
+      ))
+      
     
     }
     # checkboxInput("ads", "ADS", FALSE),
@@ -1497,49 +1538,49 @@ h3("The Blog"), "here is the adress of the blog to see the back ground of the pr
     #¶reactive_values$res_ads$dataframe_publi_found[(res_data_nasa_ads$dataframe_publi_found$check_title_pct<value_same_min_accept) &(res_data_nasa_ads$dataframe_publi_found$check_title_pct>=value_same_min_ask),]<- df$data
     print(reactive_values$active_source)
     if(reactive_values$active_source=="ADS"){
-      ind=which(reactive_values$table_to_show_ref$bibcode[[selectedRow]]==unlist(reactive_values$res_ads$dataframe_citation_ask$`cited identifier`))
-      ind2=which(reactive_values$table_to_show_ref$bibcode[[selectedRow]]==unlist(reactive_values$res_ads$dataframe_citation_accept$`cited identifier`))# il  dej  été ajouter
-
-
-      ind_ref_1=which(reactive_values$table_to_show_ref$bibcode[[selectedRow]]==unlist(reactive_values$res_ads$dataframe_ref_ask$`refering identifier`))# ligne a ajouter
-      ind_ref_2=which(reactive_values$table_to_show_ref$bibcode[[selectedRow]]==unlist(reactive_values$res_ads$dataframe_ref_accept$`refering identifier`))# ligne déja ajouter
-
-      if(length(ind2)==0 || length(ind_ref_2)==0){
-
-        if(dim(reactive_values$res_ads$dataframe_citation_ask[ind,])[1]>0)reactive_values$res_ads$dataframe_citation_accept=rbind(reactive_values$res_ads$dataframe_citation_accep,reactive_values$res_ads$dataframe_citation_ask[ind,])
-        if(dim(reactive_values$res_ads$dataframe_ref_ask[ind_ref_1,])[1]>0)reactive_values$res_ads$dataframe_ref_accept=rbind(reactive_values$res_ads$dataframe_ref_accept,reactive_values$res_ads$dataframe_ref_ask[ind_ref_1,])
+      if(input$type=="cit"||input$type=="all"){
+        ind=which(reactive_values$table_to_show_ref$bibcode[[selectedRow]]==unlist(reactive_values$res_ads$dataframe_citation_ask$`cited identifier`))
+        ind2=which(reactive_values$table_to_show_ref$bibcode[[selectedRow]]==unlist(reactive_values$res_ads$dataframe_citation_accept$`cited identifier`))# il  dej  été ajouter
+        if(length(ind2)==0) if(!is.null(dim(reactive_values$res_ads$dataframe_citation_ask[ind,])[1])) if(dim(reactive_values$res_ads$dataframe_citation_ask[ind,])[1]>0)reactive_values$res_ads$dataframe_citation_accept=rbind(reactive_values$res_ads$dataframe_citation_accep,reactive_values$res_ads$dataframe_citation_ask[ind,])
+        
       }
+
+      if(input$type=="ref"||input$type=="all"){
+        ind_ref_1=which(reactive_values$table_to_show_ref$bibcode[[selectedRow]]==unlist(reactive_values$res_ads$dataframe_ref_ask$`refering identifier`))# ligne a ajouter
+        ind_ref_2=which(reactive_values$table_to_show_ref$bibcode[[selectedRow]]==unlist(reactive_values$res_ads$dataframe_ref_accept$`refering identifier`))# ligne déja ajouter
+        if(length(ind_ref_2)==0)if(!is.null(dim(reactive_values$res_ads$dataframe_ref_ask[ind_ref_1,])[1]))  if(dim(reactive_values$res_ads$dataframe_ref_ask[ind_ref_1,])[1]>0)reactive_values$res_ads$dataframe_ref_accept=rbind(reactive_values$res_ads$dataframe_ref_accept,reactive_values$res_ads$dataframe_ref_ask[ind_ref_1,])
+      }
+       
     }
-    print(reactive_values$active_source)
+    
     if(reactive_values$active_source=="ARXIV"){
-      ind=which(reactive_values$table_to_show_ref$abs_link[[selectedRow]]==unlist(reactive_values$res_arxiv$res_citation_ask$`cited identifier`))
-      ind2=which(reactive_values$table_to_show_ref$abs_link[[selectedRow]]==unlist(reactive_values$res_arxiv$res_citation_accept$`cited identifier`))# il  dej  été ajouter
-
-
-      ind_ref_1=which(reactive_values$table_to_show_ref$abs_link[[selectedRow]]==unlist(reactive_values$res_arxiv$res_reference_ask$`refering identifier`))# ligne a ajouter
-      ind_ref_2=which(reactive_values$table_to_show_ref$abs_link[[selectedRow]]==unlist(reactive_values$res_arxiv$res_reference_accept$`refering identifier`))# ligne déja ajouter
-
-      if(length(ind2)==0 || length(ind_ref_2)==0){
-        print(ind_ref_1)
-        print(ind)
-        if(dim(reactive_values$res_arxiv$res_citation_ask[ind,])[1]>0)reactive_values$res_arxiv$res_citation_accept=rbind(reactive_values$res_arxiv$res_citation_accept,reactive_values$res_arxiv$res_citation_ask[ind,])
-        if(dim(reactive_values$res_arxiv$res_reference_ask[ind_ref_1,])[1]>0)reactive_values$res_arxiv$res_reference_accept=rbind(reactive_values$res_arxiv$res_reference_accept,reactive_values$res_arxiv$res_reference_ask[ind_ref_1,])
+      if(input$type=="cit"||input$type=="all"){
+        ind=which(reactive_values$table_to_show_ref$abs_link[[selectedRow]]==unlist(reactive_values$res_arxiv$res_citation_ask$`cited identifier`))
+        ind2=which(reactive_values$table_to_show_ref$abs_link[[selectedRow]]==unlist(reactive_values$res_arxiv$res_citation_accept$`cited identifier`))# il  dej  été ajouter
+        if(length(ind2)==0) if(!is.null(dim(reactive_values$res_arxiv$res_citation_ask[ind,])[1])) if(dim(reactive_values$res_arxiv$res_citation_ask[ind,])[1]>0) reactive_values$res_arxiv$res_citation_accept=rbind(reactive_values$res_arxiv$res_citation_accept,reactive_values$res_arxiv$res_citation_ask[ind,])
       }
-    }
-
+      
+      if(input$type=="ref"||input$type=="all"){
+        ind_ref_1=which(reactive_values$table_to_show_ref$abs_link[[selectedRow]]==unlist(reactive_values$res_arxiv$res_reference_ask$`refering identifier`))# ligne a ajouter
+        ind_ref_2=which(reactive_values$table_to_show_ref$abs_link[[selectedRow]]==unlist(reactive_values$res_arxiv$res_reference_accept$`refering identifier`))# ligne déja ajouter
+       
+       
+        if(length(ind_ref_2)==0) if(!is.null(dim(reactive_values$res_arxiv$res_reference_ask[ind_ref_1,])[1])) if(dim(reactive_values$res_arxiv$res_reference_ask[ind_ref_1,])[1]>0)reactive_values$res_arxiv$res_reference_accept=rbind(reactive_values$res_arxiv$res_reference_accept,reactive_values$res_arxiv$res_reference_ask[ind_ref_1,])
+      }
+    }  
+    
     if(reactive_values$active_source=="PUBMED"){
-      ind=which(reactive_values$table_to_show_ref$id[[selectedRow]]==unlist(reactive_values$res_pumed$dataframe_citation_ask$`cited identifier`))
-      ind2=which(reactive_values$table_to_show_ref$id[[selectedRow]]==unlist(reactive_values$res_pumed$dataframe_citation_accept$`cited identifier`))# il  dej  été ajouter
-
-
-      ind_ref_1=which(reactive_values$table_to_show_ref$id[[selectedRow]]==unlist(reactive_values$res_pumed$dataframe_ref_ask$`refering identifier`))# ligne a ajouter
-      ind_ref_2=which(reactive_values$table_to_show_ref$id[[selectedRow]]==unlist(reactive_values$res_pumed$dataframe_ref_accept$`refering identifier`))# ligne déja ajouter
-
-      if(length(ind2)==0 || length(ind_ref_2)==0){
-
-        if(dim(reactive_values$res_pumed$dataframe_citation_ask[ind,])[1]>0)reactive_values$res_pumed$dataframe_citation_accept=rbind(reactive_values$res_pumed$dataframe_citation_accep,reactive_values$res_ads$dataframe_citation_ask[ind,])
-        if(dim(reactive_values$res_pumed$dataframe_ref_ask[ind_ref_1,])[1]>0)reactive_values$res_pumed$dataframe_ref_accept=rbind(reactive_values$res_pumed$dataframe_ref_accept,reactive_values$res_ads$dataframe_ref_ask[ind_ref_1,])
+      if(input$type=="cit"||input$type=="all"){
+        ind=which(reactive_values$table_to_show_ref$id[[selectedRow]]==unlist(reactive_values$res_pumed$dataframe_citation_ask$`cited identifier`))
+        ind2=which(reactive_values$table_to_show_ref$id[[selectedRow]]==unlist(reactive_values$res_pumed$dataframe_citation_accept$`cited identifier`))# il  dej  été ajouter
+        if(length(ind_2)==0)  if(dim(reactive_values$res_pumed$dataframe_citation_ask[ind,])[1]) if(dim(reactive_values$res_pumed$dataframe_citation_ask[ind,])[1]>0)reactive_values$res_pumed$dataframe_citation_accept=rbind(reactive_values$res_pumed$dataframe_citation_accep,reactive_values$res_ads$dataframe_citation_ask[ind,])      
       }
+      if(input$type=="ref"||input$type=="all"){
+        ind_ref_1=which(reactive_values$table_to_show_ref$id[[selectedRow]]==unlist(reactive_values$res_pumed$dataframe_ref_ask$`refering identifier`))# ligne a ajouter
+        ind_ref_2=which(reactive_values$table_to_show_ref$id[[selectedRow]]==unlist(reactive_values$res_pumed$dataframe_ref_accept$`refering identifier`))# ligne déja ajouter
+        if(length(ind_ref_2)==0) if(dim(reactive_values$res_pumed$dataframe_ref_ask[ind_ref_1,])[1])  if(dim(reactive_values$res_pumed$dataframe_ref_ask[ind_ref_1,])[1]>0) reactive_values$res_pumed$dataframe_ref_accept=rbind(reactive_values$res_pumed$dataframe_ref_accept,reactive_values$res_ads$dataframe_ref_ask[ind_ref_1,])
+      }
+      
     }
   })
 
@@ -1746,7 +1787,7 @@ h3("The Blog"), "here is the adress of the blog to see the back ground of the pr
       error=function(cond){ 
         print("aiie")  #reactive_values$ok_analyse=FALSE
         showModal(modalDialog(
-          title = paste0("ERROR : no",input$type,"in the analyse"),
+          title = paste("ERROR : no",input$type,"in the analyse"),
           paste0("Could be an error on the parameters choice, or else there is no",input$type,"in your data"),
           easyClose = TRUE,
           footer = NULL
@@ -1760,90 +1801,130 @@ h3("The Blog"), "here is the adress of the blog to see the back ground of the pr
       
       if(input$type=="ref"||input$type=="all" ){    
         if(input$type=="ref") reactive_values$matrice_res_ref=res_temp$res else reactive_values$matrice_res_ref=res_temp$res_ref
-          updateSelectInput(session, inputId = "select_article", choices = 1:(dim(reactive_values$matrice_res_ref$prop_grande_discipline)[1]-1))
-             output$plot_article_ref<-renderPlot({
+          if(!is.null(reactive_values$matrice_res_ref)){
+            updateSelectInput(session, inputId = "select_article", choices = 1:(dim(reactive_values$matrice_res_ref$prop_grande_discipline)[1]-1))
+               
+            output$plot_article_ref<-renderPlot({
+               
+               ind=which(reactive_values$matrice_res_ref$prop_grande_discipline[input$select_article,]!=0)
+               df <- data.frame(
+                 group = Unaccent(names(reactive_values$matrice_res_ref$prop_grande_discipline[input$select_article,])[ind]),
+                 value = unlist(reactive_values$matrice_res_ref$prop_grande_discipline[input$select_article,ind])/sum(reactive_values$matrice_res_ref$prop_grande_discipline[input$select_article,ind])
+               )
+               
+               
+               bp<- ggplot(df, aes(x="", y=value, fill=group))+
+                 geom_bar(width = 1, stat = "identity")
+               
+               
+               reactive_values$plots_article_ref <- bp + coord_polar("y", start=0)+ggtitle(paste0("Main subjects  \n of article",input$select_article))
+               return(reactive_values$plots_article_ref)
+               
+             })
+               
+            output$downloadPlot_article_ref <- downloadHandler(
+              filename = function(){paste("test",'.pdf',sep='')},
+              
+              content = function(file) {
+                ggsave(file,plot=reactive_values$plots_article_ref)
+              })
+               
+               
+               output$plot_total_ref<-renderPlot({
+                 
+                 
+                 df <- data.frame(
+                   group = Unaccent(names(reactive_values$matrice_res_ref$prop_grande_discipline)),
+                   value = unlist(reactive_values$matrice_res_ref$prop_grande_discipline[dim(reactive_values$matrice_res_ref$prop_grande_discipline)[1],]/sum(unlist(reactive_values$matrice_res_ref$prop_grande_discipline[dim(reactive_values$matrice_res_ref$prop_grande_discipline)[1],])))
+                 )
+                 
+                 
+                 bp<- ggplot(df, aes(x="", y=value, fill=group))+
+                   geom_bar(width = 1, stat = "identity")
+                 
+                 
+                 reactive_values$plots_total_ref <- bp + coord_polar("y", start=0)+ggtitle(paste0("Main subjects  \n of the whole corpus"))
+                 return(reactive_values$plots_total_ref)
+                 
+               })   
+               output$downloadPlot_total_ref <- downloadHandler(
+                 filename = function(){paste("test",'.pdf',sep='')},
+                 
+                 content = function(file) {
+                   ggsave(file,plot=reactive_values$plots_total_ref)
+                 },
+                 
+                 
+               )
+            
              
-             ind=which(reactive_values$matrice_res_ref$prop_grande_discipline[input$select_article,]!=0)
-             df <- data.frame(
-               group = names(reactive_values$matrice_res_ref$prop_grande_discipline[input$select_article,])[ind],
-               value = unlist(reactive_values$matrice_res_ref$prop_grande_discipline[input$select_article,ind])/sum(reactive_values$matrice_res_ref$prop_grande_discipline[input$select_article,ind])
-             )
              
-             
-             bp<- ggplot(df, aes(x="", y=value, fill=group))+
-               geom_bar(width = 1, stat = "identity")
-             
-             
-             pie <- bp + coord_polar("y", start=0)+ggtitle(paste0("Main subjects  \n of article",input$select_article))
-             return(pie)
-             
-           })
-           
-           output$plot_total_ref<-renderPlot({
-             
-             
-             df <- data.frame(
-               group = names(reactive_values$matrice_res_ref$prop_grande_discipline),
-               value = unlist(reactive_values$matrice_res_ref$prop_grande_discipline[dim(reactive_values$matrice_res_ref$prop_grande_discipline)[1],]/sum(unlist(reactive_values$matrice_res_ref$prop_grande_discipline[dim(reactive_values$matrice_res_ref$prop_grande_discipline)[1],])))
-             )
-             
-             
-             bp<- ggplot(df, aes(x="", y=value, fill=group))+
-               geom_bar(width = 1, stat = "identity")
-             
-             
-             pie <- bp + coord_polar("y", start=0)+ggtitle(paste0("Main subjects  \n of the whole corpus"))
-             return(pie)
-             
-           })   
-           
-           
-           
-           output$test_ref<-renderText({paste("ID:",round(reactive_values$matrice_res_ref$id,2),"DD;",round(reactive_values$matrice_res_ref$dd,2),"MD:",round(reactive_values$matrice_res_ref$md,2),"DIA:",paste(round(unlist(reactive_values$matrice_res_ref$dia),digits = 2),collapse = ","),collapse = "\n")})
+             output$text_ref<-renderText({paste("ID:",round(reactive_values$matrice_res_ref$id,2),"DD;",round(reactive_values$matrice_res_ref$dd,2),"MD:",round(reactive_values$matrice_res_ref$md,2),"DIA:",paste(round(unlist(reactive_values$matrice_res_ref$dia[[as.numeric(input$select_article)]]),digits = 2),collapse = ","),collapse = "\n")})
+          }
         }
         
         if(input$type=="cit"||input$type=="all") {
           if(input$type=="cit") reactive_values$matrice_res_cit=res_temp$res else reactive_values$matrice_res_cit=res_temp$res_cit
-          updateSelectInput(session, inputId = "select_article", choices = 1:(dim(reactive_values$matrice_res_cit$prop_grande_discipline)[1]-1))
-          output$plot_article_cit<-renderPlot({
+            if(!is.null(reactive_values$matrice_res_cit)){
+            updateSelectInput(session, inputId = "select_article", choices = 1:(dim(reactive_values$matrice_res_cit$prop_grande_discipline)[1]-1))
             
-            ind=which(reactive_values$matrice_res_cit$prop_grande_discipline[input$select_article,]!=0)
-            df <- data.frame(
-              group = names(reactive_values$matrice_res_cit$prop_grande_discipline[input$select_article,])[ind],
-              value = unlist(reactive_values$matrice_res_cit$prop_grande_discipline[input$select_article,ind])/sum(reactive_values$matrice_res_cit$prop_grande_discipline[input$select_article,ind])
-            )
-            
-            
-            bp<- ggplot(df, aes(x="", y=value, fill=group))+
-              geom_bar(width = 1, stat = "identity")
-            
-            
-            pie <- bp + coord_polar("y", start=0)+ggtitle(paste0("Main subjects  \n of article",input$select_article))
-            return(pie)
-            
-          })
-          
-          output$plot_total_cit<-renderPlot({
-            
-            
-            df <- data.frame(
-              group = names(reactive_values$matrice_res_cit$prop_grande_discipline),
-              value = unlist(reactive_values$matrice_res_cit$prop_grande_discipline[dim(reactive_values$matrice_res_cit$prop_grande_discipline)[1],]/sum(unlist(reactive_values$matrice_res_cit$prop_grande_discipline[dim(reactive_values$matrice_res_cit$prop_grande_discipline)[1],])))
-            )
+            output$plot_article_cit<-renderPlot({
+              
+              ind=which(reactive_values$matrice_res_cit$prop_grande_discipline[input$select_article,]!=0)
+              df <- data.frame(
+                group = Unaccent(names(reactive_values$matrice_res_cit$prop_grande_discipline[input$select_article,])[ind]),
+                value = unlist(reactive_values$matrice_res_cit$prop_grande_discipline[input$select_article,ind])/sum(reactive_values$matrice_res_cit$prop_grande_discipline[input$select_article,ind])
+              )
+              
+              
+              bp<- ggplot(df, aes(x="", y=value, fill=group))+
+                geom_bar(width = 1, stat = "identity")
+              
+              
+              reactive_values$plots_article_cit <- bp + coord_polar("y", start=0)+ggtitle(paste0("Main subjects  \n of article",input$select_article))
+              return(reactive_values$plots_article_cit)
+              
+            })
             
             
-            bp<- ggplot(df, aes(x="", y=value, fill=group))+
-              geom_bar(width = 1, stat = "identity")
             
             
-            pie <- bp + coord_polar("y", start=0)+ggtitle(paste0("Main subjects  \n of the whole corpus"))
-            return(pie)
+            output$downloadPlot_article_cit <- downloadHandler(
+              filename = function(){paste("test",'.pdf',sep='')},
+              
+              content = function(file) {
+                ggsave(file,plot=reactive_values$plots_article_cit)
+              })
+              
             
-          })   
-          
-          
-          
-          output$test_cit<-renderText({paste("ID:",round(reactive_values$matrice_res_cit$id,2),"DD;",round(reactive_values$matrice_res_cit$dd,2),"MD:",round(reactive_values$matrice_res_cit$md,2),"DIA:",paste(round(unlist(reactive_values$matrice_res_cit$dia),digits = 2),collapse = ","),collapse = "\n")})
+            output$plot_total_cit<-renderPlot({
+              
+              
+              df <- data.frame(
+                group = Unaccent(names(reactive_values$matrice_res_cit$prop_grande_discipline)),
+                value = unlist(reactive_values$matrice_res_cit$prop_grande_discipline[dim(reactive_values$matrice_res_cit$prop_grande_discipline)[1],]/sum(unlist(reactive_values$matrice_res_cit$prop_grande_discipline[dim(reactive_values$matrice_res_cit$prop_grande_discipline)[1],])))
+              )
+              
+              
+              bp<- ggplot(df, aes(x="", y=value, fill=group))+
+                geom_bar(width = 1, stat = "identity")
+              
+              
+              reactive_values$plots_total_cit <- bp + coord_polar("y", start=0)+ggtitle(paste0("Main subjects  \n of the whole corpus"))
+              return(reactive_values$plots_total_cit)
+              
+            })   
+            
+            output$downloadPlot_article_cit <- downloadHandler(
+              filename = function(){paste("test",'.pdf',sep='')},
+              
+              content = function(file) {
+                ggsave(file,plot=reactive_values$plots_total_cit)
+              })
+            
+            
+            output$text_cit<-renderText({paste("ID:",round(reactive_values$matrice_res_cit$id,2),"DD:",round(reactive_values$matrice_res_cit$dd,2),"MD:",round(reactive_values$matrice_res_cit$md,2),"DIA:",paste(round(unlist(reactive_values$matrice_res_cit$dia[[as.numeric(input$select_article)]]),digits = 2),collapse = ","),collapse = "\n")})
+          }
         }
       showModal(modalDialog(
         title = "Result ready",
