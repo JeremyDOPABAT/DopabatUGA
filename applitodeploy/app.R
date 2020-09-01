@@ -211,7 +211,7 @@ ui <-dashboardPage(skin = "red",
                      titlePanel("Files already in the analyse"),
                      textOutput("list_file"),
                      useShinyjs(),                                           # Include shinyjs in the UI
-                     extendShinyjs(text = jsResetCode),                      # Add the js code to the page
+                     extendShinyjs(text = jsResetCode),        # Add the js code to the page
                      actionButton("reset_button", "Reset Page")
              ),
              
@@ -231,8 +231,9 @@ ui <-dashboardPage(skin = "red",
                                  
                                ),
                                box(width = 4,checkboxInput("Simpleword", "literaly word analyse one by one"),
-                                   numericInput("minfreq","minimum freqency to be on graph(s)",value=1,min=1,max=50,step=1))
-                               
+                                   #numericInput("minfreq","minimum freqency to be on graph(s)",value=1,min=1,max=50,step=1))
+                                   sliderInput("minfreq", label = "minimum freqency to be on graph(s)", min = 0, 
+                                               max = 100, value = 50))
                                
                                
                                
@@ -250,6 +251,7 @@ ui <-dashboardPage(skin = "red",
                        tabItem(tabName = "network",
                                titlePanel("network graphics"),
                                htmlOutput("text_network"),
+                               downloadButton("downloadData", "Download acticles data"),
                                fluidRow(column(width=3,   tags$div(title="show only the bigest nodes with their relations ",selectInput("networktop","number of words for top graph",choices =c("None",1:20)))),
                                         column(width=3, tags$div(title="Supress th nodes taken only one time in the graph",checkboxInput("supones", "supress words taken one time only", value = FALSE)),
                                                tags$div(title="Reduce the size of the nodes to root",checkboxInput("root", "passe the weight of nood to roots", value = FALSE))),
@@ -367,7 +369,8 @@ ui <-dashboardPage(skin = "red",
                                      ),
                                      column(width = 6,
                                             plotOutput("plot_total_ref"),
-                                            downloadButton("downloadPlot_total_ref", "Download Plot")#total ref 
+                                            downloadButton("downloadPlot_total_ref", "Download Plot"),#total ref 
+                                            #downloadButton("downloadref", "Download data references")
                                     ),
                                     textOutput("text_ref")
                             ),
@@ -378,7 +381,8 @@ ui <-dashboardPage(skin = "red",
                                      ),
                                      column(width = 6,
                                             plotOutput("plot_total_cit"),
-                                            downloadButton("downloadPlot_total_cit", "Download Plot")
+                                            downloadButton("downloadPlot_total_cit", "Download Plot"),
+                                            downloadButton("downloadcit", "Download data citation")
                                      ),
                                      textOutput("text_cit")
                               
@@ -519,7 +523,7 @@ output$show_wos_res_window<- reactive({
   
   
   
-  #test 
+  #ce qui suit est le texte present dans la partie about 
   output$text <- renderText({
     paste( h3("DOPABAT, what is it ?"),"\n","DOPABAT (Développement d'outils d'analyse bibliométrique et d'audience des thèses) is a project funded by Collex-Persée.
            A national infrastructure of technique and sciences which supports French researchers. The objectives are, on the one hand, to know the importance of theses in the scientific production and, on the other hand, to know the importance of the cooperation between laboratories on the themes of Physics and Astronomy. 
@@ -543,30 +547,32 @@ output$show_wos_res_window<- reactive({
 "to contact us: dopabat@univ-grenoble-alpes.fr",
 'This project is funded  by <a href="https://www.collexpersee.eu/">  GIS Collex Persée</a> according to  <a href="https://https://www.collexpersee.eu/les-projets//">  APP 2019</a> ',
 h3("The Blog"), "here is the adress of the blog to see the back ground of the project : <a href='https://dopabat.inist.fr/'> : https://dopabat.inist.fr/ </a>",
-"This blog is describing the problem, the methodes and the steps of the project"
+"This blog is describing the problem, the methodes and the steps of the project
+
+We like to thanks ADS,PUMED , ARXIV,  for answering our questions during developpement."
            
     )
 
 
 
   })
-  
+  # trst present dans le network pour aider a le comprehension, ces textes sont de l'html  
   output$text_network <- renderText({
   paste(h4("Help:"), "When you have your network you could click on nodes. In doing so a table will apear under the graph with details of publications concerning that node.")
   })
-  
+  #meme chose pour la rescer interdis 
   output$text_database <- renderText({
     paste(h4("Help:"),"First you will select a database and do 'process' (exectpte if you only have ref for wos) then you can manage your data as you wich and when it's ok clic on the right button.")
   })
   
   #historique ________________________________________________________
-  observeEvent({c( 
+  observeEvent({c( # a chaque fois que les variable d'historique change on modifie le test  
     reactive_values$privious_datapath_wos,
     reactive_values$privious_datapath_csv)
     }, {  
       
       output$list_file <- renderText({
-        paste("CSV:", reactive_values$privious_datapath_csv, "Bibtext:",reactive_values$privious_datapath_wos)
+         c("CSV:",paste(reactive_values$privious_datapath_csv,collapse ="," ), "Bibtext:",paste(reactive_values$privious_datapath_wos,collapse = ","))
       })
       
           })
@@ -574,38 +580,39 @@ h3("The Blog"), "here is the adress of the blog to see the back ground of the pr
   
   
   
-  observeEvent(input$reset_button, {js$reset()})
+  observeEvent(input$reset_button, {js$reset()})# permet la fonction reset dans history 
   observeEvent(input$file1, {
     # input$file1 will be NULL initially. After the user selects
     # and uploads a file, head of that data file by default,
     # or all rows if selected, will be shown.
     
-    #temporai
-    
+    # on refait l'importation chaque fois qu'un parametre est changer 
     observeEvent({c(
       input$header,
       input$sep,
-      input$quote)
+      input$quote,
+      input$encoding)
     },{
-      #test_error=tryCatch({
+      test_error=tryCatch({
       df <- as.data.frame(data.table::fread(input$file1$datapath,
                      header = input$header,
                      sep = input$sep,
                      quote = input$quote,encoding = input$encoding),stringsAsFactors = FALSE)
 
-      #},
-      # error=function(cond){
-      #   return(-400)
-      # })
-      # if(typeof(test_error)=="double"){
-      #   showModal(modalDialog(
-      #     title = "invalid CSV",
-      #     "the csv modality are not good, make sure to use a good separator and quote and retry. If your csv don't fit the modality proposed for now we can't analyse it.",
-      #     easyClose = TRUE,
-      #     footer = NULL
-      #   ))
-      # }else{
+      },
+       error=function(cond){
+         return(-400)
+       })
+       if(typeof(test_error)=="double"){
+         showModal(modalDialog(
+           title = "invalid CSV",
+           "the csv modality are not good, make sure to use a good separator and quote and retry. If your csv don't fit the modality proposed for now we can't analyse it.",
+           easyClose = TRUE,
+           footer = NULL
+         ))
+       }else{
       reactive_values$df_csv <- df
+      #mise en forme de la table afficher 
       table_data=datatable(df_flatten(reactive_values$df_csv), options = list(scrollX = TRUE, columnDefs = list(list(
         targets = "_all" ,render = JS(
           "function(data, type, row, meta) {",
@@ -614,17 +621,17 @@ h3("The Blog"), "here is the adress of the blog to see the back ground of the pr
           "}")
       ))))
       
-      reactive_values$show_header <- TRUE
-      
+      reactive_values$show_header <- TRUE# affichage du tableau des entete 
+      # on met a jour les input en fct de se qui a ete charger pour pouvoir les selectionner les entete 
       updateSelectInput(session, inputId = "title_selection", choices = names(df))
       updateSelectInput(session, inputId = "keyword_selection", choices = c("none",names(df)))
       updateSelectInput(session, inputId = "author_selection", choices = names(df))
       updateSelectInput(session, inputId = "domain_selection", choices = c("none",names(df)))
       updateSelectInput(session, inputId = "date_selection", choices = names(df))
       updateSelectInput(session, inputId = "id_arxiv_selection", choices = c("none",names(df)))
-      
+      # affichage de la table 
       output$contents <- renderDataTable({
-        if(input$disp == "head") {
+        if(input$disp == "head") {# si head on affiche que les deux premiere ligne 
           return(datatable(df_flatten(df[c(1,2),]), options = list(scrollX = TRUE, columnDefs = list(list(
             targets = "_all",render = JS(
               "function(data, type, row, meta) {",
@@ -637,15 +644,14 @@ h3("The Blog"), "here is the adress of the blog to see the back ground of the pr
           return(table_data)
         }
       })#end render___________________________
-      #}
+    }
       
     })
     
   })
   observeEvent(
-    input$valid_table, {
-      print("you clique on validate")
-      if(input$file1$name %in% reactive_values$privious_datapath_csv){
+    input$valid_table, {#une fois que la table est valide l'analyse se met en marche 
+      if(input$file1$name %in% reactive_values$privious_datapath_csv){ # detection de doublon de fichier 
         showModal(modalDialog(
           title = "File already analysed",
           "This file as been analysed already. Please go see the result in wordcloud and network sessions.",
@@ -659,24 +665,25 @@ h3("The Blog"), "here is the adress of the blog to see the back ground of the pr
       }
 
 
-      if(reactive_values$ok_analyse==TRUE){
-        
+      if(reactive_values$ok_analyse==TRUE){# si il n'y a pas d'erreur on fait l'analyse de mot clef et domaine 
+        # on commence par faire une table qui sera comune au different type de fichier, ou on reporte les differente colonnes choisis par l'utilisateur  
         
         if(input$keyword_selection!="none") col_key<-reactive_values$df_csv[[input$keyword_selection]] else col_key=NA 
         if(input$domain_selection!="none") col_dom<-reactive_values$df_csv[[input$domain_selection]] else col_dom=NA
-        #col_date<-as.Date(as.POSIXct(strptime(c(reactive_values$df_csv[[input$date_selection]]), "%d/%m/%Y"),origin="1970-01-01"))
-
+        
+        
+        # mise en forme de la date
         col_date<-parse_date_time(x = reactive_values$df_csv[[input$date_selection]],
                                   orders = reactive_values$fmts,
                                   locale =  Sys.getlocale(category = "LC_TIME"))
-
+        
 
 
         col_title<-reactive_values$df_csv[[input$title_selection]]
         col_auth<-reactive_values$df_csv[[input$author_selection]]
         if(input$id_arxiv_selection!="none") arxiv_col=reactive_values$df_csv[[input$id_arxiv_selection]] else arxiv_col=NA
-        #print("erreeuuuuuuuuure pas ici" )
-        if(is.null(reactive_values$df_global)==TRUE) {
+        
+        if(is.null(reactive_values$df_global)==TRUE) {# si la table est vide (pas d'autre ficher valider avant, il faut la cree)
 
           reactive_values$df_global=as.data.frame(cbind(col_title,col_auth,col_key,col_dom,col_date),stringsAsFactors = FALSE)
           names(reactive_values$df_global)<-c('titre','auteur','keywords','domain','date')
@@ -685,8 +692,8 @@ h3("The Blog"), "here is the adress of the blog to see the back ground of the pr
           reactive_values$df_global["position_name"]=input$position_name_CSV#♦ dans les deux car traitement de pusieur fichier qui peuvent avoir des odre différent
           reactive_values$df_global["sep"]=input$sep_author_csv
           reactive_values$df_global["id_arxiv"]=arxiv_col
-          #reactive_values$df_global["col_journal"]=input$col_journal_csv
-        }else {
+          
+        }else {# si elle est deja cree (autre fichier csv ou bib ou pdf valider avant  ) on cree un dataframe temporere et on la fusionne 
           #print("je passe dans le else")
           temp=as.data.frame(cbind(col_title,col_auth,col_key,col_dom,col_date),stringsAsFactors = FALSE)
           names(temp)<-c('titre','auteur','keywords','domain','date')
@@ -696,13 +703,8 @@ h3("The Blog"), "here is the adress of the blog to see the back ground of the pr
           temp["sep"]=input$sep_author_csv
           temp["year"]<-NA
           temp["id_arxiv"]=arxiv_col
-          #temp["col_journal"]=input$col_journal_csv
-
-          # print(names(temp))
-          # print(names( reactive_values$df_global))
           reactive_values$df_global=rbind(reactive_values$df_global,temp)
-          #reactive_values$df_global["keywords"]=gsub(";",",",reactive_values$df_global["keywords"])
-          # print("hors du else")
+          
         }
         reactive_values$valide_csv<-TRUE
         
@@ -712,6 +714,7 @@ h3("The Blog"), "here is the adress of the blog to see the back ground of the pr
 
 
   observe({ if(reactive_values$valide_csv==TRUE || reactive_values$valide_pdf==TRUE || reactive_values$valide_wos==TRUE){
+    # a chaque ajout de donnes on refais l'etude 
     if(sum(duplicated(reactive_values$df_global[c("titre","auteur")]))>0) reactive_values$df_global<-reactive_values$df_global[-(which(duplicated(reactive_values$df_global[c("titre","auteur")])==TRUE)),]
     reactive_values$df_global[["keywords"]]=gsub(";",",",reactive_values$df_global[["keywords"]])
     reactive_values$df_global[["domain"]]=gsub(";",",",reactive_values$df_global[["domain"]])
@@ -734,10 +737,10 @@ h3("The Blog"), "here is the adress of the blog to see the back ground of the pr
 
 
     year<-as.double(format(reactive_values$df_global[["date"]],"%Y"))
-    print(table(year))
+  
 
     reactive_values$df_global[["year"]]<-as.factor(year)
-    if(max(year,na.rm = TRUE)-min(year,na.rm = TRUE)!=0){
+    if(max(year,na.rm = TRUE)-min(year,na.rm = TRUE)!=0){# on met a jour les parametre des graphiques 
       updateSelectInput(session, inputId = "intervalyear",choices =c("None",1:(max(year,na.rm = TRUE)-min(year,na.rm = TRUE))))
       updateSelectInput(session, inputId = "networkintervalyear",choices =c("None",1:(max(year,na.rm = TRUE)-min(year,na.rm = TRUE))))
     }else{
@@ -746,11 +749,12 @@ h3("The Blog"), "here is the adress of the blog to see the back ground of the pr
     }
 
 
-    keywords_tok<-strsplit(keywords,",",fixed=TRUE)
+    keywords_tok<-strsplit(keywords,",",fixed=TRUE)# mise en forme des mot clef , tokanisation
 
-
+# lematisation
     keywords_lem<-sapply(1:length(keywords_tok),FUN =function(x,l=lang) {stemDocument(keywords_tok[[x]],language = l)})
-    c1<-unique(unlist(keywords_tok))
+   # tous se qui suis va permete de completer la lematisation par la version la plus courte du mot entier , cela evite les faute d'ortographe dans les graphiques
+     c1<-unique(unlist(keywords_tok))
 
     c2<-sapply(1:length(c1)[1],FUN =function(x,l=lang) {stemDocument(c1[x],language = l)})
 
@@ -763,8 +767,6 @@ h3("The Blog"), "here is the adress of the blog to see the back ground of the pr
       c1<-c1[-(which(c1==""))]
     }
 
-    length(c1)
-    length(c2)
     table_lema<-as.data.frame(cbind(c1,c2),stringsAsFactors = FALSE)
 
     keywords_lem_complet<-keywords_lem
@@ -794,11 +796,7 @@ h3("The Blog"), "here is the adress of the blog to see the back ground of the pr
       
 
     }
-    # ind=which(is.na(keywords_lem_complet))
-    # print(ind)
-    # if(length(ind)!=0) keywords_lem_complet[ind]<-NULL
-    # print("l'errreeeeeeeeeeeeeeeeeeeeeeeeeur n'est pas la ")
-
+    
     if(reactive_values$valide_csv==TRUE || reactive_values$valide_pdf==TRUE || reactive_values$valide_wos==TRUE){
       #mark2
       showModal(modalDialog(
@@ -988,11 +986,14 @@ h3("The Blog"), "here is the adress of the blog to see the back ground of the pr
 
 
             vrac<-unlist(key_c)
-            if( length(which(vrac=="")!=0)){
+            if( length(which(vrac=="")!=0  )){
               vrac<-vrac[-( which(vrac==""))]
             }
 
-
+            if( length(which(vrac=="NULL")!=0  )){
+              vrac<-vrac[-( which(vrac=="NULL"))]
+            }
+            
 
             if(input$Simpleword==TRUE){
               corp <- Corpus(VectorSource(vrac))
@@ -1043,7 +1044,11 @@ h3("The Blog"), "here is the adress of the blog to see the back ground of the pr
           if( length(which(vrac=="")!=0)){
             vrac<-vrac[-( which(vrac==""))]
           }
-
+          
+          if( length(which(vrac=="NULL")!=0  )){
+            vrac<-vrac[-( which(vrac=="NULL"))]
+          }
+          
 
 
           if(input$Simpleword==TRUE){
@@ -1065,7 +1070,7 @@ h3("The Blog"), "here is the adress of the blog to see the back ground of the pr
             output[[plotname]] <- renderPlot({
               print("jarrive dans le render plot")
               if(input$minfreq>max(t_freq)) inputreal=max(t_freq) else inputreal=input$minfreq
-              updateNumericInput(session, inputId = "minfreq",min=1,max=max(t_freq))
+              updateSliderInput(session, inputId = "minfreq",min=1,max=max(t_freq),step = 1)
               wordcloud(words = t_word, freq = t_freq, min.freq = inputreal,
                         max.words=input$maxprint, random.order=FALSE, rot.per=0.35,
                         colors=brewer.pal(8, "Dark2"),scale = c(1.5, 0.3))
@@ -1311,6 +1316,8 @@ h3("The Blog"), "here is the adress of the blog to see the back ground of the pr
       
       if(input$sup_wos_for_ref==TRUE){
         reactive_values$ref_wos=rbind(reactive_values$ref_wos,extract_ref_wos(reactive_values$data_wos))
+        print("dim ref wos")
+        print(dim(reactive_values$ref_wos))
         reactive_values$show_wos_res_window=TRUE
         output$table_data_ref4 <- renderDataTable({
           # validate(
@@ -1633,7 +1640,8 @@ h3("The Blog"), "here is the adress of the blog to see the back ground of the pr
       #   need(reactive_values$data_wos, "No bibtext data"),
       #   need(!is.null(reactive_values$data_wos), "")
       # )
-
+    print("voicciiiiiii les erreur ")
+    print(reactive_values$res_arxiv$error_querry)
       table_data=datatable(df_flatten(reactive_values$res_arxiv$error_querry), options = list(scrollX = TRUE, columnDefs = list(list(
         targets = "_all" ,render = JS(
           "function(data, type, row, meta) {",
@@ -1705,8 +1713,7 @@ h3("The Blog"), "here is the adress of the blog to see the back ground of the pr
 
   observeEvent(input$pubmed_error,{
     output$table_data_ref3 <- renderDataTable({
-      print(dim(res_pumed$error_querry_publi))
-      View(res_pumed$error_querry_publi)
+      
       # validate(
       #   need(reactive_values$data_wos, "No bibtext data"),
       #   need(!is.null(reactive_values$data_wos), "")
@@ -1726,7 +1733,6 @@ h3("The Blog"), "here is the adress of the blog to see the back ground of the pr
   observeEvent(input$pubmed_ask,{
 
     print("je passe sur pumed ask")
-    View(reactive_values$res_pumed$dataframe_publi_found)
     reactive_values$table_to_show_ref=reactive_values$res_pumed$dataframe_publi_found[(reactive_values$res_pumed$dataframe_publi_found$check_title_pct<reactive_values$value_same_min_accept),]
 
     if(dim(reactive_values$table_to_show_ref)[1]>0) rownames(reactive_values$table_to_show_ref)<-1:nrow(reactive_values$table_to_show_ref)
@@ -1747,7 +1753,7 @@ h3("The Blog"), "here is the adress of the blog to see the back ground of the pr
 
 
     reactive_values$active_source="PUBMED"
-    View(df_flatten(df$data))
+    
   })
 #partie interdiciplinarité ----
   
@@ -1800,16 +1806,20 @@ h3("The Blog"), "here is the adress of the blog to see the back ground of the pr
     if(!is.null(error)){
       
       if(input$type=="ref"||input$type=="all" ){    
-        if(input$type=="ref") reactive_values$matrice_res_ref=res_temp$res else reactive_values$matrice_res_ref=res_temp$res_ref
-          if(!is.null(reactive_values$matrice_res_ref)){
-            updateSelectInput(session, inputId = "select_article", choices = 1:(dim(reactive_values$matrice_res_ref$prop_grande_discipline)[1]-1))
+        if(input$type=="ref") reactive_values$matrice_res_ref$res=res_temp$res else reactive_values$matrice_res_ref$res=res_temp$res_ref
+        reactive_values$matrice_res_ref$data=res_temp$data 
+        
+        
+        
+        if(!is.null(reactive_values$matrice_res_ref$res)){
+            updateSelectInput(session, inputId = "select_article", choices = 1:(dim(reactive_values$matrice_res_ref$res$prop_grande_discipline)[1]-1))
                
             output$plot_article_ref<-renderPlot({
                
-               ind=which(reactive_values$matrice_res_ref$prop_grande_discipline[input$select_article,]!=0)
+               ind=which(reactive_values$matrice_res_ref$res$prop_grande_discipline[input$select_article,]!=0)
                df <- data.frame(
-                 group = Unaccent(names(reactive_values$matrice_res_ref$prop_grande_discipline[input$select_article,])[ind]),
-                 value = unlist(reactive_values$matrice_res_ref$prop_grande_discipline[input$select_article,ind])/sum(reactive_values$matrice_res_ref$prop_grande_discipline[input$select_article,ind])
+                 group = Unaccent(names(reactive_values$matrice_res_ref$res$prop_grande_discipline[input$select_article,])[ind]),
+                 value = unlist(reactive_values$matrice_res_ref$res$prop_grande_discipline[input$select_article,ind])/sum(reactive_values$matrice_res_ref$res$prop_grande_discipline[input$select_article,ind])
                )
                
                
@@ -1834,8 +1844,8 @@ h3("The Blog"), "here is the adress of the blog to see the back ground of the pr
                  
                  
                  df <- data.frame(
-                   group = Unaccent(names(reactive_values$matrice_res_ref$prop_grande_discipline)),
-                   value = unlist(reactive_values$matrice_res_ref$prop_grande_discipline[dim(reactive_values$matrice_res_ref$prop_grande_discipline)[1],]/sum(unlist(reactive_values$matrice_res_ref$prop_grande_discipline[dim(reactive_values$matrice_res_ref$prop_grande_discipline)[1],])))
+                   group = Unaccent(names(reactive_values$matrice_res_ref$res$prop_grande_discipline)),
+                   value = unlist(reactive_values$matrice_res_ref$res$prop_grande_discipline[dim(reactive_values$matrice_res_ref$res$prop_grande_discipline)[1],]/sum(unlist(reactive_values$matrice_res_ref$res$prop_grande_discipline[dim(reactive_values$matrice_res_ref$res$prop_grande_discipline)[1],])))
                  )
                  
                  
@@ -1859,21 +1869,22 @@ h3("The Blog"), "here is the adress of the blog to see the back ground of the pr
             
              
              
-             output$text_ref<-renderText({paste("ID:",round(reactive_values$matrice_res_ref$id,2),"DD;",round(reactive_values$matrice_res_ref$dd,2),"MD:",round(reactive_values$matrice_res_ref$md,2),"DIA:",paste(round(unlist(reactive_values$matrice_res_ref$dia[[as.numeric(input$select_article)]]),digits = 2),collapse = ","),collapse = "\n")})
+             output$text_ref<-renderText({paste("ID:",round(reactive_values$matrice_res_ref$res$id,2),"DD;",round(reactive_values$matrice_res_ref$res$dd,2),"MD:",round(reactive_values$matrice_res_ref$res$md,2),"DIA:",paste(round(unlist(reactive_values$matrice_res_ref$res$dia[[as.numeric(input$select_article)]]),digits = 2),collapse = ","),collapse = "\n")})
           }
         }
         
         if(input$type=="cit"||input$type=="all") {
-          if(input$type=="cit") reactive_values$matrice_res_cit=res_temp$res else reactive_values$matrice_res_cit=res_temp$res_cit
-            if(!is.null(reactive_values$matrice_res_cit)){
-            updateSelectInput(session, inputId = "select_article", choices = 1:(dim(reactive_values$matrice_res_cit$prop_grande_discipline)[1]-1))
+          if(input$type=="cit") reactive_values$matrice_res_cit$res=res_temp$res else reactive_values$matrice_res_cit$res=res_temp$res_cit
+          reactive_values$matrice_res_cit$data=res_temp$data
+          if(!is.null(reactive_values$matrice_res_cit$res)){
+            updateSelectInput(session, inputId = "select_article", choices = 1:(dim(reactive_values$matrice_res_cit$res$prop_grande_discipline)[1]-1))
             
             output$plot_article_cit<-renderPlot({
               
-              ind=which(reactive_values$matrice_res_cit$prop_grande_discipline[input$select_article,]!=0)
+              ind=which(reactive_values$matrice_res_cit$res$prop_grande_discipline[input$select_article,]!=0)
               df <- data.frame(
-                group = Unaccent(names(reactive_values$matrice_res_cit$prop_grande_discipline[input$select_article,])[ind]),
-                value = unlist(reactive_values$matrice_res_cit$prop_grande_discipline[input$select_article,ind])/sum(reactive_values$matrice_res_cit$prop_grande_discipline[input$select_article,ind])
+                group = Unaccent(names(reactive_values$matrice_res_cit$res$prop_grande_discipline[input$select_article,])[ind]),
+                value = unlist(reactive_values$matrice_res_cit$res$prop_grande_discipline[input$select_article,ind])/sum(reactive_values$matrice_res_cit$res$prop_grande_discipline[input$select_article,ind])
               )
               
               
@@ -1889,7 +1900,7 @@ h3("The Blog"), "here is the adress of the blog to see the back ground of the pr
             
             
             
-            output$downloadPlot_article_cit <- downloadHandler(
+            output$downloadPlot_article_cit <- downloadHandler(#telechargement du fichier 
               filename = function(){paste("test",'.pdf',sep='')},
               
               content = function(file) {
@@ -1897,12 +1908,12 @@ h3("The Blog"), "here is the adress of the blog to see the back ground of the pr
               })
               
             
-            output$plot_total_cit<-renderPlot({
+            output$plot_total_cit<-renderPlot({# plot des theme citations 
               
               
               df <- data.frame(
-                group = Unaccent(names(reactive_values$matrice_res_cit$prop_grande_discipline)),
-                value = unlist(reactive_values$matrice_res_cit$prop_grande_discipline[dim(reactive_values$matrice_res_cit$prop_grande_discipline)[1],]/sum(unlist(reactive_values$matrice_res_cit$prop_grande_discipline[dim(reactive_values$matrice_res_cit$prop_grande_discipline)[1],])))
+                group = Unaccent(names(reactive_values$matrice_res_cit$res$prop_grande_discipline)),
+                value = unlist(reactive_values$matrice_res_cit$res$prop_grande_discipline[dim(reactive_values$matrice_res_cit$res$prop_grande_discipline)[1],]/sum(unlist(reactive_values$matrice_res_cit$res$prop_grande_discipline[dim(reactive_values$matrice_res_cit$res$prop_grande_discipline)[1],])))
               )
               
               
@@ -1923,7 +1934,7 @@ h3("The Blog"), "here is the adress of the blog to see the back ground of the pr
               })
             
             
-            output$text_cit<-renderText({paste("ID:",round(reactive_values$matrice_res_cit$id,2),"DD:",round(reactive_values$matrice_res_cit$dd,2),"MD:",round(reactive_values$matrice_res_cit$md,2),"DIA:",paste(round(unlist(reactive_values$matrice_res_cit$dia[[as.numeric(input$select_article)]]),digits = 2),collapse = ","),collapse = "\n")})
+            output$text_cit<-renderText({paste("ID:",round(reactive_values$matrice_res_cit$res$id,2),"DD:",round(reactive_values$matrice_res_cit$res$dd,2),"MD:",round(reactive_values$matrice_res_cit$res$md,2),"DIA:",paste(round(unlist(reactive_values$matrice_res_cit$res$dia[[as.numeric(input$select_article)]]),digits = 2),collapse = ","),collapse = "\n")})
           }
         }
       showModal(modalDialog(
@@ -1937,8 +1948,25 @@ h3("The Blog"), "here is the adress of the blog to see the back ground of the pr
   })
   
 
- 
-
+  output$downloadData <- downloadHandler(
+    filename = function() {
+      paste("brut data set", ".csv", sep = "")
+    },
+    content = function(file) {
+      write.csv(reactive_values$df_global, file, row.names = FALSE)
+    }
+  )
+  
+  output$downloadref <- downloadHandler(
+    filename = function() {
+      paste("ref_dataset", ".csv", sep = "")
+    },
+    content = function(file) {
+      write.csv(df_flatten(type.convert(reactive_values$matrice_res_ref$data)), file)
+    }
+  )
+  
+  
 }#end serveur 
 
 

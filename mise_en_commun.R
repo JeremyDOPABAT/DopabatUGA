@@ -203,38 +203,46 @@ data_wos<-convert2df(readFiles(path),dbsource = "wos",format = "bibtex")
 
 voici_un_test<-extract_ref_wos(data_wos)
 
-test=as.data.frame(voici_un_test,stringsAsFactors = FALSE)
-dim(test)
-View(test)
+View(head(voici_un_test))
+path=choose.files(caption = "chosse your data file")
+data_wos<-convert2df(readFiles(path),dbsource = "wos",format = "bibtex")
+voici_un_test2<-extract_ref_wos(data_wos)
+test=rbind(voici_un_test,voici_un_test2)
+library(bib2df)
+library(bibtex)
+library(RefManageR)
 #dom_wos<-find_journal_domaine(journal_data = df_global_wos$`refered journal`,journal_table_ref = journal_table_ref,issn =  df_global_wos$`refered issn`,source ="JCR.Abbreviated.Title" )
+df <- bib2df(path,separate_names = TRUE)
+dim(df)
+names(df)
+View(df)
+dfm<-ReadBib(path, .Encoding = "UTF-8")
 
-test$source="JCR.Abbreviated.Title"
-
-test<-combine_analyse_data(test,journal_table_ref,type="ref" )
-names(test)
-
-
-res_matrice=interdis_matrice_creation_and_calcul(data_gl = test,table_dist = table_dist,table_categ_gd = table_categ_gd,type = "ref" )
-
-
-
-path_gd="data/data_journal/categ_wos.csv"
-
-table_categ_gd=read.csv(file=path_gd,header = TRUE,stringsAsFactors = FALSE,sep = ";")
-
-
-
-
-res_data_nasa_ads=extraction_data_api_nasa_ads(data_pub=ths,ti_name=ti_name,au_name=au_name,token=token,pas=8,value_same_min_accept=0.95,value_same_min_ask = 0.85,type="all",sep_vector_in_data ="sep",position_vector_in_data = "position_name" )
-dim(res_data_nasa_ads$dataframe_ref_accept)
-
+# test<-combine_analyse_data(test,journal_table_ref,type="ref" )
+# names(test)
+# 
+# 
+# res_matrice=interdis_matrice_creation_and_calcul(data_gl = test,table_dist = table_dist,table_categ_gd = table_categ_gd,type = "ref" )
+# 
+# 
+# 
+# path_gd="data/data_journal/categ_wos.csv"
+# 
+# table_categ_gd=read.csv(file=path_gd,header = TRUE,stringsAsFactors = FALSE,sep = ";")
+# 
+# 
+# 
+# 
+# res_data_nasa_ads=extraction_data_api_nasa_ads(data_pub=ths,ti_name=ti_name,au_name=au_name,token=token,pas=8,value_same_min_accept=0.95,value_same_min_ask = 0.85,type="all",sep_vector_in_data ="sep",position_vector_in_data = "position_name" )
+# dim(res_data_nasa_ads$dataframe_ref_accept)
+# 
 
 
 
 
 
 error=tryCatch({
-  matrice_res<-global_merge_and_cal_interdis(ads=NULL,arxiv=NULL,pumed=NULL,wos=test,journal_table_ref = journal_table_ref,table_dist = table_dist,table_categ_gd = table_categ_gd,col_journal=c("Full.Journal.Title",NULL,NULL,"JCR.Abbreviated.Title"),type="cit")
+  matrice_res<-global_merge_and_cal_interdis(ads=NULL,arxiv=NULL,pumed=NULL,wos=test,journal_table_ref = journal_table_ref,table_dist = table_dist,table_categ_gd = table_categ_gd,col_journal=c("Full.Journal.Title","Full.Journal.Title","Full.Journal.Title","JCR.Abbreviated.Title"),type="ref")
   
   
 },

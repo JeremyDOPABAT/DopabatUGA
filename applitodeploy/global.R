@@ -1718,7 +1718,7 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,pas=8,value_same_min_a
   
   print("voici les dimention du res new final ")
   print(dim(res_new))
-  
+  if(is.null(dim(res_new))) res_new=read.csv(text=paste0(names(res_new),collapse = ","))
   return(
     list(dataframe_citation_accept=res_cit_accept,error_querry_publi=error_querry,error_querry_citation=error_querry_cit,title_vector=ti_data,author_vector=au_data,dataframe_citation_ask=res_cit_ask,
          reject_analyse=reject,dataframe_publi_found=res_new,dataframe_ref_accept=res_ref_accept,error_querry_ref=error_querry_ref,dataframe_ref_ask=res_ref_ask))
