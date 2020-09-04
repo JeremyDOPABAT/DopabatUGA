@@ -13,7 +13,7 @@ library(tm)
 library(plyr)
 library(bibliometrix)
 library(V8)
-
+library(bib2df)
 jsResetCode <- "shinyjs.reset = function() {history.go(0)}" # Define the js method that resets the page
 
 #library(rlang)
@@ -684,6 +684,7 @@ querry_warning_message<-function(r){
 get_cit_or_ref<-function(resdt,type="cit",token){# on r?cup?re les infodes citation uniquement 
   #permet de recup?r? les citation et les reference d'ads grace a une base de publie en entr?e, 
   #fonction interne 
+  print(names(resdt))
   last_good_result=NULL
   res_cit=c()
   if(type=="cit"){
@@ -735,7 +736,8 @@ get_cit_or_ref<-function(resdt,type="cit",token){# on r?cup?re les infodes citat
       },
       
       warning=function(cond){# mise en place de la table erreur 
-        titre_error=as.data.frame(ti_data[first:last])
+        titre_error=as.data.frame(resdt$titre[first:last])
+        #names(titre_error)=c("Publication title")
         titre_error$status=r$status
         titre_error$message=message_error(r)
         titre_error$type_error=type
@@ -858,7 +860,7 @@ get_cit_or_ref_arxiv<-function(resdt,type){
       
     },
     warning=function(cond){#verification d'erreur 
-      titre_error=as.data.frame(ti_data[first:last])
+      titre_error=as.data.frame(resdt$titre[first:last])
       names(titre_error)=c("Publication title")
       titre_error["Status error"]=r$status
       titre_error$Message=message_error(r)
@@ -1055,8 +1057,8 @@ ads_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,val
   
   res=c()#variable resultat 
   
-  
-  
+  print("sep in get puplie ")
+  print(sep)
   error_querry=c()# table d'erreur  
   
   
@@ -1482,7 +1484,7 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,pas=8,value_same_min_a
       
       res_rest_all=pumed_get_publi(data_rest[au_name][[1]],data_rest[ti_name][[1]],data_rest$position_name,pas,value_same_min_ask,value_same_min_accept,data_rest$sep)
       res_rest=res_rest_all$res
-      err2=res_rest_all[2,]$error
+      err2=res_rest_all$error
       reject2=res_rest_all$reject
       
     }else{
@@ -1932,7 +1934,7 @@ extraction_data_api_nasa_ads<-function(data_pub,ti_name,au_name,token,pas=8,valu
     print("passe wos")
     data_wos=data_pub[data_pub[source_name]=="WOS",]
     
-    
+   
     if(length(sep_vector_in_data)==1) if(sep_vector_in_data=="") sep="" else sep=data_wos[sep_vector_in_data][[1]]
     if(length(position_vector_in_data)==1) if(position_vector_in_data=="") position_name=rep(1,dim(data_wos)[1]) else position_name=data_wos[position_vector_in_data][[1]]
     if(dim(data_wos)[1]!=0) {
@@ -1954,9 +1956,10 @@ extraction_data_api_nasa_ads<-function(data_pub,ti_name,au_name,token,pas=8,valu
     if(length(sep_vector_in_data)==1) if(sep_vector_in_data=="") sep="" else sep=data_rest[sep_vector_in_data][[1]]
     if(length(position_vector_in_data)==1) if(position_vector_in_data=="") position_name=rep(1,dim(data_rest)[1]) else position_name=data_rest[position_vector_in_data][[1]]
     if(dim(data_rest)[1]!=0) {
-      res_rest_all=ads_get_publi(data_rest[au_name][[1]],data_rest[ti_name][[1]],position_name[data_pub[source_name]!="WOS"],pas,value_same_min_ask,value_same_min_accept,token)
+      
+      res_rest_all=ads_get_publi(data_rest[au_name][[1]],data_rest[ti_name][[1]],position_name[data_pub[source_name]!="WOS"],pas,value_same_min_ask,value_same_min_accept,token,sep)
       res_rest=res_rest_all$res
-      err2=res_rest_all[2,]$error
+      err2=res_rest_all$error
       reject2=res_rest_all$reject
       lastresult=res_rest_all$lastresult
     }else{
@@ -2150,7 +2153,7 @@ extraction_data_api_arxiv<-function(data_pub,ti_name,au_name,pas=8,value_same_mi
       
       res_rest_all=arxiv_get_publi(data_rest[au_name][[1]],data_rest[ti_name][[1]],position_name,pas,value_same_min_ask,value_same_min_accept,sep,id_data)
       res_rest=res_rest_all$res
-      err2=res_rest_all[2,]$error
+      err2=res_rest_all$error
       reject2=res_rest_all$reject
       
     }else{
@@ -2633,7 +2636,7 @@ conforme_bibtext<-function(data_wos){
   #'
   #' @return
 
-  error=tryCatch({#rep?rage des erreur 
+  error=tryCatch({#reperage des erreur 
     data_wos["SC"]
   },
   
@@ -2651,6 +2654,29 @@ conforme_bibtext<-function(data_wos){
     return(NA)
   })
   if(is.null(dim(error)[1])) if(is.na(error)) data_wos["DE"]=NA
+  
+  
+  error=tryCatch({#reperage des erreur 
+    data_wos["TI"]
+  },
+  
+  error=function(cond){
+    return(NA)
+  })
+  
+  if(is.null(dim(error)[1])) if(is.na(error)) data_wos["TI"]=NA
+  
+  
+  error=tryCatch({#reperage des erreur 
+    data_wos["AU"]
+  },
+  
+  error=function(cond){
+    return(NA)
+  })
+  
+  if(is.null(dim(error)[1])) if(is.na(error)) data_wos["AU"]=NA
+  
   
   return(data_wos)   
 }
@@ -2781,8 +2807,7 @@ merge_result_data_base<-function(ads,arxiv,pumed,wos,col_journal=c(NULL,NULL,NUL
     arxi_data=arxiv$res_reference_accept
     pumed_data=pumed$dataframe_ref_accept
     if(!is.null(wos)) wos$source=col_journal[4]
-  }
-  else {
+  }else {
     ads_data=ads$dataframe_citation_accept
     arxi_data=arxiv$res_citation_accept
     pumed_data=pumed$dataframe_citation_accept
@@ -2867,7 +2892,7 @@ global_merge_and_cal_interdis<-function(ads=NULL,arxiv=NULL,pumed=NULL,wos=NULL,
   }else{
     
       merge_data<-merge_result_data_base(ads,arxiv,pumed,wos,type,col_journal = col_journal)
-    if(dim(merge_data)[1]) {
+    if(dim(merge_data)[1]>0) {
       merge_data<-combine_analyse_data(merge_data,journal_table_ref,type )
       res_matrice=interdis_matrice_creation_and_calcul(data_gl = merge_data,table_dist,table_categ_gd,type=type )
     } else res_matrice=NULL

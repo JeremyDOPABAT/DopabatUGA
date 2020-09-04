@@ -209,14 +209,17 @@ data_wos<-convert2df(readFiles(path),dbsource = "wos",format = "bibtex")
 voici_un_test2<-extract_ref_wos(data_wos)
 test=rbind(voici_un_test,voici_un_test2)
 library(bib2df)
-library(bibtex)
-library(RefManageR)
+
 #dom_wos<-find_journal_domaine(journal_data = df_global_wos$`refered journal`,journal_table_ref = journal_table_ref,issn =  df_global_wos$`refered issn`,source ="JCR.Abbreviated.Title" )
-df <- bib2df(path,separate_names = TRUE)
-dim(df)
-names(df)
-View(df)
-dfm<-ReadBib(path, .Encoding = "UTF-8")
+path <- system.file("extdata", "bib2df_testfile_3.bib", package = "bib2df")
+bib <- bib2df(path)
+View(bib)
+View(data_wos)
+str(bib)
+
+# Read from .bib file and separate authors' and editors' names:
+bib <- bib2df(path, separate_names = TRUE)
+str(bib)
 
 # test<-combine_analyse_data(test,journal_table_ref,type="ref" )
 # names(test)
@@ -233,7 +236,9 @@ dfm<-ReadBib(path, .Encoding = "UTF-8")
 # 
 # 
 # 
-# res_data_nasa_ads=extraction_data_api_nasa_ads(data_pub=ths,ti_name=ti_name,au_name=au_name,token=token,pas=8,value_same_min_accept=0.95,value_same_min_ask = 0.85,type="all",sep_vector_in_data ="sep",position_vector_in_data = "position_name" )
+# 
+
+res_data_nasa_ads=extraction_data_api_nasa_ads(data_pub=ths,ti_name=ti_name,au_name=au_name,token=token,pas=8,value_same_min_accept=0.95,value_same_min_ask = 0.85,type="all",sep_vector_in_data ="sep",position_vector_in_data = "position_name" )
 # dim(res_data_nasa_ads$dataframe_ref_accept)
 # 
 

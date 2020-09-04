@@ -5,6 +5,6 @@ account: uga-projet
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 2134923
-bundleId: 3555778
+bundleId: 3584179
 url: https://uga-projet.shinyapps.io/applitodeploy/
-when: 1598364307.12291
+when: 1599054014.53931

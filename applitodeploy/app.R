@@ -183,6 +183,9 @@ ui <-dashboardPage(skin = "red",
                                      tags$div(title="Choose bibtex file, bibtext only",fileInput("file2", "Choose bibtext File",
                                                                                               multiple = TRUE,
                                                                                               accept = c(".bib"))),
+                                     checkboxInput("is_wos", "this fil is comming from WOS ",value = FALSE),
+                                                  
+                                     htmlOutput("text_wos"),
                                      tags$hr(),
                                      tags$div(title="the order of the author need to be told, the firstname don't need to be complete abreviation works",radioButtons("position_name_wos", "disposition of name and firstname for author",
                                                                                                                                                                       choices = c("Lastname Firstname" = "2",
@@ -193,13 +196,14 @@ ui <-dashboardPage(skin = "red",
                                                                     All = "all"),
                                                         selected = "head"),
                                            
-                                    checkboxInput("sup_wos_for_ref", "this file already countain reference, don't reasearch them",value = FALSE),# rechercher les ref dans le fichier ou pas 
+                                    conditionalPanel('input.is_wos',checkboxInput("sup_wos_for_ref", "this file already countain reference, don't reasearch them",value = FALSE)),# rechercher les ref dans le fichier ou pas 
                                      conditionalPanel('output.show_wos_valid',actionButton("valid_wos", "validate"))# boutton de valiation 
                                      #
                                  ),
                                
                                    
-                              column(7,withSpinner(dataTableOutput("table_wos"),color="#c50d3e"))# visualisation de l'import 
+                              column(7,withSpinner(dataTableOutput("table_wos"),color="#c50d3e"))
+                                  # visualisation de l'import 
                                  
                                )
                                
@@ -280,11 +284,11 @@ ui <-dashboardPage(skin = "red",
                                      checkboxInput("pubmed", "Pubmed", FALSE),
                                      checkboxInput("arxiv", "ArXiv", FALSE),
                                      
-                                     radioButtons("type", "What data do you want to fetch ?",
+                                     tags$div(title="Citation : aticle which cite an other aticle in the corpus. Reference: articles use to build the articles on the corpus.",radioButtons("type", "What data do you want to fetch ?",
                                                   choices = c(Citations = "cit",
                                                               References = "ref",
                                                               Both = "all"),
-                                                  selected = "cit"),
+                                                  selected = "cit")),
                                      
                                      
                                               
@@ -360,7 +364,7 @@ ui <-dashboardPage(skin = "red",
                                #onglet resuultat et calcule d'interdiciplinarite 
                                #dans cette onglet l'utilisateur vas pouvoir voir les resultat de l'interdiciplinarite, par article.
                         fluidPage(
-                          selectInput("select_article", "Select the article for the graph",NULL),
+                          selectInput("select_article", "Select the number of the article for the graph",NULL),
                           tabBox(width = 12,height = 600, title = "result interdisciplinarity(soon)",
                             tabPanel("ref",
                                      column(width = 6,
@@ -469,7 +473,8 @@ server <- function(input, output, session) {
     value_same_min_ask=0.85,
     matrice_res_ref=NULL,
     matrice_res_cit=NULL,
-    table_categ_gd=NULL
+    table_categ_gd=NULL,
+    wos_data=NULL
   )  
   #copy des variable reactive dans les output pour leurs permetre d'etre invisible 
   output$show_header <- reactive({
@@ -563,6 +568,11 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
   #meme chose pour la rescer interdis 
   output$text_database <- renderText({
     paste(h4("Help:"),"First you will select a database and do 'process' (exectpte if you only have ref for wos) then you can manage your data as you wich and when it's ok clic on the right button.")
+  })
+  
+  #text d'aide pour l'onglet bibtext 
+  output$text_wos <- renderText({
+    paste(h4("Help:"), "AU is the author column, TI the title column, PY is the date of publication and CR is the column which contain references")
   })
   
   #historique ________________________________________________________
@@ -1214,9 +1224,18 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
   #________________importation wos___________________________________________________________
   observeEvent(input$file2,{
     library(bibliometrix)
+    if(input$is_wos==TRUE){
+      suppressWarnings(reactive_values$data_wos <-convert2df(readFiles(input$file2$datapath),dbsource = "wos",format = "bibtex"))
+      reactive_values$data_wos <-df_flatten(conforme_bibtext(reactive_values$data_wos))
     
-    suppressWarnings(reactive_values$data_wos <-convert2df(readFiles(input$file2$datapath),dbsource = "wos",format = "bibtex"))
-    reactive_values$data_wos <-df_flatten(conforme_bibtext(reactive_values$data_wos))
+    
+    }else{
+      suppressWarnings(reactive_values$data_wos <-(bib2df::bib2df(path, separate_names = TRUE)))
+      
+      
+    }
+    
+    
     # print(names(reactive_values$data_wos))
     #[c(2,4),c("TI","AU","DE","SC","PY")]
     output$table_wos <- renderDataTable({
@@ -1248,8 +1267,10 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
       
       
     })
-    #
     
+    
+    
+ 
     
     reactive_values$show_wos_valid<-TRUE
     
@@ -1271,13 +1292,26 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
     }
     if( reactive_values$ok_analyse==TRUE){
       print("validation du wos")
+      if(input$is_wos==TRUE){
+        reactive_values$data_wos=reactive_values$data_wos[,c("TI","AU","DE","SC","PY")]
+      
+      }else{
+        reactive_values$data_wos=reactive_values$data_wos[,c("TITRE","AUTEUR","KEYWORDS","RESARCH.AREAS","YEAR")]
+        
+        
+      }
+      names(reactive_values$data_wos)<-c('titre','auteur','keywords','domain','date')
       if(is.null(reactive_values$df_global)==TRUE) {
         
         
-        reactive_values$df_global=reactive_values$data_wos[,c("TI","AU","DE","SC","PY")]
+        reactive_values$df_global=reactive_values$data_wos
         
-        names(reactive_values$df_global)<-c('titre','auteur','keywords','domain','date')
-        reactive_values$df_global["source"]="WOS"
+       
+        if(input$sup_wos_for_ref==TRUE){
+          reactive_values$df_global["source"]="WOS"# la source n'est importante que si on enlève les références du wos 
+        }else{
+          reactive_values$df_global["source"]="BIB"# la source n'est importante que si on enlève les références du wos
+        } 
         reactive_values$df_global["sep"]=";"
         reactive_values$df_global["position_name"]=input$position_name_wos
         reactive_values$df_global["id_arxiv"]=NA
@@ -1292,14 +1326,17 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
         print("je passe dans le wos ")
       }else{
         
-        temp=reactive_values$data_wos[,c("TI","AU","DE","SC","PY")]
+        temp=reactive_values$data_wos
         names(temp)<-c('titre','auteur','keywords','domain','date')
         temp["year"]<-NA
-        temp["source"]="WOS"
         temp["position_name"]=input$position_name_wos
         temp["sep"]=";"
         temp["id_arxiv"]=NA
-        
+        if(input$sup_wos_for_ref==TRUE){
+          temp["source"]="WOS"# la source n'est importante que si on enlève les références du wos 
+        }else{
+          temp["source"]="BIB"# la source n'est importante que si on enlève les références du wos
+        } 
         
         
         
@@ -1311,13 +1348,14 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
         reactive_values$df_global=rbind(reactive_values$df_global,temp)
         print("je passe dans le else wos ")
       }
+      
       #reactive_values$df_global[["keywords"]]=gsub(";",",",reactive_values$df_global[["keywords"]])
       #reactive_values$df_global[["domain"]]=gsub(";",",",reactive_values$df_global[["domain"]])
       
       if(input$sup_wos_for_ref==TRUE){
-        reactive_values$ref_wos=rbind(reactive_values$ref_wos,extract_ref_wos(reactive_values$data_wos))
-        print("dim ref wos")
-        print(dim(reactive_values$ref_wos))
+        reactive_values$wos_data=rbind(reactive_values$wos_data,reactive_values$data_wos)
+        reactive_values$ref_wos=extract_ref_wos(reactive_values$wos_data)
+        
         reactive_values$show_wos_res_window=TRUE
         output$table_data_ref4 <- renderDataTable({
           # validate(
@@ -1410,11 +1448,9 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
           ))
         }else {
           reactive_values$show_ads_res_window=TRUE
-          if(input$sup_wos_for_ref==TRUE){# a changer
-            reactive_values$res_ads=extraction_data_api_nasa_ads(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",token=input$token,pas=8,value_same_min_accept=reactive_values$value_same_min_accept,value_same_min_ask = reactive_values$value_same_min_ask,type =input$type,source_name = "source",sep_vector_in_data ="sep",position_vector_in_data = "position_name")
-          }else{
-            reactive_values$res_ads=extraction_data_api_nasa_ads(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",token=input$token,pas=8,value_same_min_accept=reactive_values$value_same_min_accept,value_same_min_ask = reactive_values$value_same_min_ask,type =input$type,sep_vector_in_data ="sep",position_vector_in_data = "position_name")
-          }
+          print("voici sep")
+          print(reactive_values$df_global$sep)
+          reactive_values$res_ads=extraction_data_api_nasa_ads(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",token=input$token,pas=8,value_same_min_accept=reactive_values$value_same_min_accept,value_same_min_ask = reactive_values$value_same_min_ask,type =input$type,source_name = "source",sep_vector_in_data ="sep",position_vector_in_data = "position_name")
         }
       }
       if(input$arxiv==TRUE){
@@ -1784,24 +1820,23 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
         
     }else{
         print("passe else ")
-        error=tryCatch({
+       error=tryCatch({
           res_temp<-global_merge_and_cal_interdis(ads=reactive_values$res_ads,arxiv=reactive_values$res_arxiv,pumed=reactive_values$res_pumed,wos=reactive_values$ref_wos,journal_table_ref = reactive_values$journal_table_ref,table_categ_gd = reactive_values$table_categ_gd,type = input$type,table_dist =reactive_values$table_dist,col_journal=c(input$col_journal_ads,input$col_journal_arxiv,input$col_journal_pumed,input$col_journal_wos))
           
           
         },
-        
-      error=function(cond){ 
+         error=function(cond){ 
         print("aiie")  #reactive_values$ok_analyse=FALSE
-        showModal(modalDialog(
-          title = paste("ERROR : no",input$type,"in the analyse"),
-          paste0("Could be an error on the parameters choice, or else there is no",input$type,"in your data"),
-          easyClose = TRUE,
-          footer = NULL
-        ))
-
-
-          return(NULL)
-        })
+         showModal(modalDialog(
+           title = paste("ERROR : no",input$type,"in the analyse"),
+           paste0("Could be an error on the parameters choice, or else there is no",input$type,"in your data"),
+           easyClose = TRUE,
+           footer = NULL
+         ))
+       
+       
+           return(NULL)
+         })
     
     if(!is.null(error)){
       
