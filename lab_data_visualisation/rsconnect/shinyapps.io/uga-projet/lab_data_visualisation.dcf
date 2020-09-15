@@ -1,0 +1,10 @@
+name: lab_data_visualisation
+title:
+username:
+account: uga-projet
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 2556715
+bundleId: 3631467
+url: https://uga-projet.shinyapps.io/lab_data_visualisation/
+when: 1600178041.19457
