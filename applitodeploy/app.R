@@ -215,7 +215,7 @@ ui <-dashboardPage(skin = "red",
                      titlePanel("Files already in the analyse"),
                      textOutput("list_file"),
                      useShinyjs(),                                           # Include shinyjs in the UI
-                     extendShinyjs(text = jsResetCode),        # Add the js code to the page
+                     extendShinyjs(text = jsResetCode,functions = "reset"),        # Add the js code to the page
                      actionButton("reset_button", "Reset Page")
              ),
              
@@ -432,6 +432,7 @@ server <- function(input, output, session) {
   #Sys.setlocale( Sys.getlocale(category = "LC_TIME"), "C")
   
   options(shiny.maxRequestSize=32*1024^2)
+  
   #variable reactive permetant l'interation utilisateur marchine 
   reactive_values <- reactiveValues(
     show_header = FALSE,
@@ -526,11 +527,12 @@ output$show_wos_res_window<- reactive({
   outputOptions(output, "show_wos_res_window", suspendWhenHidden = FALSE)
   
   
+
   
   
   #ce qui suit est le texte present dans la partie about 
   output$text <- renderText({
-    paste( h3("DOPABAT, what is it ?"),"\n","DOPABAT (DÃ©veloppement d'outils d'analyse bibliomÃ©trique et d'audience des thÃ¨ses) is a project funded by Collex-PersÃ©e.
+    paste( paste0(R.Version()[c("major","minor")], collapse = "."), h3("DOPABAT, what is it ?"),"\n","DOPABAT (DÃ©veloppement d'outils d'analyse bibliomÃ©trique et d'audience des thÃ¨ses) is a project funded by Collex-PersÃ©e.
            A national infrastructure of technique and sciences which supports French researchers. The objectives are, on the one hand, to know the importance of theses in the scientific production and, on the other hand, to know the importance of the cooperation between laboratories on the themes of Physics and Astronomy. 
            At first this project was a researcheress request that consisted in the analysis of PHDs coming from two universities. DOPABAT aims to analyse all the bibliometric data, keywords, domains of study, citations, references",
            h3("DOPABAT,who is it?"),"
@@ -1222,15 +1224,16 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
   })
 
   #________________importation wos___________________________________________________________
-  observeEvent(input$file2,{
+  observeEvent(c(input$file2),{
+    observeEvent(input$is_wos,{
     library(bibliometrix)
     if(input$is_wos==TRUE){
-      suppressWarnings(reactive_values$data_wos <-convert2df(readFiles(input$file2$datapath),dbsource = "wos",format = "bibtex"))
+      suppressWarnings(reactive_values$data_wos <-convert2df(input$file2$datapath,dbsource = "wos",format = "bibtex"))
       reactive_values$data_wos <-df_flatten(conforme_bibtext(reactive_values$data_wos))
     
     
     }else{
-      suppressWarnings(reactive_values$data_wos <-(bib2df::bib2df(path, separate_names = TRUE)))
+      suppressWarnings(reactive_values$data_wos <-df_flatten(bib2df::bib2df(input$file2$datapath, separate_names = TRUE)))
       
       
     }
@@ -1275,6 +1278,7 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
     reactive_values$show_wos_valid<-TRUE
     
   })
+})
   observeEvent(input$valid_wos, {
     
     if(input$file2$name %in% reactive_values$privious_datapath_wos){
@@ -1296,7 +1300,7 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
         reactive_values$data_wos=reactive_values$data_wos[,c("TI","AU","DE","SC","PY")]
       
       }else{
-        reactive_values$data_wos=reactive_values$data_wos[,c("TITRE","AUTEUR","KEYWORDS","RESARCH.AREAS","YEAR")]
+        reactive_values$data_wos=reactive_values$data_wos[,c("TITLE","AUTHOR","KEYWORDS","RESARCH.AREAS","YEAR")]
         
         
       }
@@ -1308,9 +1312,9 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
         
        
         if(input$sup_wos_for_ref==TRUE){
-          reactive_values$df_global["source"]="WOS"# la source n'est importante que si on enlève les références du wos 
+          reactive_values$df_global["source"]="WOS"# la source n'est importante que si on enl?ve les r?f?rences du wos 
         }else{
-          reactive_values$df_global["source"]="BIB"# la source n'est importante que si on enlève les références du wos
+          reactive_values$df_global["source"]="BIB"# la source n'est importante que si on enl?ve les r?f?rences du wos
         } 
         reactive_values$df_global["sep"]=";"
         reactive_values$df_global["position_name"]=input$position_name_wos
@@ -1333,9 +1337,9 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
         temp["sep"]=";"
         temp["id_arxiv"]=NA
         if(input$sup_wos_for_ref==TRUE){
-          temp["source"]="WOS"# la source n'est importante que si on enlève les références du wos 
+          temp["source"]="WOS"# la source n'est importante que si on enl?ve les r?f?rences du wos 
         }else{
-          temp["source"]="BIB"# la source n'est importante que si on enlève les références du wos
+          temp["source"]="BIB"# la source n'est importante que si on enl?ve les r?f?rences du wos
         } 
         
         
@@ -1579,7 +1583,7 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
     selectedRow <- as.numeric(strsplit(input$select_button, "_")[[1]][2])
     #df$data <- df$data[rownames(df$data) != selectedRow, ]
     #Â¶reactive_values$res_ads$dataframe_publi_found[(res_data_nasa_ads$dataframe_publi_found$check_title_pct<value_same_min_accept) &(res_data_nasa_ads$dataframe_publi_found$check_title_pct>=value_same_min_ask),]<- df$data
-    print(reactive_values$active_source)
+   
     if(reactive_values$active_source=="ADS"){
       if(input$type=="cit"||input$type=="all"){
         ind=which(reactive_values$table_to_show_ref$bibcode[[selectedRow]]==unlist(reactive_values$res_ads$dataframe_citation_ask$`cited identifier`))

@@ -592,8 +592,9 @@ supress_unfit_entry<-function(title_vector,author_vector,sep="",max_aut=8){
       return(list((au_sep[[x]])[1:max_aut]))
     })
     au_sep[ind1]<-temp
-    author_vector=sapply(1:length(au_sep),FUN=function(x) paste(unlist(au_sep[x]),collapse = ","))
     
+    author_vector=sapply(1:length(au_sep),FUN=function(x) paste(unlist(au_sep[x]),collapse = ","))
+    author_vector=sapply(1:length(author_vector),FUN = function(x) gsub("[}{}\\]", "", author_vector[[x]]))
     print(paste("the publication with", max_aut, "or more author will be restrected to",max_aut, "authors"))
   }
   
@@ -637,10 +638,13 @@ compaire_title<-function(ti_trouver,ti_data){
       
       return(max(nchar(courant),max(nchar(ti_data[y]))))
     })
-    tp<-max(1-(adist(Unaccent(ti_trouver[x]),Unaccent(ti_data),ignore.case = TRUE)/max_apply))
+    tp<-max(1-(adist(Unaccent(ti_trouver[x]),Unaccent(ti_data),ignore.case = TRUE)/max_apply),na.rm = TRUE)
     tw<-which((1-(adist(Unaccent(ti_trouver[x]),Unaccent(ti_data),ignore.case = TRUE)/max_apply))==tp)[1]
+    print("inside indic")
+    print(ti_trouver[x])
+    
+    print(adist(Unaccent(ti_trouver[x]),Unaccent(ti_data),ignore.case = TRUE))
     return(list(tp,tw))
-    return(res)
   })
 }
 
@@ -664,7 +668,7 @@ querry_warning_message<-function(r){
   if (r$status != 200){
     
     warning(
-      sprintf("Requ?te en ?chec : %s (%s) \n>>%s",
+      sprintf("Requete en echec : %s (%s) \n>>%s",
               message_error(r),
               r$status, r$request$url)
       
@@ -684,7 +688,7 @@ querry_warning_message<-function(r){
 get_cit_or_ref<-function(resdt,type="cit",token){# on r?cup?re les infodes citation uniquement 
   #permet de recup?r? les citation et les reference d'ads grace a une base de publie en entr?e, 
   #fonction interne 
-  print(names(resdt))
+  print(head(resdt))
   last_good_result=NULL
   res_cit=c()
   if(type=="cit"){
@@ -702,15 +706,16 @@ get_cit_or_ref<-function(resdt,type="cit",token){# on r?cup?re les infodes citat
     size_res=c()
     test=c()
     start_RQ=0
-    withProgress(
-       message='Please wait',
-       detail=paste0("doing ",type, ' search in ads ...'),
-       value=0, {
+    res_cit=c()
+    # withProgress(
+    #    message='Please wait',
+    #    detail=paste0("doing ",type, ' search in ads ...'),
+    #    value=0, {
 
     for(j in 1:count){# on parcour tout les ref/cit
       first<-(j-1)*pas_cit+1
       last<-j*pas_cit
-      incProgress(1/count)
+     # incProgress(1/count)
          
       
       if(last>length(res_temp)[1]) last<-length(res_temp)[1]
@@ -735,21 +740,25 @@ get_cit_or_ref<-function(resdt,type="cit",token){# on r?cup?re les infodes citat
         
       },
       
-      warning=function(cond){# mise en place de la table erreur 
-        titre_error=as.data.frame(resdt$titre[first:last])
+      warning=function(cond){# mise en place de la table erreur
+        print("aie")
+        print(message_error(r))
+        print(paste0("https://api.adsabs.harvard.edu/v1/search/query?q=", adress))
+        titre_error=data.frame(titre=NA)
         #names(titre_error)=c("Publication title")
         titre_error$status=r$status
         titre_error$message=message_error(r)
         titre_error$type_error=type
-        titre_error$h=h
         return(titre_error)
       })
-      
+      print("sortie error")
       if(length(error)>0){
+        print("dans le if ")
         error_querry_cit<-rbind(error_querry_cit,error)
         error=c()
         
       }else {
+        print("dans le eslse")
         result <-jsonlite::fromJSON(txt = httr::content(r, 'text',encoding = "UTF-8"), simplifyDataFrame = TRUE)
         res_header=result$responseHeader
         if(result$response$numFound>0){# si resultat on r?cup?re se qui nous interesse 
@@ -774,8 +783,9 @@ get_cit_or_ref<-function(resdt,type="cit",token){# on r?cup?re les infodes citat
         }
         
       }
-      
-      if(j==count) {#mise en forme finale 
+      print("avant le if ")
+      if(j==count && (length(res_cit)[1]>0)) {#mise en forme finale 
+        print("dans le if" )
         resdt_cit=as.data.frame(res_cit)
         names(resdt_cit)[2:dim(resdt_cit)[2]]<-paste(names(resdt_cit)[2:dim(resdt_cit)[2]],"citant")
         if(type=="cit"){
@@ -806,10 +816,11 @@ get_cit_or_ref<-function(resdt,type="cit",token){# on r?cup?re les infodes citat
                               "refered title","refered auth","refered subject","refered identifier","refered date","refered journal","check","check ind" )  
         } 
         result=list(res_cit_ref=total_res,error_table=error_querry_cit)
+      } else result=NULL
+      print("dernier if" )
+      if(length(dim(error_querry_cit)) && (j==count)) print("il y a des erreurs lors de l'agregation des info des citations") 
       }
-      if(length(dim(error_querry_cit)) &(j==count)) print("il y a des erreurs lors de l'agr?gation des info des citations") 
-      }
-    })
+    #})
     
   } else result=NULL
   
@@ -1060,6 +1071,8 @@ ads_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,val
   print("sep in get puplie ")
   print(sep)
   error_querry=c()# table d'erreur  
+  print("value_same_min_ask")
+  print(value_same_min_ask)
   
   
   
@@ -1086,16 +1099,16 @@ ads_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,val
   au_data=fit_name_position(au_data,position_name,position_togo =position_togo )
   au_data=sapply(1:length(au_data),FUN = function(x) paste(au_data[[x]],collapse = ";"))
   
-  
+  res=c()
   inter=ceiling(length(au_data)[1]/pas)# nombre d'iteration
-  withProgress(
-     message='Please wait',
-     detail='Doing reasearche of publication in ads...',
-     value=0, {
+  # withProgress(
+  #    message='Please wait',
+  #    detail='Doing reasearche of publication in ads...',
+  #    value=0, {
   for(h in 1:inter){# on parcoure les auteur et les titre par pas et on fait les roquette correspondante 
     first<-(h-1)*pas+1
     last<-h*pas
-  incProgress(1/inter)
+ # incProgress(1/inter)
     if(last>length(au_data)) last<-length(au_data)
     
     #ti_test="M31 Globular Clusters: Colors and Metallicities"
@@ -1113,9 +1126,9 @@ ads_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,val
     
     
     adress=paste0('author%3A%28',au_querry,'%29AND%20title%3A%28',ti_querry,'%29&fl=reference%20citation%20author%20title%20database%20pubdate%20bibcode%20keyword%20pub%20&sort=date%20desc&rows=500&start=',0)
-    (quest2<-paste0('https://api.adsabs.harvard.edu/v1/search/query?q=', adress))
+    print(paste0('https://api.adsabs.harvard.edu/v1/search/query?q=', adress))
     
-    nchar(quest2)
+    
     r <- httr::GET(paste0("https://api.adsabs.harvard.edu/v1/search/query?q=", adress),
                    httr::add_headers( Authorization = paste0('Bearer ', token))
     )
@@ -1140,10 +1153,14 @@ ads_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,val
       
     }else {#si il n'y a pas d'erreur 
       result <-jsonlite::fromJSON(txt = httr::content(r, 'text',encoding = "UTF-8"), simplifyDataFrame = TRUE)
-      if(result$response$numFound>0){
+     
+       if(result$response$numFound>0){
+         print("on est la")
         last_good_result=r
         res_header=result$responseHeader
         aut=result$response$docs$author
+        print("aut")
+        print(aut)
         titre=result$response$docs$title
         subj=result$response$docs$database
         pubdate=result$response$docs$pubdate
@@ -1151,6 +1168,8 @@ ads_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,val
         pub=result$response$docs$pub
         
         citation=result$response$docs$citation
+        print("cit")
+        print(citation)
         reference=result$response$docs$reference
         
         bibcode=result$response$docs$bibcode
@@ -1167,16 +1186,26 @@ ads_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,val
       }
       
     }
+   
     
-    
-    
-    if(result$response$numFound>0) print(h) #aide de d?vlopement 
+     
     if(h==inter) {# fin de loop mise en place des data frame 
       resdt=as.data.frame(res)
+      
+      print("head de res1")
+      print(head(resdt))
+      
       if(dim(resdt)[1]>0){
         resdt$aut=sapply(1:dim(resdt)[1], FUN=function(x){paste(unlist(resdt$aut[x]),collapse = ' ; ')})  
         trouver<-unlist(resdt$titre)
+        
+        print("trouver et ti_data")
+        print(Unaccent(trouver))
         indic_compaire_title<-compaire_title(trouver,ti_data)
+        
+        print("indic")
+        print(indic_compaire_title)
+        
         
         resdt["check_title_pct"]<-unlist(indic_compaire_title[1,])
         resdt["check_title_ind"]<-unlist(indic_compaire_title[2,])
@@ -1184,9 +1213,10 @@ ads_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,val
         resdt$citation[which(ind_null)]<-NA
       }
     }
-    if(length(dim(error_querry)) &(h==inter)>0) print("il y a des erreurs")
+    if(length(dim(error_querry)) &(h==inter)>0){print("il y a des erreurs")
+      print(head(error_querry))}
   }
-})
+#})
   
   
   
@@ -1194,6 +1224,7 @@ ads_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,val
   if(value_same_min_ask<1) reject=resdt[resdt$check_title_pct<value_same_min_ask,]# les rejet? sont ceux qui non pas assez de similitudfe pour aire dans les demande 
   resdt=resdt[resdt$check_title_pct>value_same_min_ask,]
   
+ 
   return(list(res=resdt,error=error_querry,reject=reject,lastresult=last_good_result))
 }
 
@@ -1261,23 +1292,32 @@ pumed_get_element_id<-function(id_list,type){
 
 #---------------------------------------------
 
-df_flatten<-function(res){
-  res# data tble 
+df_flatten<-function(res_f){
+  # data tble 
   #fonction qui permet le bonne affichage des tables dans l'interface  
-  res_f=res
+  
   #date_name="date"
   
   for(i in names(res_f)){# on parcourt les colonne 
-    ind=which(is.null(res_f[,i]))
-    res_f[ind,i]=NA
-    if(length(unlist(res_f[,i]))>length(res_f[,i])){
-      res_f[,i]=sapply(1:length(res_f[,i]),FUN = function(x) paste(res_f[,i][[x]],collapse = ";"))# si il y a plusieur element sur une m?me ligne 
+    print(i)
+    ind=which(is.null(res_f[[i]]))
+    if(length(ind)>0 ) res_f[ind,i]=NA
+    ind=which(is.na(res_f[[i]]))
+    if(length(ind)>0 )res_f[ind,i]="NULL"#na ne peu pas ?tre afficher dans la table donc on le remplace par "null" 
+    if(class(res_f[[i]])!="character" && class(res_f[[i]])!="numeric" ){
+      if(length(unlist(res_f[[i]]))>length(res_f[[i]])){
+        if(tolower(i)=="author"){
+          for(j in 1:dim(res_f)[1]){
+            res_f$AUTHOR[[j]]=res_f$AUTHOR[[j]]$full_name
+            res_f$AUTHOR[[j]]=gsub("[}{}\\]", "", res_f$AUTHOR[[j]])# deleted the braclet 
+          }
+        }else {
+          res_f[[i]]=as.character(res_f[[i]])#sapply(1:length(res_f[j,i]),FUN = function(x) paste(res_f[j,i][[x]],collapse = ";"))# si il y a plusieur element sur une m?me ligne
+        }
+      }
     }
-    ind=which(is.na(res_f[,i]))
-    res_f[ind,i]="NULL"#na ne peu pas ?tre afficher dans la table donc on le remplace par "null" 
-    if(typeof(i)=="list") res_f[,i]<-unlist(res_f[,i]) #si c'est une liste on l'enl'f
-    #if(date_name!="") res_f[date_name]=as.character(res_f[date_name])
   }
+  
   
   return(as.data.frame(res_f,stringsAsFactors = FALSE))
 }
@@ -1446,6 +1486,10 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,pas=8,value_same_min_a
   #RECUP2RAtion des noms de colonne 
   au_data<-data_pub[au_name][[1]]
   ti_data<-data_pub[ti_name][[1]]
+  
+   print("this is au name" )
+  print(au_data)
+  
   res_temp=supress_unfit_entry(ti_data,au_data,sep = data_pub$sep)#permet d'aclimater les donn?es a la bd (possiblement sortable de la fonction )
   ti_data=res_temp[[1]]
   au_data=res_temp[[2]]
@@ -1510,10 +1554,9 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,pas=8,value_same_min_a
     
   }
   
-  
-  print("voici les dimention du res neuw  avant")
-  print(dim(res_new))
-  
+  print("voici res new")
+  View(res_new)
+ 
   # Pr?non nom--> nom,pr?non 
   
   # interogation par titre et auteur pour retrouver les identifiant_______________________________________________________

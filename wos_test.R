@@ -75,22 +75,88 @@ res_pumed=extract_data_api_pumed(data_pub=res_wos,ti_name,au_name,pas=8,value_sa
 
 
 path=choose.files(caption = "chosse your data file")
-data_wos<-convert2df(readFiles(path),dbsource = "wos",format = "bibtex")
+data_wos<-convert2df(path,dbsource = "wos",format = "bibtex")
 
 data_wos$AU[1]
 
-
+test=bib2df::bib2df(path, separate_names = TRUE)
 
 res_wos$position_name=2
 res_wos$sep=";"
 res_wos$source="WOS"
 
 
-
+View(test)
 
 voici_un_test<-extract_ref_wos(data_wos)
 
 test=as.data.frame(voici_un_test,stringsAsFactors = FALSE)
+
+
+
+test$AUTHOR
+
+test$AUTHOR[[1]]
+  
+test$AUTHOR[[3]]$full_name
+test$EDITION[[3]]
+
+class(test)
+
+
+
+
+
+dim(test)
+View(test)
+typeof(test2)
+
+
+dim(test2)
+View(test2)
+
+
+test=(bib2df::bib2df(path, separate_names = TRUE))
+res_f=test
+
+class(test$TITLE)
+test2=df_flatten(test)
+
+test$TITLE[[1]]
+test2$TITLE[[2]]
+
+for(i in names(res_f)){# on parcourt les colonne 
+  print(i)
+  ind=which(is.null(res_f[[i]]))
+  if(length(ind)>0 ) res_f[ind,i]=NA
+  ind=which(is.na(res_f[[i]]))
+  if(length(ind)>0 )res_f[ind,i]="NULL"#na ne peu pas ?tre afficher dans la table donc on le remplace par "null" 
+  if(class(res_f[[i]])!="character" && class(res_f[[i]])!="numeric" ){
+    if(length(unlist(res_f[[i]]))>length(res_f[[i]])){
+      if(tolower(i)=="author"){
+        for(j in 1:dim(res_f)[1]){
+          res_f$AUTHOR[[j]]=res_f$AUTHOR[[j]]$full_name
+        }
+      }else {
+        res_f[,i]=as.character(res_f[,i])#sapply(1:length(res_f[j,i]),FUN = function(x) paste(res_f[j,i][[x]],collapse = ";"))# si il y a plusieur element sur une m?me ligne
+      }
+    }
+  }
+}
+  
+class(res_f[[i]])
+  
+one_try=sapply(1:length(res_f$AUTHOR),FUN = function(x) gsub("[}{}\\]", "", res_f$AUTHOR[[x]]))
+
+
+
+  
+  
+length(res_f$AUTHOR)
+
+View(res_f)
+test_with_no_na=test[ , sapply(test, function(x) all(is.na(x)) ) ] <- NULL
+View(test_with_no_na)
 #verifier les doublon 
 #verifier les doublon 
 
