@@ -32,8 +32,9 @@ ui <- dashboardPage(skin = "red",
                 tabItem(tabName = "table",
                 fluidPage(
                     fluidRow(width=12,radioButtons("periode_to_show",label = "Choose a periode",choices = c(Periode1="1",Periode2="2",Periode3="3"),selected = "1" ,inline = TRUE)),
-                    fluidRow(width=12,column(width = 4,selectInput("lab_selection", "Select lab", choices = "", width = "300px")),column(width = 4,textOutput("periode",inline = TRUE)),column(width = 4,fluidRow(column(width = 6,htmlOutput("line_same",inline = TRUE)),fluidRow(column(width = 6,htmlOutput("line_dif",inline = TRUE)))))),
-                    fluidRow(width=12, dataTableOutput("table_result"))
+                    fluidRow(width=12,column(width = 4,selectInput("lab_selection", "Select lab", choices = "", width = "300px")),column(width = 4,textOutput("periode",inline = TRUE)),column(width = 4,fluidRow(column(width = 4,htmlOutput("line_same",inline = TRUE)),column(width = 4,htmlOutput("line_dif",inline = TRUE)),column(width=4,htmlOutput("taux_diff",inline = TRUE))))),
+                    fluidRow(width=12, dataTableOutput("table_result")),
+                    downloadButton("downloadData", "Download the table")
 
                 )
             ),
@@ -58,26 +59,7 @@ La recherche des adresses du perimetre sont obtenues par la recherche du nom de 
 "
 })
     #---------------------------------- fonction de mise en forme -----------------------------
-    df_flatten<-function(res){
-        res# data tble 
-        #fonction qui permet le bonne affichage des tables dans l'interface  
-        res_f=res
-        #date_name="date"
-        
-        for(i in names(res_f)){# on parcourt les colonne 
-            ind=which(is.null(res_f[,i]))
-            res_f[ind,i]=NA
-            if(length(unlist(res_f[,i]))>length(res_f[,i])){
-                res_f[,i]=sapply(1:length(res_f[,i]),FUN = function(x) paste(res_f[,i][[x]],collapse = ";"))# si il y a plusieur element sur une m?me ligne 
-            }
-            ind=which(is.na(res_f[,i]))
-            res_f[ind,i]="NULL"#na ne peu pas ?tre afficher dans la table donc on le remplace par "null" 
-            if(typeof(i)=="list") res_f[,i]<-unlist(res_f[,i]) #si c'est une liste on l'enl'f
-            #if(date_name!="") res_f[date_name]=as.character(res_f[date_name])
-        }
-        
-        return(as.data.frame(res_f,stringsAsFactors = FALSE))
-    }
+    
     reactive_values <- reactiveValues(
         data1 = as.data.frame(data.table::fread("WWW/table1.csv",
                                                                      header = TRUE,
@@ -103,25 +85,25 @@ La recherche des adresses du perimetre sont obtenues par la recherche du nom de 
     
     
 observeEvent(input$periode_to_show,{
-    updateSelectInput(session, inputId = "lab_selection", selected =unique(tolower(reactive_values[[paste0("data",input$periode_to_show)]]$V1))[1] ,choices = unique(tolower(reactive_values[[paste0("data",input$periode_to_show)]]$V1)))
+    updateSelectInput(session, inputId = "lab_selection", selected =unique(tolower(reactive_values[[paste0("data",input$periode_to_show)]]$Unite))[1] ,choices = unique(tolower(reactive_values[[paste0("data",input$periode_to_show)]]$Unite)))
     print(dim(reactive_values$data3))
-    precedant=reactive_values[[paste0("data",input$periode_to_show)]]$V1[1]
+    precedant=reactive_values[[paste0("data",input$periode_to_show)]]$Unite[1]
     for(i in 2:dim(reactive_values[[paste0("data",input$periode_to_show)]])[1]){
         
-        if(reactive_values[[paste0("data",input$periode_to_show)]]$V1[i]==""){
-            reactive_values[[paste0("data",input$periode_to_show)]]$V1[i]=precedant
+        if(reactive_values[[paste0("data",input$periode_to_show)]]$Unite[i]==""){
+            reactive_values[[paste0("data",input$periode_to_show)]]$Unite[i]=precedant
             # print(precedant)
         }
         else {
-            precedant=reactive_values[[paste0("data",input$periode_to_show)]]$V1[i]}
+            precedant=reactive_values[[paste0("data",input$periode_to_show)]]$Unite[i]}
         
     }
     output$periode<-renderText({paste("Periode",reactive_values[[paste0("stat",input$periode_to_show)]][1,"Debut"],":",reactive_values[[paste0("stat",input$periode_to_show)]][1,"Fin"])})
     
 })
 observeEvent(input$lab_selection,{
-    ind=which(tolower(reactive_values[[paste0("data",input$periode_to_show)]]$V1)==input$lab_selection)
-    ind2=which(tolower(reactive_values[[paste0("stat",input$periode_to_show)]]$V1)==input$lab_selection)
+    ind=which(tolower(reactive_values[[paste0("data",input$periode_to_show)]]$Unite)==input$lab_selection)
+    ind2=which(tolower(reactive_values[[paste0("stat",input$periode_to_show)]]$Unite)==input$lab_selection)
     
     
     output$table_result <- renderDataTable({
@@ -137,7 +119,17 @@ observeEvent(input$lab_selection,{
     
     output$line_same<-renderText({(paste( "<b>Lignes adresse:</b>",reactive_values[[paste0("stat",input$periode_to_show)]][ind2,2]))})
     output$line_dif<-renderText({(paste("<b>Lignes non UGA:</b>",reactive_values[[paste0("stat",input$periode_to_show)]][ind2,3]))})
-    
+    output$taux_diff<-renderText({(paste("<b>taux d'erreur:</b>",reactive_values[[paste0("stat",input$periode_to_show)]][ind2,4]))})
+    output$downloadData <- downloadHandler(
+        filename = function() {
+            paste(input$lab_selection,"period",input$periode_to_show, ".csv", sep = "")
+        },
+        content = function(file) {
+            write.csv(as.data.frame(reactive_values[[paste0("data",input$periode_to_show)]][ind,]), file, row.names = FALSE)
+        }
+    )
+    View(as.data.frame(reactive_values[[paste0("data",input$periode_to_show)]][ind,]))
+
 })
 
 

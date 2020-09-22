@@ -37,13 +37,14 @@ make_input_notwork_graph<-function(keywords) {
   if(length(ind)!=length(keywords)){
     wei=table(unlist(keywords))# poid de chaque terme au niveau des noeuds 
     term<-unique(unlist(keywords))# les mot ck? unique pour faire les noeud du graph 
-    term<-term[order(factor(term, levels=names(wei)))]# on odonne les nom dans le m?me ordre que l'ordre de poid pour les faire correspondre ensuite 
-    
+   
     
     if(is_empty(which(names(wei)==""))==FALSE){ 
       wei<-wei[-(which(names(wei)==""))]
       term<-term[-(which(term==""))]
     }
+    
+    term<-term[order(factor(term, levels=names(wei)))]# on odonne les nom dans le m?me ordre que l'ordre de poid pour les faire correspondre ensuite 
     
     
     
@@ -51,15 +52,28 @@ make_input_notwork_graph<-function(keywords) {
       if(length(keywords[[i]])>1){
         for(j in(1:length(keywords[[i]]))){
           if(length(keywords[[i]])>j){
-            add_from=rep(keywords[[i]][j],length(keywords[[i]])-j)
-            add_to=c(keywords[[i]][(j+1):length(keywords[[i]])])
-            from=c(from,add_from)
-            to=c(to,add_to)
+              add_from=rep(keywords[[i]][j],length(keywords[[i]])-j)
+              add_to=c(keywords[[i]][(j+1):length(keywords[[i]])])
+              from=c(from,add_from)
+              to=c(to,add_to)
+            
           }
         }
       }
     }
+    ind=which(from=="")
+    if(length(ind)>0) {
+      from=from[-ind]
+      to=to[-ind]
+    }
+    ind=which(to=="")
+    if(length(ind)>0) {
+      from=from[-ind]
+      to=to[-ind]
+    }
+    
   } else term=NULL
+  
   if(length(term)!=0){  
     edge_list <- tibble(from = from, to = to)
     
@@ -171,7 +185,7 @@ make_top_graph<-function(graph_input,wei_table,top_number){
   graph_par=graph_input
   if(length(V(graph_input))>0){
     weitop<-sort(wei_table,decreasing = TRUE)
-    print(head(weitop,top_number))
+   # print(head(weitop,top_number))
     l<-c()
     
     for(k in(1:length(head(weitop,top_number)))){#on cherche les relation des noeud les plus cit? (les mots cite en paralleles ) 
@@ -198,6 +212,130 @@ make_top_graph<-function(graph_input,wei_table,top_number){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+make_wordcloud<-function(keywords,publication_date=0,interval_year=0,simple_word=FALSE,max_word_print=20,minfreq=2){
+  set.seed(1234)
+  # fonction principale permettant la r?alisation des graphique de type nuage de mots
+  
+  # input keywords : liste contenant les mot cl? par article (liste de liste) param?tre obligatoire 
+  # input publication_date : liste contenant les date de publication des articles ayant fourni les mots cl?s
+  # input max_word_print : entier permettant de savoir  quand arreter le top defaut 0(donc pas de top) defaut a 20
+  # input interval_year : nombre d'ann?e prit en count pour chaque graphique (donc plusieur graphique effectuer en fct de la p?riode )
+  # input simple word : ce content? des mot simple et pas des grtoupe de mot cl?fs constituer par les chercheurs(s?pare certaine expression clefs)  
+  
+  
+  #output   les nuages de mots sont ploter 
+  
+  by_year=FALSE
+  add_title=""
+  year<-publication_date
+  p_res=c()
+  
+  suppressWarnings(if(!is.na(as.numeric(interval_year))) interval_year<-as.numeric(interval_year))
+  
+  if(is.numeric(interval_year) & interval_year>0){
+    
+    diff<-max(year)-min(year)
+    iter<-ceiling(diff/interval_year)
+    for (i in 1:iter){
+      if(i!=iter){# si on est pas sur la derni?re date
+        index_year<-((year>=min(year)+(i-1)*interval_year) &(year<min(year)+i*interval_year))
+        add_brack="["
+      }else{
+        index_year<-((year>=min(year)+(i-1)*interval_year) &(year<=min(year)+i*interval_year))
+        add_brack="]"
+      }
+      #print(table(year[index_year]))
+      key_c<-keywords[index_year]
+      
+      
+      
+      vrac<-unlist(key_c)
+      if( length(which(vrac=="")!=0)){
+        vrac<-vrac[-( which(vrac==""))]
+      }
+      
+      
+      
+      if(simple_word==TRUE){
+        corp <- Corpus(VectorSource(vrac))
+        dtm <-TermDocumentMatrix(corp)
+        m <- as.matrix(dtm)
+        v <- sort(rowSums(m),decreasing=TRUE)
+        d <- data.frame(word = names(v),freq=v)
+        t_word=d$word
+        t_freq=d$freq
+        add_title="simple"
+      }else{
+        t_word=unique(vrac)
+        t_freq=table(vrac)
+        t_word<-t_word[order(factor(t_word, levels=names(t_freq)))]
+      }
+      if(length(t_freq)!=0){
+        b=min(year)+(i)*interval_year
+        #print(head(sort(t_freq,decreasing=TRUE),10))
+        if(b>max(year)) b<-max(year)
+        
+        p_res[i]=wordcloud(words = t_word, freq = t_freq, min.freq = minfreq,
+                           max.words=max_word_print, random.order=FALSE, rot.per=0.35,
+                           colors=brewer.pal(8, "Dark2"),scale = c(1.5, 0.3))
+        titre<-paste("top",max_word_print,"mots cl?s",add_title,"ann?e(s) [",min(year)+(i-1)*interval_year,":",b,add_brack,"( frequence de mot min:",minfreq,")")
+        mtext(titre,side=2)
+        
+        #print(head(sort(t_freq,decreasing=TRUE),10))
+      }
+      
+      
+      
+    }
+    
+  }else{
+    vrac<-unlist(keywords)
+    if( length(which(vrac=="")!=0)){
+      vrac<-vrac[-( which(vrac==""))]
+    }
+    
+    
+    
+    if(simple_word==TRUE){
+      corp <- Corpus(VectorSource(vrac))
+      dtm <-TermDocumentMatrix(corp)
+      m <- as.matrix(dtm)
+      v <- sort(rowSums(m),decreasing=TRUE)
+      d <- data.frame(word = names(v),freq=v)
+      t_word=d$word
+      t_freq=d$freq
+      add_title="simple"
+      
+    }else{
+      t_word=unique(vrac)
+      t_freq=table(vrac)
+      t_word<-t_word[order(factor(t_word, levels=names(t_freq)))]
+    }
+    if(length(t_freq)!=0){
+      p_res[1]=wordcloud(words = t_word, freq = t_freq, min.freq = minfreq,
+                         max.words=max_word_print, random.order=FALSE, rot.per=0.35,
+                         colors=brewer.pal(8, "Dark2"),scale = c(1.5, 0.3))
+      
+      titre<-paste("top",max_word_print,"keywords",add_title,",in,whole dataset ( minimum frequency :",minfreq,")")
+      mtext(titre,side=2)
+    }
+    
+  }  
+  
+  return(p_res)
+}
 
 
 
@@ -382,127 +520,6 @@ make_network_graph<-function(keywords,publication_date=0,top_number=0,interval_y
   
 }
 
-
-
-
-
-
-
-
-make_wordcloud<-function(keywords,publication_date=0,interval_year=0,simple_word=FALSE,max_word_print=20,minfreq=2){
-  set.seed(1234)
-  # fonction principale permettant la r?alisation des graphique de type nuage de mots
-  
-  # input keywords : liste contenant les mot cl? par article (liste de liste) param?tre obligatoire 
-  # input publication_date : liste contenant les date de publication des articles ayant fourni les mots cl?s
-  # input max_word_print : entier permettant de savoir  quand arreter le top defaut 0(donc pas de top) defaut a 20
-  # input interval_year : nombre d'ann?e prit en count pour chaque graphique (donc plusieur graphique effectuer en fct de la p?riode )
-  # input simple word : ce content? des mot simple et pas des grtoupe de mot cl?fs constituer par les chercheurs(s?pare certaine expression clefs)  
-  
-  
-  #output   les nuages de mots sont ploter 
-  
-  by_year=FALSE
-  add_title=""
-  year<-publication_date
-  p_res=c()
-  
-  suppressWarnings(if(!is.na(as.numeric(interval_year))) interval_year<-as.numeric(interval_year))
-  
-  if(is.numeric(interval_year) & interval_year>0){
-    
-    diff<-max(year)-min(year)
-    iter<-ceiling(diff/interval_year)
-    for (i in 1:iter){
-      if(i!=iter){# si on est pas sur la derni?re date
-        index_year<-((year>=min(year)+(i-1)*interval_year) &(year<min(year)+i*interval_year))
-        add_brack="["
-      }else{
-        index_year<-((year>=min(year)+(i-1)*interval_year) &(year<=min(year)+i*interval_year))
-        add_brack="]"
-      }
-      #print(table(year[index_year]))
-      key_c<-keywords[index_year]
-      
-      
-      
-      vrac<-unlist(key_c)
-      if( length(which(vrac=="")!=0)){
-        vrac<-vrac[-( which(vrac==""))]
-      }
-      
-      
-      
-      if(simple_word==TRUE){
-        corp <- Corpus(VectorSource(vrac))
-        dtm <-TermDocumentMatrix(corp)
-        m <- as.matrix(dtm)
-        v <- sort(rowSums(m),decreasing=TRUE)
-        d <- data.frame(word = names(v),freq=v)
-        t_word=d$word
-        t_freq=d$freq
-        add_title="simple"
-      }else{
-        t_word=unique(vrac)
-        t_freq=table(vrac)
-        t_word<-t_word[order(factor(t_word, levels=names(t_freq)))]
-      }
-      if(length(t_freq)!=0){
-        b=min(year)+(i)*interval_year
-        #print(head(sort(t_freq,decreasing=TRUE),10))
-        if(b>max(year)) b<-max(year)
-        
-        p_res[i]=wordcloud(words = t_word, freq = t_freq, min.freq = minfreq,
-                           max.words=max_word_print, random.order=FALSE, rot.per=0.35,
-                           colors=brewer.pal(8, "Dark2"),scale = c(1.5, 0.3))
-        titre<-paste("top",max_word_print,"mots cl?s",add_title,"ann?e(s) [",min(year)+(i-1)*interval_year,":",b,add_brack,"( frequence de mot min:",minfreq,")")
-        mtext(titre,side=2)
-        
-        #print(head(sort(t_freq,decreasing=TRUE),10))
-      }
-      
-      
-      
-    }
-    
-  }else{
-    vrac<-unlist(keywords)
-    if( length(which(vrac=="")!=0)){
-      vrac<-vrac[-( which(vrac==""))]
-    }
-    
-    
-    
-    if(simple_word==TRUE){
-      corp <- Corpus(VectorSource(vrac))
-      dtm <-TermDocumentMatrix(corp)
-      m <- as.matrix(dtm)
-      v <- sort(rowSums(m),decreasing=TRUE)
-      d <- data.frame(word = names(v),freq=v)
-      t_word=d$word
-      t_freq=d$freq
-      add_title="simple"
-      
-    }else{
-      t_word=unique(vrac)
-      t_freq=table(vrac)
-      t_word<-t_word[order(factor(t_word, levels=names(t_freq)))]
-    }
-    if(length(t_freq)!=0){
-      p_res[1]=wordcloud(words = t_word, freq = t_freq, min.freq = minfreq,
-                         max.words=max_word_print, random.order=FALSE, rot.per=0.35,
-                         colors=brewer.pal(8, "Dark2"),scale = c(1.5, 0.3))
-      
-      titre<-paste("top",max_word_print,"keywords",add_title,",in,whole dataset ( minimum frequency :",minfreq,")")
-      mtext(titre,side=2)
-    }
-    
-  }  
-  
-  return(p_res)
-}
-
-
 pdf_extract_data<-function(path_folder){
   # fonction pertmettant d'importe les m?ta donn?e d'une liste de fichier pdf en se pasant sur un dossier, 
   #dans le dossier le programme ne verra que le fichier pdf 
@@ -640,10 +657,10 @@ compaire_title<-function(ti_trouver,ti_data){
     })
     tp<-max(1-(adist(Unaccent(ti_trouver[x]),Unaccent(ti_data),ignore.case = TRUE)/max_apply),na.rm = TRUE)
     tw<-which((1-(adist(Unaccent(ti_trouver[x]),Unaccent(ti_data),ignore.case = TRUE)/max_apply))==tp)[1]
-    print("inside indic")
-    print(ti_trouver[x])
+    #print("inside indic")
+    #print(ti_trouver[x])
     
-    print(adist(Unaccent(ti_trouver[x]),Unaccent(ti_data),ignore.case = TRUE))
+   # print(adist(Unaccent(ti_trouver[x]),Unaccent(ti_data),ignore.case = TRUE))
     return(list(tp,tw))
   })
 }
@@ -688,7 +705,7 @@ querry_warning_message<-function(r){
 get_cit_or_ref<-function(resdt,type="cit",token){# on r?cup?re les infodes citation uniquement 
   #permet de recup?r? les citation et les reference d'ads grace a une base de publie en entr?e, 
   #fonction interne 
-  print(head(resdt))
+  #print(head(resdt))
   last_good_result=NULL
   res_cit=c()
   if(type=="cit"){
@@ -742,8 +759,8 @@ get_cit_or_ref<-function(resdt,type="cit",token){# on r?cup?re les infodes citat
       
       warning=function(cond){# mise en place de la table erreur
         print("aie")
-        print(message_error(r))
-        print(paste0("https://api.adsabs.harvard.edu/v1/search/query?q=", adress))
+        #print(message_error(r))
+        #print(paste0("https://api.adsabs.harvard.edu/v1/search/query?q=", adress))
         titre_error=data.frame(titre=NA)
         #names(titre_error)=c("Publication title")
         titre_error$status=r$status
@@ -751,14 +768,14 @@ get_cit_or_ref<-function(resdt,type="cit",token){# on r?cup?re les infodes citat
         titre_error$type_error=type
         return(titre_error)
       })
-      print("sortie error")
+     # print("sortie error")
       if(length(error)>0){
-        print("dans le if ")
+        #print("dans le if ")
         error_querry_cit<-rbind(error_querry_cit,error)
         error=c()
         
       }else {
-        print("dans le eslse")
+        #print("dans le eslse")
         result <-jsonlite::fromJSON(txt = httr::content(r, 'text',encoding = "UTF-8"), simplifyDataFrame = TRUE)
         res_header=result$responseHeader
         if(result$response$numFound>0){# si resultat on r?cup?re se qui nous interesse 
@@ -783,9 +800,9 @@ get_cit_or_ref<-function(resdt,type="cit",token){# on r?cup?re les infodes citat
         }
         
       }
-      print("avant le if ")
+     # print("avant le if ")
       if(j==count && (length(res_cit)[1]>0)) {#mise en forme finale 
-        print("dans le if" )
+      #  print("dans le if" )
         resdt_cit=as.data.frame(res_cit)
         names(resdt_cit)[2:dim(resdt_cit)[2]]<-paste(names(resdt_cit)[2:dim(resdt_cit)[2]],"citant")
         if(type=="cit"){
@@ -1068,11 +1085,7 @@ ads_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,val
   
   res=c()#variable resultat 
   
-  print("sep in get puplie ")
-  print(sep)
   error_querry=c()# table d'erreur  
-  print("value_same_min_ask")
-  print(value_same_min_ask)
   
   
   
@@ -1126,7 +1139,6 @@ ads_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,val
     
     
     adress=paste0('author%3A%28',au_querry,'%29AND%20title%3A%28',ti_querry,'%29&fl=reference%20citation%20author%20title%20database%20pubdate%20bibcode%20keyword%20pub%20&sort=date%20desc&rows=500&start=',0)
-    print(paste0('https://api.adsabs.harvard.edu/v1/search/query?q=', adress))
     
     
     r <- httr::GET(paste0("https://api.adsabs.harvard.edu/v1/search/query?q=", adress),
@@ -1159,8 +1171,6 @@ ads_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,val
         last_good_result=r
         res_header=result$responseHeader
         aut=result$response$docs$author
-        print("aut")
-        print(aut)
         titre=result$response$docs$title
         subj=result$response$docs$database
         pubdate=result$response$docs$pubdate
@@ -1192,19 +1202,13 @@ ads_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,val
     if(h==inter) {# fin de loop mise en place des data frame 
       resdt=as.data.frame(res)
       
-      print("head de res1")
-      print(head(resdt))
-      
+     
       if(dim(resdt)[1]>0){
         resdt$aut=sapply(1:dim(resdt)[1], FUN=function(x){paste(unlist(resdt$aut[x]),collapse = ' ; ')})  
         trouver<-unlist(resdt$titre)
         
-        print("trouver et ti_data")
-        print(Unaccent(trouver))
         indic_compaire_title<-compaire_title(trouver,ti_data)
         
-        print("indic")
-        print(indic_compaire_title)
         
         
         resdt["check_title_pct"]<-unlist(indic_compaire_title[1,])
@@ -1213,8 +1217,7 @@ ads_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,val
         resdt$citation[which(ind_null)]<-NA
       }
     }
-    if(length(dim(error_querry)) &(h==inter)>0){print("il y a des erreurs")
-      print(head(error_querry))}
+    if(length(dim(error_querry)) &(h==inter)>0){print("il y a des erreurs")}
   }
 #})
   
@@ -1299,7 +1302,7 @@ df_flatten<-function(res_f){
   #date_name="date"
   
   for(i in names(res_f)){# on parcourt les colonne 
-    print(i)
+    
     ind=which(is.null(res_f[[i]]))
     if(length(ind)>0 ) res_f[ind,i]=NA
     ind=which(is.na(res_f[[i]]))
@@ -1324,13 +1327,14 @@ df_flatten<-function(res_f){
 
 
 
-shinyInput <- function(FUN, len, id, ...) {
-  #permet le bonne affichage des boutons dans les tables dans l'interface 
-  inputs <- character(len)
-  for (i in seq_len(len)) {
-    inputs[i] <- as.character(FUN(paste0(id, i), ...))
-  }
-  inputs
+shinyInput <- function(FUN, n, id, ...) {
+  
+  # for each of n, create a new input using the FUN function and convert
+  # to a character
+  vapply(seq_len(n), function(i){
+    as.character(FUN(paste0(id, i), ...))
+  }, character(1))
+  
 }
 
 
@@ -1487,8 +1491,7 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,pas=8,value_same_min_a
   au_data<-data_pub[au_name][[1]]
   ti_data<-data_pub[ti_name][[1]]
   
-   print("this is au name" )
-  print(au_data)
+  
   
   res_temp=supress_unfit_entry(ti_data,au_data,sep = data_pub$sep)#permet d'aclimater les donn?es a la bd (possiblement sortable de la fonction )
   ti_data=res_temp[[1]]
@@ -1974,7 +1977,7 @@ extraction_data_api_nasa_ads<-function(data_pub,ti_name,au_name,token,pas=8,valu
   reject1=reject2=c()
   
   if(source_name!="" && (type=="ref" || type=="all")){
-    print("passe wos")
+    #print("passe wos")
     data_wos=data_pub[data_pub[source_name]=="WOS",]
     
    
@@ -2319,10 +2322,10 @@ arxiv_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,v
   id=id[!is.na(id)]
   ind=which(!is.null(id) && !id=="")
   id=id[ind]
-  print(id)
+  #print(id)
   
   if(length(id)!=0){
-    print("on passe par les id" )
+    #print("on passe par les id" )
     pas_id=15
     inter=ceiling(length(id)/pas_id)
     au_data=au_data[!ind]
@@ -2461,8 +2464,8 @@ arxiv_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,v
         value=0, {
     for(h in 1:inter){# boucle principale qui parcour les donn?es
       
-      print(h)
-      print("On passe title")
+      #print(h)
+      #print("On passe title")
       start=c(start,Sys.time())
       incProgress(1/inter)
       first<-(h-1)*pas+1# premier individu a prendre en compte(ligne)
@@ -2600,11 +2603,12 @@ extract_ref_wos<-function(data_wos){
   #'
   #' @return dataframe 
   
+
   res_wos=data_wos[,c("TI","AU","DE","SC","PY")]
   names(res_wos)<-c('title','author','keywords','domain','date')
   res_wos$idw=paste0("_",1:dim(res_wos)[1],"_")
   
-  
+  print("passe in ref wos")
   
   ref_split<-strsplit(data_wos$CR,split = ";")
   

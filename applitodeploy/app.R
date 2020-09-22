@@ -315,7 +315,8 @@ ui <-dashboardPage(skin = "red",
                                                                                           actionButton("ads_ref_accept", "Show references")),
                                                                          
                                                                          conditionalPanel('output.show_cit',
-                                                                          actionButton("ads_cit_accept", "Show citations")),
+                                                                          actionButton("ads_cit_accept", "Show citations")
+                                                                         ),
                                                                          actionButton("ads_error", "Show error(s)"),
                                                                          actionButton("ads_cit_ask","Show publication with doute"),
                                                                          dataTableOutput("table_data_ref1"))),
@@ -727,7 +728,11 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
 
   observe({ if(reactive_values$valide_csv==TRUE || reactive_values$valide_pdf==TRUE || reactive_values$valide_wos==TRUE){
     # a chaque ajout de donnes on refais l'etude 
+    print("in the observe")
+    print(names(reactive_values$df_global))
     if(sum(duplicated(reactive_values$df_global[c("titre","auteur")]))>0) reactive_values$df_global<-reactive_values$df_global[-(which(duplicated(reactive_values$df_global[c("titre","auteur")])==TRUE)),]
+    
+  
     reactive_values$df_global[["keywords"]]=gsub(";",",",reactive_values$df_global[["keywords"]])
     reactive_values$df_global[["domain"]]=gsub(";",",",reactive_values$df_global[["domain"]])
     
@@ -810,7 +815,7 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
     }
     
     if(reactive_values$valide_csv==TRUE || reactive_values$valide_pdf==TRUE || reactive_values$valide_wos==TRUE){
-      #mark2
+      print("inthe if graphic")
       showModal(modalDialog(
         title = "Graphics are build up",
         "you can go to the wordcloud and netwoork page to see results",
@@ -1297,25 +1302,53 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
     if( reactive_values$ok_analyse==TRUE){
       print("validation du wos")
       if(input$is_wos==TRUE){
+        if(input$sup_wos_for_ref==TRUE){
+          reactive_values$wos_data=rbind(reactive_values$wos_data,reactive_values$data_wos)
+          reactive_values$ref_wos=extract_ref_wos(reactive_values$wos_data)
+          
+          reactive_values$show_wos_res_window=TRUE
+          output$table_data_ref4 <- renderDataTable({
+            # validate(
+            #   need(reactive_values$data_wos, "No bibtext data"),
+            #   need(!is.null(reactive_values$data_wos), "")
+            # )
+            
+            table_data=datatable(df_flatten(reactive_values$ref_wos), options = list(scrollX = TRUE, columnDefs = list(list(
+              targets = "_all" ,render = JS(
+                "function(data, type, row, meta) {",
+                "return type === 'display' && data.length > 70 ?",
+                "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
+                "}")
+            ))))
+            
+            
+          })
+          
+        }
         reactive_values$data_wos=reactive_values$data_wos[,c("TI","AU","DE","SC","PY")]
       
       }else{
         reactive_values$data_wos=reactive_values$data_wos[,c("TITLE","AUTHOR","KEYWORDS","RESARCH.AREAS","YEAR")]
-        
+        names(reactive_values$data_wos)<-c('titre','auteur','keywords','domain','date')  
         
       }
-      names(reactive_values$data_wos)<-c('titre','auteur','keywords','domain','date')
+      
       if(is.null(reactive_values$df_global)==TRUE) {
         
         
         reactive_values$df_global=reactive_values$data_wos
-        
+        names(reactive_values$df_global)<-c('titre','auteur','keywords','domain','date')
        
-        if(input$sup_wos_for_ref==TRUE){
+        if(input$sup_wos_for_ref==TRUE){#doublons avex temps car chaque fichier est indépendant et pas forcément de même source 
           reactive_values$df_global["source"]="WOS"# la source n'est importante que si on enl?ve les r?f?rences du wos 
+          print("passage source wos")
         }else{
           reactive_values$df_global["source"]="BIB"# la source n'est importante que si on enl?ve les r?f?rences du wos
+          print("passage source wos")
         } 
+  
+       
+        
         reactive_values$df_global["sep"]=";"
         reactive_values$df_global["position_name"]=input$position_name_wos
         reactive_values$df_global["id_arxiv"]=NA
@@ -1325,7 +1358,7 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
                                   orders = reactive_values$fmts,
                                   locale =  Sys.getlocale(category = "LC_TIME"))
         
-        reactive_values$df_global[["date"]]=col_date
+        reactive_values$df_global["date"]=col_date
         
         print("je passe dans le wos ")
       }else{
@@ -1348,7 +1381,7 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
         col_date<-parse_date_time(x = temp[["date"]],
                                   orders = reactive_values$fmts,
                                   locale =  Sys.getlocale(category = "LC_TIME"))
-        temp[["date"]]=col_date
+        temp["date"]=col_date
         reactive_values$df_global=rbind(reactive_values$df_global,temp)
         print("je passe dans le else wos ")
       }
@@ -1356,29 +1389,7 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
       #reactive_values$df_global[["keywords"]]=gsub(";",",",reactive_values$df_global[["keywords"]])
       #reactive_values$df_global[["domain"]]=gsub(";",",",reactive_values$df_global[["domain"]])
       
-      if(input$sup_wos_for_ref==TRUE){
-        reactive_values$wos_data=rbind(reactive_values$wos_data,reactive_values$data_wos)
-        reactive_values$ref_wos=extract_ref_wos(reactive_values$wos_data)
-        
-        reactive_values$show_wos_res_window=TRUE
-        output$table_data_ref4 <- renderDataTable({
-          # validate(
-          #   need(reactive_values$data_wos, "No bibtext data"),
-          #   need(!is.null(reactive_values$data_wos), "")
-          # )
-          
-          table_data=datatable(df_flatten(reactive_values$ref_wos), options = list(scrollX = TRUE, columnDefs = list(list(
-            targets = "_all" ,render = JS(
-              "function(data, type, row, meta) {",
-              "return type === 'display' && data.length > 70 ?",
-              "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
-              "}")
-          ))))
-          
-          
-        })
-        
-      }
+      
       reactive_values$valide_wos=TRUE
       
     }
@@ -1557,10 +1568,14 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
   })
 
   observeEvent(input$ads_cit_ask,{
+    print("voiciii dim ")
+      print(dim(reactive_values$res_ads$dataframe_citation_accept))
     reactive_values$table_to_show_ref=reactive_values$res_ads$dataframe_publi_found[(reactive_values$res_ads$dataframe_publi_found$check_title_pct<reactive_values$value_same_min_accept) &(reactive_values$res_ads$dataframe_publi_found$check_title_pct>=reactive_values$value_same_min_ask),]
+    
     if(dim(reactive_values$table_to_show_ref)[1]>0) rownames(reactive_values$table_to_show_ref)<-1:nrow(reactive_values$table_to_show_ref)
-    df <- reactiveValues(data =cbind(shinyInput(actionButton, nrow(reactive_values$table_to_show_ref), 'button_', label = "Transfer", onclick = 'Shiny.onInp"en_UShange(\"select_button\",  this.id)' ),reactive_values$table_to_show_ref
+    df <-reactiveValues(data =cbind(Actions = shinyInput( FUN = actionButton, n=nrow(reactive_values$table_to_show_ref), id='button_', label = "Transfer",  onclick = 'Shiny.setInputValue(\"select_button\", this.id, {priority: \"event\"})' ),reactive_values$table_to_show_ref
     ) )
+    print(input$select_button)
 
     output$table_data_ref1<- DT::renderDataTable(
       df_flatten(df$data), escape = FALSE, options = list( lengthMenu = c(5, 25, 50), pageLength = 25,
@@ -1583,13 +1598,15 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
     selectedRow <- as.numeric(strsplit(input$select_button, "_")[[1]][2])
     #df$data <- df$data[rownames(df$data) != selectedRow, ]
     #¶reactive_values$res_ads$dataframe_publi_found[(res_data_nasa_ads$dataframe_publi_found$check_title_pct<value_same_min_accept) &(res_data_nasa_ads$dataframe_publi_found$check_title_pct>=value_same_min_ask),]<- df$data
-   
+    print("voici le select row ")
+    print(selectedRow)
+    print(dim(reactive_values$res_ads$dataframe_citation_ask))
     if(reactive_values$active_source=="ADS"){
       if(input$type=="cit"||input$type=="all"){
         ind=which(reactive_values$table_to_show_ref$bibcode[[selectedRow]]==unlist(reactive_values$res_ads$dataframe_citation_ask$`cited identifier`))
         ind2=which(reactive_values$table_to_show_ref$bibcode[[selectedRow]]==unlist(reactive_values$res_ads$dataframe_citation_accept$`cited identifier`))# il  dej  été ajouter
-        if(length(ind2)==0) if(!is.null(dim(reactive_values$res_ads$dataframe_citation_ask[ind,])[1])) if(dim(reactive_values$res_ads$dataframe_citation_ask[ind,])[1]>0)reactive_values$res_ads$dataframe_citation_accept=rbind(reactive_values$res_ads$dataframe_citation_accep,reactive_values$res_ads$dataframe_citation_ask[ind,])
-        
+        if(length(ind2)==0) if(!is.null(dim(reactive_values$res_ads$dataframe_citation_ask[ind,])[1])) if(dim(reactive_values$res_ads$dataframe_citation_ask[ind,])[1]>0) reactive_values$res_ads$dataframe_citation_accept=rbind(reactive_values$res_ads$dataframe_citation_accep,reactive_values$res_ads$dataframe_citation_ask[ind,])
+        print(dim(reactive_values$res_ads$dataframe_citation_ask))
       }
 
       if(input$type=="ref"||input$type=="all"){
@@ -1697,7 +1714,7 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
     reactive_values$table_to_show_ref=reactive_values$res_arxiv$res_publi_foundt[(reactive_values$res_arxiv$res_publi_foundt$check_pct<reactive_values$value_same_min_accept),]
 
     if(dim(reactive_values$table_to_show_ref)[1]>0) rownames(reactive_values$table_to_show_ref)<-1:nrow(reactive_values$table_to_show_ref)
-    df <- reactiveValues(data =cbind(shinyInput(actionButton, nrow(reactive_values$table_to_show_ref), 'button_', label = "Transfer", onclick = 'Shiny.onInputChange(\"select_button\",  this.id)' ),reactive_values$table_to_show_ref
+    df <- reactiveValues(data =cbind(Actions = shinyInput( FUN = actionButton, n=nrow(reactive_values$table_to_show_ref), id='button_', label = "Transfer",  onclick = 'Shiny.setInputValue(\"select_button\", this.id, {priority: \"event\"})' ),reactive_values$table_to_show_ref
     ) )
 
     output$table_data_ref2<- DT::renderDataTable(
@@ -1776,8 +1793,7 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
     reactive_values$table_to_show_ref=reactive_values$res_pumed$dataframe_publi_found[(reactive_values$res_pumed$dataframe_publi_found$check_title_pct<reactive_values$value_same_min_accept),]
 
     if(dim(reactive_values$table_to_show_ref)[1]>0) rownames(reactive_values$table_to_show_ref)<-1:nrow(reactive_values$table_to_show_ref)
-    df <- reactiveValues(data =cbind(shinyInput(actionButton, nrow(reactive_values$table_to_show_ref), 'button_', label = "Transfer", onclick = 'Shiny.onInputChange(\"select_button\",  this.id)' ),reactive_values$table_to_show_ref
-    ) )
+    df <- reactiveValues(data =cbind(Actions = shinyInput( FUN = actionButton, n=nrow(reactive_values$table_to_show_ref), id='button_', label = "Transfer",  onclick = 'Shiny.setInputValue(\"select_button\", this.id, {priority: \"event\"})' ),reactive_values$table_to_show_ref    ) )
 
     output$table_data_ref2<- DT::renderDataTable(
       df_flatten(df$data), escape = FALSE, options = list( lengthMenu = c(5, 25, 50), pageLength = 25,
@@ -1813,7 +1829,7 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
     reactive_values$table_dist<-read.table(file="data/category_similarity_matrix.txt",header = TRUE,sep = " ",dec ="." )
     reactive_values$table_categ_gd=read.csv(file="data/categ_wos.csv",header = TRUE,stringsAsFactors = FALSE,sep = ";")
     print(input$type)
-    if(reactive_values$ok_analyse==FALSE){
+    if(length(reactive_values$privious_datapath_csv)==0 && length(reactive_values$privious_datapath_wos)==0){
         showModal(modalDialog(
           title = "no file in analyse",
           "The is no file in the current analyse, please ad some data",
