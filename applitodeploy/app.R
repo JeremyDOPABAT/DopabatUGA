@@ -375,7 +375,7 @@ ui <-dashboardPage(skin = "red",
                                      column(width = 6,
                                             plotOutput("plot_total_ref"),
                                             downloadButton("downloadPlot_total_ref", "Download Plot"),#total ref 
-                                            #downloadButton("downloadref", "Download data references")
+                                            downloadButton("downloadref", "Download data references")
                                     ),
                                     textOutput("text_ref")
                             ),
@@ -391,6 +391,8 @@ ui <-dashboardPage(skin = "red",
                                      ),
                                      textOutput("text_cit")
                               
+                                     
+                                     
                             )
                         )
                       )         
@@ -476,7 +478,10 @@ server <- function(input, output, session) {
     matrice_res_ref=NULL,
     matrice_res_cit=NULL,
     table_categ_gd=NULL,
-    wos_data=NULL
+    wos_data=NULL,
+    
+    data_merge=NULL
+    
   )  
   #copy des variable reactive dans les output pour leurs permetre d'etre invisible 
   output$show_header <- reactive({
@@ -1606,7 +1611,6 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
         ind=which(reactive_values$table_to_show_ref$bibcode[[selectedRow]]==unlist(reactive_values$res_ads$dataframe_citation_ask$`cited identifier`))
         ind2=which(reactive_values$table_to_show_ref$bibcode[[selectedRow]]==unlist(reactive_values$res_ads$dataframe_citation_accept$`cited identifier`))# il  dej  été ajouter
         if(length(ind2)==0) if(!is.null(dim(reactive_values$res_ads$dataframe_citation_ask[ind,])[1])) if(dim(reactive_values$res_ads$dataframe_citation_ask[ind,])[1]>0) reactive_values$res_ads$dataframe_citation_accept=rbind(reactive_values$res_ads$dataframe_citation_accep,reactive_values$res_ads$dataframe_citation_ask[ind,])
-        print(dim(reactive_values$res_ads$dataframe_citation_ask))
       }
 
       if(input$type=="ref"||input$type=="all"){
@@ -1629,7 +1633,7 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
         ind_ref_2=which(reactive_values$table_to_show_ref$abs_link[[selectedRow]]==unlist(reactive_values$res_arxiv$res_reference_accept$`refering identifier`))# ligne déja ajouter
        
        
-        if(length(ind_ref_2)==0) if(!is.null(dim(reactive_values$res_arxiv$res_reference_ask[ind_ref_1,])[1])) if(dim(reactive_values$res_arxiv$res_reference_ask[ind_ref_1,])[1]>0)reactive_values$res_arxiv$res_reference_accept=rbind(reactive_values$res_arxiv$res_reference_accept,reactive_values$res_arxiv$res_reference_ask[ind_ref_1,])
+        if(length(ind_ref_2)==0) if(!is.null(dim(reactive_values$res_arxiv$res_reference_ask[ind_ref_1,])[1])) if(dim(reactive_values$res_arxiv$res_reference_ask[ind_ref_1,])[1]>0) reactive_values$res_arxiv$res_reference_accept=rbind(reactive_values$res_arxiv$res_reference_accept,reactive_values$res_arxiv$res_reference_ask[ind_ref_1,])
       }
     }  
     
@@ -1893,8 +1897,13 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
               content = function(file) {
                 ggsave(file,plot=reactive_values$plots_article_ref)
               })
+              
                
-               
+            
+            #View(as.data.frame(reactive_values[[paste0("data",input$periode_to_show)]][ind,]))
+            
+            
+            
                output$plot_total_ref<-renderPlot({
                  
                  
@@ -1921,9 +1930,24 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
                  
                  
                )
+               
+               
+               reactive_values$data_merge=as.data.frame(rbind.fill(reactive_values$res_ads$dataframe_ref_accept,reactive_values$res_arxiv$res_reference_accept),stringsAsFactors = FALSE)
+               reactive_values$data_merge=as.data.frame(rbind.fill(data_merge,pumed_data),stringsAsFactors = FALSE)
+               reactive_values$data_merge=as.data.frame(rbind.fill(data_merge,reactive_values$ref_wos),stringsAsFactors = FALSE)
+               
+               
             
-             
-             
+               output$downloadref <- downloadHandler(
+                 
+                 filename = function() {
+                   paste("table_ref","period",".csv", sep = "")
+                 },
+                 content = function(file) {
+                   write.csv2(as.data.frame(df_flatten(data_merge)), file, row.names = FALSE)
+                 }
+               )
+
              output$text_ref<-renderText({paste("ID:",round(reactive_values$matrice_res_ref$res$id,2),"DD;",round(reactive_values$matrice_res_ref$res$dd,2),"MD:",round(reactive_values$matrice_res_ref$res$md,2),"DIA:",paste(round(unlist(reactive_values$matrice_res_ref$res$dia[[as.numeric(input$select_article)]]),digits = 2),collapse = ","),collapse = "\n")})
           }
         }
@@ -2012,14 +2036,7 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
     }
   )
   
-  output$downloadref <- downloadHandler(
-    filename = function() {
-      paste("ref_dataset", ".csv", sep = "")
-    },
-    content = function(file) {
-      write.csv(df_flatten(type.convert(reactive_values$matrice_res_ref$data)), file)
-    }
-  )
+  
   
   
 }#end serveur 

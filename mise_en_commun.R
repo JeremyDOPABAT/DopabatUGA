@@ -24,7 +24,17 @@ View(res_arxiv$res_publi_foundt)
 View(res_to_save)
 
 
+
+
+
 res_arxiv=extraction_data_api_arxiv(data_pub=ths,ti_name=ti_name,au_name=au_name,pas=8,value_same_min_accept=0.95,value_same_min_ask = 0.85,type = "all",sep_vector_in_data ="sep",position_vector_in_data = "position_name")
+res_arxiv$res_citation_accept
+
+
+
+
+
+
 res_pumed=extract_data_api_pumed(data_pub=ths,ti_name,au_name,pas=8,value_same_min_accept=0.85, value_same_min_ask=0.95,type="all",sep_vector_in_data ="sep",position_vector_in_data = "position_name")
 dim(res_data_nasa_ads$dataframe_citation_accept)
 dim(res_data_nasa_ads$dataframe_citation_accept)

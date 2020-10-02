@@ -724,15 +724,15 @@ get_cit_or_ref<-function(resdt,type="cit",token){# on r?cup?re les infodes citat
     test=c()
     start_RQ=0
     res_cit=c()
-    # withProgress(
-    #    message='Please wait',
-    #    detail=paste0("doing ",type, ' search in ads ...'),
-    #    value=0, {
+    withProgress(
+       message='Please wait',
+       detail=paste0("doing ",type, ' search in ads ...'),
+       value=0, {
 
     for(j in 1:count){# on parcour tout les ref/cit
       first<-(j-1)*pas_cit+1
       last<-j*pas_cit
-     # incProgress(1/count)
+     incProgress(1/count)
          
       
       if(last>length(res_temp)[1]) last<-length(res_temp)[1]
@@ -837,7 +837,7 @@ get_cit_or_ref<-function(resdt,type="cit",token){# on r?cup?re les infodes citat
       print("dernier if" )
       if(length(dim(error_querry_cit)) && (j==count)) print("il y a des erreurs lors de l'agregation des info des citations") 
       }
-    #})
+    })
     
   } else result=NULL
   
@@ -874,10 +874,10 @@ get_cit_or_ref_arxiv<-function(resdt,type){
   
   link_abs<-unlist(resdt$abs_link)
   res_cit<-c()
-  withProgress(
-     message='Please wait',
-     detail=paste0("searching for ",type, "in arxiv"),
-       value=0, {
+  # withProgress(
+  #    message='Please wait',
+  #    detail=paste0("searching for ",type, "in arxiv"),
+  #      value=0, {
   
   for(ar in(1:length(link_list))){
     #cited<-abs_link[[ar]]#lien vers l'article trouver 
@@ -895,7 +895,7 @@ get_cit_or_ref_arxiv<-function(resdt,type){
       titre_error["Data impact"]=type
       titre_error$h=ar
     })
-    incProgress(1/length(link_list))
+#    incProgress(1/length(link_list))
     if(length(error)>0){
       error_querry_cit<-rbind(error_querry_cit,error)
       error=c()
@@ -977,7 +977,7 @@ get_cit_or_ref_arxiv<-function(resdt,type){
       }
     }
   }
-})
+#})
   
   
   
@@ -1114,14 +1114,14 @@ ads_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,val
   
   res=c()
   inter=ceiling(length(au_data)[1]/pas)# nombre d'iteration
-  # withProgress(
-  #    message='Please wait',
-  #    detail='Doing reasearche of publication in ads...',
-  #    value=0, {
+  withProgress(
+     message='Please wait',
+     detail='Doing reasearche of publication in ads...',
+     value=0, {
   for(h in 1:inter){# on parcoure les auteur et les titre par pas et on fait les roquette correspondante 
     first<-(h-1)*pas+1
     last<-h*pas
- # incProgress(1/inter)
+  incProgress(1/inter)
     if(last>length(au_data)) last<-length(au_data)
     
     #ti_test="M31 Globular Clusters: Colors and Metallicities"
@@ -1219,7 +1219,7 @@ ads_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,val
     }
     if(length(dim(error_querry)) &(h==inter)>0){print("il y a des erreurs")}
   }
-#})
+})
   
   
   
@@ -2332,7 +2332,7 @@ arxiv_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,v
     
     for(h in 1:inter){# boucle principale qui parcour les donn?es 
       
-      incProgress(1/inter)
+      #incProgress(1/inter)
       first<-(h-1)*pas_id+1# premier individu a prendre en compte(ligne)
       last<-h*pas       # dernier ""   "      "       "   "
       if(last>length(id)[1]) last<-length(id)
@@ -2384,10 +2384,11 @@ arxiv_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,v
             #entry contient tout d'un coup
             res_temp=sapply(1:length(id_index),FUN=function(x,ty=type){
               abs_link=xml_data[id_index[x]]$entry$id
-              cite_link<-gsub("abs","cits",abs_link)
-              ref_link<-gsub("abs","refs",abs_link)
               
               titre=xml_data[id_index[x]]$entry$title
+              cite_link<-get_cit_link_arxiv(titre)
+              ref_link<-gsub("abs","refs",abs_link)
+              
               author=unlist(xml_data[id_index[x]]$entry[ which(names(xml_data[id_index[x]]$entry)=="author")]) #affiliation possible 
               names(author)=c()
               category=unlist(xml_data[id_index[x]]$entry[ which(names(xml_data[id_index[x]]$entry)=="category")])[1]
@@ -2458,16 +2459,16 @@ arxiv_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,v
     # print(paste("Le temps d'execution est estimé est  environs ",time_min,"minute(s)"))
     
     
-     withProgress(
-       message='Please wait',
-       detail="searching for publication in arxiv",
-        value=0, {
+    # withProgress(
+    #   message='Please wait',
+    #   detail="searching for publication in arxiv",
+    #   value=0, {
     for(h in 1:inter){# boucle principale qui parcour les donn?es
       
       #print(h)
       #print("On passe title")
       start=c(start,Sys.time())
-      incProgress(1/inter)
+      #          incProgress(1/inter)
       first<-(h-1)*pas+1# premier individu a prendre en compte(ligne)
       last<-h*pas       # dernier ""   "      "       "   "
       if(last>length(au_data)[1]) last<-length(au_data)
@@ -2587,8 +2588,8 @@ arxiv_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,v
         }
       }
     }
-  })
-}
+    #})
+  }
   return(list(res=res,error=error_querry,reject=res_reject)) 
 }
 
