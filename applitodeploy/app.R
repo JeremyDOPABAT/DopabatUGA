@@ -2,11 +2,24 @@
 # This is a Shiny web application. You can run the application by clicking
 # the 'Run App' button above.
 #
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-##reset("title_selection")
-# source de code et libraries 
+#Bonjour a toi succeceur, ici tu es au coeur de l'application  DOPABAT ET BIEN QUE CHAQUE FONCTION SOIT DOCUMENTER, JE VAIS TE FAIRE UN PETIT TOPO
+# l'appli permet d'analyse un corpus de métadonne de publication envoyer par bibtext ou csv. une partie du code est cacher de l'appli, il sagit de la pmartie qui traites des fichier pdf en teste brut 
+# car il n'était pas possible de le mettre sur l'application. 
+
+#il y a un distingo d'import entre les bibtest du wos et les bibtest d'ailleur 
+
+# une fois importé on commence par traiter les mot clefs (si la colonnes est renseignée) on en fait un nuage de mot et un réseau.(voir les partie correspondantes)
+
+# une fois que cela est fait , l'utilisateur peut demander, des citation des reférence ou les deux. sur différente base (a l'heure acteuelle ads contre une clef ou pumed )
+# les traitement par base sont très complexe car il faut si adapter(voir fonction globale de chaque base pour plus d'information () )
+
+# une fois que cela est fait on identifie les journaux grace a un fichier fournie et on calcule le rayonnement interdiciplinaire du corpus selon se qui a été demander par l'utilisateur.
+
+# les différentes fonctions sont dans le fichier global.r
+# 
+# le ui gere tout l'aspec graphie '
+# le serveur tout l'apec calcule et variable '
+
 
 source("global.R",encoding = "UTF-8")
 
@@ -16,7 +29,7 @@ library(shinydashboard)
 library(shinyjs)
 library(lubridate)
 #library(ggplot2)
-
+library(plotly)
 library(shinycssloaders)
 library(DT)
 
@@ -30,10 +43,10 @@ ui <-dashboardPage(skin = "red",
                      #si le probleme est  regle decommenter laligne du dessous 
                      menuItem("Import_bibext", tabName = "import_wos", icon = icon("file-export")),
                      menuItem("History", tabName = "history", icon = icon("address-card")),
-                     menuItem("Worcloud Graphics", tabName = "wordcloud", icon = icon("th")),
+                     menuItem("Worcdloud Graphics", tabName = "wordcloud", icon = icon("th")),
                      menuItem("Network Graphics", tabName = "network", icon = icon("project-diagram")),
-                     menuItem("Reasech interdiciplinarity", tabName = "DB", icon = icon("database")),
-                     menuItem("Result interdiciplinarity", tabName = "calculinterdisciplinarity", icon = icon("database")),
+                     menuItem("Reasech interdisciplinarity", tabName = "DB", icon = icon("database")),
+                     menuItem("Result interdisciplinarity", tabName = "calculinterdisciplinarity", icon = icon("database")),
                      menuItem("About us", tabName = "about", icon = icon("address-card"))
                      
                      #-------------------------------------------------------------------  
@@ -81,12 +94,12 @@ ui <-dashboardPage(skin = "red",
                                                               "Latin-1" = "Latin-1"
                                                               ),
                                                   selected = "Latin-1"),
-                                     
+                                     tags$hr(),
                                      radioButtons("disp", "Display",
                                                   choices = c(Head = "head",
                                                               All = "all"),
                                                   selected = "head"),
-                                     
+                                     tags$hr(),
                                      tags$div(title="the order of the author need to be told, the firstname don't need to be complete abreviation works",radioButtons("position_name_CSV", "disposition of name and firstname for author",
                                                                                                                                                                     choices = c("Lastname Firstname" = "2",
                                                                                                                                                                                 "Firstname Lastname" = "1"),
@@ -183,7 +196,7 @@ ui <-dashboardPage(skin = "red",
                                      tags$div(title="Choose bibtex file, bibtext only",fileInput("file2", "Choose bibtext File",
                                                                                               multiple = TRUE,
                                                                                               accept = c(".bib"))),
-                                     checkboxInput("is_wos", "this fil is comming from WOS ",value = FALSE),
+                                     checkboxInput("is_wos", "this file is comming from WOS(wos importation methode) ",value = FALSE),
                                                   
                                      htmlOutput("text_wos"),
                                      tags$hr(),
@@ -213,6 +226,7 @@ ui <-dashboardPage(skin = "red",
                      #cet onglet permet de voir quel fichier sont deja dans l'etude. il permet aussi de rest l'appli si l'utilisateur veut recommencer.
                      # doit etre amelirer pour etre plus utile sur le serveur 
                      titlePanel("Files already in the analyse"),
+                     htmlOutput("text_history"),
                      textOutput("list_file"),
                      useShinyjs(),                                           # Include shinyjs in the UI
                      extendShinyjs(text = jsResetCode,functions = "reset"),        # Add the js code to the page
@@ -244,7 +258,7 @@ ui <-dashboardPage(skin = "red",
                                ),
                                fluidRow(
                                  uiOutput("plot_wordcloud")%>% withSpinner(color="#0dc5c1"),
-                                 tags$div(title="Download all the graphics of page in pdf ",downloadButton("downloadPlot", "Download Plot"))
+                                 tags$div(title="Download all the graphics of page in pdf ",downloadButton("downloadPlot", "Download Plot(s)"))
                                )
                                
                                
@@ -369,24 +383,24 @@ ui <-dashboardPage(skin = "red",
                           tabBox(width = 12,height = 600, title = "result interdisciplinarity(soon)",
                             tabPanel("ref",
                                      column(width = 6,
-                                        plotOutput("plot_article_ref"),#article ref 
-                                        downloadButton("downloadPlot_article_ref", "Download Plot")
+                                        plotlyOutput("plot_article_ref"),#article ref 
+                                        #downloadButton("downloadPlot_article_ref", "Download Plot(s)")
                                      ),
                                      column(width = 6,
-                                            plotOutput("plot_total_ref"),
-                                            downloadButton("downloadPlot_total_ref", "Download Plot"),#total ref 
+                                            plotlyOutput("plot_total_ref"),
+                                         #   downloadButton("downloadPlot_total_ref", "Download Plot(s)"),#total ref 
                                             downloadButton("downloadref", "Download data references")
                                     ),
                                     textOutput("text_ref")
                             ),
                             tabPanel("cit",
                                      column(width = 6,
-                                            plotOutput("plot_article_cit"),
-                                            downloadButton("downloadPlot_article_cit", "Download Plot")
+                                            plotlyOutput("plot_article_cit"),
+                                          #  downloadButton("downloadPlot_article_cit", "Download Plot(s)")
                                      ),
                                      column(width = 6,
-                                            plotOutput("plot_total_cit"),
-                                            downloadButton("downloadPlot_total_cit", "Download Plot"),
+                                            plotlyOutput("plot_total_cit"),
+                                           # downloadButton("downloadPlot_total_cit", "Download Plot(s)"),
                                             downloadButton("downloadcit", "Download data citation")
                                      ),
                                      textOutput("text_cit")
@@ -479,7 +493,7 @@ server <- function(input, output, session) {
     matrice_res_cit=NULL,
     table_categ_gd=NULL,
     wos_data=NULL,
-    
+    plots_article_ref=NULL,
     data_merge=NULL
     
   )  
@@ -573,6 +587,7 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
   output$text_network <- renderText({
   paste(h4("Help:"), "When you have your network you could click on nodes. In doing so a table will apear under the graph with details of publications concerning that node.")
   })
+  
   #meme chose pour la rescer interdis 
   output$text_database <- renderText({
     paste(h4("Help:"),"First you will select a database and do 'process' (exectpte if you only have ref for wos) then you can manage your data as you wich and when it's ok clic on the right button.")
@@ -580,7 +595,12 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
   
   #text d'aide pour l'onglet bibtext 
   output$text_wos <- renderText({
-    paste(h4("Help:"), "AU is the author column, TI the title column, PY is the date of publication and CR is the column which contain references")
+    paste(h4("Help:"), "if the table is stuck on  'Processing' clik on 'this file is comming from WOS' this method works better for some file.
+          AU is the author column, TI the title column, PY is the date of publication and CR is the column which contain references")
+  })
+  # text aide pour historic 
+  output$text_history <- renderText({
+    paste(h4("Help:"), "when you valid a file that add their data to the whole analysis and that not delete the privious result. to delete analysis clic on the 'reset' buttons")
   })
   
   #historique ________________________________________________________
@@ -619,16 +639,18 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
 
       },
        error=function(cond){
-         return(-400)
+         return(NA)
        })
-       if(typeof(test_error)=="double"){
-         showModal(modalDialog(
-           title = "invalid CSV",
+       if(length(test_error)==1){
+         if(is.na(test_error)){
+            showModal(modalDialog(
+            title = "invalid CSV",
            "the csv modality are not good, make sure to use a good separator and quote and retry. If your csv don't fit the modality proposed for now we can't analyse it.",
            easyClose = TRUE,
            footer = NULL
          ))
-       }else{
+       }
+         }else{
       reactive_values$df_csv <- df
       #mise en forme de la table afficher 
       table_data=datatable(df_flatten(reactive_values$df_csv), options = list(scrollX = TRUE, columnDefs = list(list(
@@ -738,12 +760,12 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
     if(sum(duplicated(reactive_values$df_global[c("titre","auteur")]))>0) reactive_values$df_global<-reactive_values$df_global[-(which(duplicated(reactive_values$df_global[c("titre","auteur")])==TRUE)),]
     
   
-    reactive_values$df_global[["keywords"]]=gsub(";",",",reactive_values$df_global[["keywords"]])
+    reactive_values$df_global[["keywords"]]=gsub(";",",",gsub(" and ",",",reactive_values$df_global[["keywords"]]))
     reactive_values$df_global[["domain"]]=gsub(";",",",reactive_values$df_global[["domain"]])
     
     
     keywords<-reactive_values$df_global[["keywords"]]
-
+    
 
 
 
@@ -836,20 +858,40 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
 
     #________________________travail sur netwooork ___________________________________________________________________
 
-    observeEvent({
-      input$networkintervalyear
-      input$networktop
-      input$supones
-      input$root
-      input$domain
+    observeEvent({c(
+      input$networkintervalyear,
+      input$networktop,
+      input$supones,
+      input$root,
+      input$domain)
     },{
       
-      if(input$domain==FALSE){
-        reactive_values$graph=make_network_graph(keywords_lem_complet,year,top_number=input$networktop,interval_year=input$networkintervalyear,sup_ones=input$supones,root_weight = input$root,domain = FALSE)
-          
+ error=tryCatch({
+        if(input$domain==FALSE){
+          reactive_values$graph=make_network_graph(keywords_lem_complet,year,top_number=input$networktop,interval_year=input$networkintervalyear,sup_ones=input$supones,root_weight = input$root,domain = FALSE)
+          print("aaaaa")
         }else{
-        reactive_values$graph=make_network_graph(domainall,year,top_number=input$networktop,interval_year=input$networkintervalyear,sup_ones=input$supones,root_weight = input$root,domain = TRUE)
-      }
+          reactive_values$graph=make_network_graph(domainall,year,top_number=input$networktop,interval_year=input$networkintervalyear,sup_ones=input$supones,root_weight = input$root,domain = TRUE)
+         
+        }
+        
+        
+        
+      },
+
+      error=function(cond){
+        return(NA)
+      })
+   if(is.na(error)){
+    showModal(modalDialog(
+      title = "Network critical error ",
+      "error during the realisation of network, keywords maybe corrupted ",
+      easyClose = TRUE,
+      footer = NULL
+    ))
+
+  }else {
+    print("in domain")
 
       output$plots <- renderUI({
         plot_output_list <- lapply(1:length(reactive_values$graph), function(i) {
@@ -923,7 +965,8 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
           }
         })
       })
-    })
+    }
+  })
 
     #_________________________travaille sur le wordcloud__________________________________________
     observeEvent({
@@ -1128,7 +1171,7 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
 
   observeEvent(input$pdf_path, {
     reactive_values$path_folder <-  choose.dir(default = "", caption = "Select folder with pdf file you want to add")
-    print(reactive_values$path_folder )
+   # print(reactive_values$path_folder )
 
 
     reactive_values$show_pdf_valid <- TRUE
@@ -1235,53 +1278,73 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
 
   #________________importation wos___________________________________________________________
   observeEvent(c(input$file2),{
+    error=NULL
     observeEvent(input$is_wos,{
     library(bibliometrix)
-    if(input$is_wos==TRUE){
-      suppressWarnings(reactive_values$data_wos <-convert2df(input$file2$datapath,dbsource = "wos",format = "bibtex"))
-      reactive_values$data_wos <-df_flatten(conforme_bibtext(reactive_values$data_wos))
-    
-    
-    }else{
-      suppressWarnings(reactive_values$data_wos <-df_flatten(bib2df::bib2df(input$file2$datapath, separate_names = TRUE)))
+      error=tryCatch({
+        if(input$is_wos==TRUE){
+          
+          suppressWarnings(reactive_values$data_wos <-convert2df(input$file2$datapath,dbsource = "wos",format = "bibtex"))
+          reactive_values$data_wos <-df_flatten(conforme_bibtext(reactive_values$data_wos,data_base = "WOS"))
+          
+          
+          
+        }else{
+          suppressWarnings(reactive_values$data_wos <-(bib2df::bib2df(input$file2$datapath, separate_names = FALSE)))
+          reactive_values$data_wos <-df_flatten(conforme_bibtext(reactive_values$data_wos,data_base = "BIB"))
+          
+        }
+        
+      },
       
+      error=function(cond){
+        return(NA)
+      })
+      
+        
+    if(length(error)==1){ 
+      if(is.na(error)){
+        showModal(modalDialog(
+          title = "Importation probleme",
+          "error during importation the data maybe inapropriate. Try to change the methode by select or unselect the wos methode",
+          easyClose = TRUE,
+          footer = NULL
+        ))
+      }
+    }else {
+      # print(names(reactive_values$data_wos))
+      #[c(2,4),c("TI","AU","DE","SC","PY")]
+      output$table_wos <- renderDataTable({
+        # validate(
+        #   need(reactive_values$data_wos, "No bibtext data"),
+        #   need(!is.null(reactive_values$data_wos), "")
+        # )
+        
+        if(input$disp_wos == "head") {
+          return(datatable(reactive_values$data_wos[c(1,2),], options = list(scrollX = TRUE, columnDefs = list(list(
+            targets = "_all",render = JS(
+              "function(data, type, row, meta) {",
+              "return type === 'display' && data.length > 70 ?",
+              "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
+              "}")
+          )))))
+        }
+        else {
+          table_data=datatable(reactive_values$data_wos, options = list(scrollX = TRUE, columnDefs = list(list(
+            targets = "_all" ,render = JS(
+              "function(data, type, row, meta) {",
+              "return type === 'display' && data.length > 70 ?",
+              "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
+              "}")
+          ))))
+          return(table_data)
+        }
+        
+        
+        
+      })
       
     }
-    
-    
-    # print(names(reactive_values$data_wos))
-    #[c(2,4),c("TI","AU","DE","SC","PY")]
-    output$table_wos <- renderDataTable({
-      # validate(
-      #   need(reactive_values$data_wos, "No bibtext data"),
-      #   need(!is.null(reactive_values$data_wos), "")
-      # )
-      
-      if(input$disp_wos == "head") {
-        return(datatable(reactive_values$data_wos[c(1,2),], options = list(scrollX = TRUE, columnDefs = list(list(
-          targets = "_all",render = JS(
-            "function(data, type, row, meta) {",
-            "return type === 'display' && data.length > 70 ?",
-            "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
-            "}")
-        )))))
-      }
-      else {
-        table_data=datatable(reactive_values$data_wos, options = list(scrollX = TRUE, columnDefs = list(list(
-          targets = "_all" ,render = JS(
-            "function(data, type, row, meta) {",
-            "return type === 'display' && data.length > 70 ?",
-            "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
-            "}")
-        ))))
-        return(table_data)
-      }
-      
-      
-      
-    })
-    
-    
     
  
     
@@ -1307,7 +1370,9 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
     if( reactive_values$ok_analyse==TRUE){
       print("validation du wos")
       if(input$is_wos==TRUE){
+        reactive_values$data_wos=reactive_values$data_wos[,c("TI","AU","DE","SC","PY","CR")]
         if(input$sup_wos_for_ref==TRUE){
+          
           reactive_values$wos_data=rbind(reactive_values$wos_data,reactive_values$data_wos)
           reactive_values$ref_wos=extract_ref_wos(reactive_values$wos_data)
           
@@ -1330,8 +1395,9 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
           })
           
         }
-        reactive_values$data_wos=reactive_values$data_wos[,c("TI","AU","DE","SC","PY")]
-      
+        
+        reactive_values$data_wos<-reactive_values$data_wos[,-which(names(reactive_values$data_wos)=="CR")]
+        #on enleve la colonne cr pour ne pas quel gene la suite des opération 
       }else{
         reactive_values$data_wos=reactive_values$data_wos[,c("TITLE","AUTHOR","KEYWORDS","RESARCH.AREAS","YEAR")]
         names(reactive_values$data_wos)<-c('titre','auteur','keywords','domain','date')  
@@ -1445,8 +1511,7 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
     }
 
     if(reactive_values$ok_analyse==TRUE){
-      print("voiciiiii la dim")
-      print(dim(reactive_values$df_global)[1])
+      
       if(dim(reactive_values$df_global)[1]>=10000){
         showModal(modalDialog(
           title = "Warning exceed capacity ",
@@ -1468,28 +1533,22 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
           ))
         }else {
           reactive_values$show_ads_res_window=TRUE
-          print("voici sep")
-          print(reactive_values$df_global$sep)
           reactive_values$res_ads=extraction_data_api_nasa_ads(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",token=input$token,pas=8,value_same_min_accept=reactive_values$value_same_min_accept,value_same_min_ask = reactive_values$value_same_min_ask,type =input$type,source_name = "source",sep_vector_in_data ="sep",position_vector_in_data = "position_name")
         }
       }
       if(input$arxiv==TRUE){
 
         reactive_values$show_arxiv_res_window=TRUE
-        if(input$sup_wos_for_ref==TRUE){
+        #if(input$sup_wos_for_ref==TRUE){
           reactive_values$res_arxiv=extraction_data_api_arxiv(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",pas=8,value_same_min_accept=reactive_values$value_same_min_accept,value_same_min_ask = reactive_values$value_same_min_ask,type = input$type,source_name = "source",sep_vector_in_data ="sep",position_vector_in_data = "position_name",id_name ="id_arxiv" )
-        }else{
-          print("cest dans la fct)")
-          reactive_values$res_arxiv=extraction_data_api_arxiv(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",pas=8,value_same_min_accept=reactive_values$value_same_min_accept,value_same_min_ask = reactive_values$value_same_min_ask,type = input$type,sep_vector_in_data ="sep",position_vector_in_data = "position_name",id_name = "id_arxiv")
-        }
+        # }else{
+        #   reactive_values$res_arxiv=extraction_data_api_arxiv(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",pas=8,value_same_min_accept=reactive_values$value_same_min_accept,value_same_min_ask = reactive_values$value_same_min_ask,type = input$type,sep_vector_in_data ="sep",position_vector_in_data = "position_name",id_name = "id_arxiv")
+        # }
       }
       if(input$pubmed==TRUE){
         reactive_values$show_pumed_res_window=TRUE
-        if(input$sup_wos_for_ref==TRUE){
-          reactive_values$res_pumed=extract_data_api_pumed(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",pas=8,value_same_min_accept=reactive_values$value_same_min_accept, value_same_min_ask=reactive_values$value_same_min_ask,type = input$type,source_name = "source",sep_vector_in_data ="sep",position_vector_in_data = "position_name")
-        }else {
-          reactive_values$res_pumed=extract_data_api_pumed(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",pas=8,value_same_min_accept=reactive_values$value_same_min_accept, value_same_min_ask=reactive_values$value_same_min_ask,type = input$type,sep_vector_in_data ="sep",position_vector_in_data = "position_name")
-        }
+        reactive_values$res_pumed=extract_data_api_pumed(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",pas=8,value_same_min_accept=reactive_values$value_same_min_accept, value_same_min_ask=reactive_values$value_same_min_ask,type = input$type,source_name = "source",sep_vector_in_data ="sep",position_vector_in_data = "position_name")
+        
       }
     #mark3
       showModal(modalDialog(
@@ -1573,8 +1632,7 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
   })
 
   observeEvent(input$ads_cit_ask,{
-    print("voiciii dim ")
-      print(dim(reactive_values$res_ads$dataframe_citation_accept))
+  
     reactive_values$table_to_show_ref=reactive_values$res_ads$dataframe_publi_found[(reactive_values$res_ads$dataframe_publi_found$check_title_pct<reactive_values$value_same_min_accept) &(reactive_values$res_ads$dataframe_publi_found$check_title_pct>=reactive_values$value_same_min_ask),]
     
     if(dim(reactive_values$table_to_show_ref)[1]>0) rownames(reactive_values$table_to_show_ref)<-1:nrow(reactive_values$table_to_show_ref)
@@ -1845,14 +1903,14 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
     }else{
         print("passe else ")
        error=tryCatch({
-          res_temp<-global_merge_and_cal_interdis(ads=reactive_values$res_ads,arxiv=reactive_values$res_arxiv,pumed=reactive_values$res_pumed,wos=reactive_values$ref_wos,journal_table_ref = reactive_values$journal_table_ref,table_categ_gd = reactive_values$table_categ_gd,type = input$type,table_dist =reactive_values$table_dist,col_journal=c(input$col_journal_ads,input$col_journal_arxiv,input$col_journal_pumed,input$col_journal_wos))
-          
+         res_temp<-global_merge_and_cal_interdis(ads=reactive_values$res_ads,arxiv=reactive_values$res_arxiv,pumed=reactive_values$res_pumed,wos=reactive_values$ref_wos,journal_table_ref = reactive_values$journal_table_ref,table_categ_gd = reactive_values$table_categ_gd,type = input$type,table_dist =reactive_values$table_dist,col_journal=c(input$col_journal_ads,input$col_journal_arxiv,input$col_journal_pumed,input$col_journal_wos))
+         
           
         },
          error=function(cond){ 
         print("aiie")  #reactive_values$ok_analyse=FALSE
          showModal(modalDialog(
-           title = paste("ERROR : no",input$type,"in the analyse"),
+           title = paste("ERROR : in",input$type, "analyse"),
            paste0("Could be an error on the parameters choice, or else there is no",input$type,"in your data"),
            easyClose = TRUE,
            footer = NULL
@@ -1871,40 +1929,65 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
         
         
         if(!is.null(reactive_values$matrice_res_ref$res)){
-            updateSelectInput(session, inputId = "select_article", choices = 1:(dim(reactive_values$matrice_res_ref$res$prop_grande_discipline)[1]-1))
-               
-            output$plot_article_ref<-renderPlot({
-               
-               ind=which(reactive_values$matrice_res_ref$res$prop_grande_discipline[input$select_article,]!=0)
-               df <- data.frame(
-                 group = Unaccent(names(reactive_values$matrice_res_ref$res$prop_grande_discipline[input$select_article,])[ind]),
-                 value = unlist(reactive_values$matrice_res_ref$res$prop_grande_discipline[input$select_article,ind])/sum(reactive_values$matrice_res_ref$res$prop_grande_discipline[input$select_article,ind])
-               )
-               
-               
-               bp<- ggplot(df, aes(x="", y=value, fill=group))+
-                 geom_bar(width = 1, stat = "identity")
-               
-               
-               reactive_values$plots_article_ref <- bp + coord_polar("y", start=0)+ggtitle(paste0("Main subjects  \n of article",input$select_article))
-               return(reactive_values$plots_article_ref)
+          updateSelectInput(session, inputId = "select_article", choices = unique(c(reactive_values$matrice_res_ref$res$prop[["IDENTIFIANT"]],reactive_values$matrice_res_cit$res$prop[["IDENTIFIANT"]])))
+     #     View(reactive_values$matrice_res_ref$res$prop_grande_discipline)   
+          #View(reactive_values$matrice_res_ref$res$prop)
+            output$plot_article_ref<-renderPlotly({
+              error=tryCatch({
+                
+                line=which(reactive_values$matrice_res_ref$res$prop[["IDENTIFIANT"]]%in%input$select_article)
+                # print(paste0("_",input$select_article,"_")%in%unlist(reactive_values$matrice_res_ref$res$prop[["IDENTIFIANT"]]))
+                
+                ind=which(reactive_values$matrice_res_ref$res$prop_grande_discipline[line,]!=0)# secteur selectionner 
+                print("after line")
+                title_graph=paste0("Main subjects  \n of article ",reactive_values$matrice_res_ref$res$prop[["TITLE"]][[line]])
+                  df <- data.frame(
+                    group = Unaccent(names(reactive_values$matrice_res_ref$res$prop_grande_discipline[line,])[ind]),
+                    value = unlist(reactive_values$matrice_res_ref$res$prop_grande_discipline[line,ind])/sum(reactive_values$matrice_res_ref$res$prop_grande_discipline[line,ind])
+                  )
+              
+                  
+                
+                
+              },
+              error=function(cond){
+                return(NA)
+              })
+              if(length(error)==1){ 
+                if(is.na(error)){
+                  print("is the if ")
+                  title_graph="no data"
+                  df <- data.frame(
+                    group = "no data",
+                    value = 1)
+                
+               }
+            }
+              print("plote")
+                plots_article_ref <- plot_ly(df, labels = ~group, values = ~value, type = 'pie')
+               plots_article_ref <- plots_article_ref %>% layout(title = title_graph,
+                                                                 legend = list(font = list(size = 9)),
+                                                                  xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+                                                                  yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+               #reactive_values$plots_article_ref <- bp + coord_polar("y", start=0)+ggtitle(paste0("Main subjects  \n of article",input$select_article))
+               return(plots_article_ref)
                
              })
                
-            output$downloadPlot_article_ref <- downloadHandler(
-              filename = function(){paste("test",'.pdf',sep='')},
-              
-              content = function(file) {
-                ggsave(file,plot=reactive_values$plots_article_ref)
-              })
-              
+            # output$downloadPlot_article_ref <- downloadHandler(
+            #   filename = function(){paste("test",'.pdf',sep='')},
+            #   
+            #   content = function(file) {
+            #     ggsave(file,plot=reactive_values$plots_article_ref)
+            #   })
+            #   
                
             
             #View(as.data.frame(reactive_values[[paste0("data",input$periode_to_show)]][ind,]))
             
             
             
-               output$plot_total_ref<-renderPlot({
+               output$plot_total_ref<-renderPlotly({
                  
                  
                  df <- data.frame(
@@ -1913,13 +1996,14 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
                  )
                  
                  
-                 bp<- ggplot(df, aes(x="", y=value, fill=group))+
-                   geom_bar(width = 1, stat = "identity")
-                 
-                 
-                 reactive_values$plots_total_ref <- bp + coord_polar("y", start=0)+ggtitle(paste0("Main subjects  \n of the whole corpus"))
-                 return(reactive_values$plots_total_ref)
-                 
+                 plots_total_ref <- plot_ly(df, labels = ~group, values = ~value, type = 'pie')
+                 plots_total_ref <- plots_total_ref %>% layout(title = paste0("Main subjects  \n of the whole corpus"),
+                                                                   legend = list(font = list(size = 9)),
+                                                                   xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+                                                                   yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+                
+                 return(plots_total_ref)
+                 #output$text_ref<-renderText({paste("ID:",round(reactive_values$matrice_res_ref$res$id,2),"DD;",round(reactive_values$matrice_res_ref$res$dd,2),"MD:",round(reactive_values$matrice_res_ref$res$md,2),"DIA:",paste(round(unlist(reactive_values$matrice_res_ref$res$dia[[as.numeric(line)]]),digits = 2),collapse = ","),collapse = "\n")})
                })   
                output$downloadPlot_total_ref <- downloadHandler(
                  filename = function(){paste("test",'.pdf',sep='')},
@@ -1933,8 +2017,8 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
                
                
                reactive_values$data_merge=as.data.frame(rbind.fill(reactive_values$res_ads$dataframe_ref_accept,reactive_values$res_arxiv$res_reference_accept),stringsAsFactors = FALSE)
-               reactive_values$data_merge=as.data.frame(rbind.fill(data_merge,pumed_data),stringsAsFactors = FALSE)
-               reactive_values$data_merge=as.data.frame(rbind.fill(data_merge,reactive_values$ref_wos),stringsAsFactors = FALSE)
+               reactive_values$data_merge=as.data.frame(rbind.fill(reactive_values$data_merge,reactive_values$res_pumed),stringsAsFactors = FALSE)
+               reactive_values$data_merge=as.data.frame(rbind.fill(reactive_values$data_merge,reactive_values$ref_wos),stringsAsFactors = FALSE)
                
                
             
@@ -1944,11 +2028,11 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
                    paste("table_ref","period",".csv", sep = "")
                  },
                  content = function(file) {
-                   write.csv2(as.data.frame(df_flatten(data_merge)), file, row.names = FALSE)
+                   write.csv2(as.data.frame(df_flatten(reactive_values$data_merge)), file, row.names = FALSE)
                  }
                )
 
-             output$text_ref<-renderText({paste("ID:",round(reactive_values$matrice_res_ref$res$id,2),"DD;",round(reactive_values$matrice_res_ref$res$dd,2),"MD:",round(reactive_values$matrice_res_ref$res$md,2),"DIA:",paste(round(unlist(reactive_values$matrice_res_ref$res$dia[[as.numeric(input$select_article)]]),digits = 2),collapse = ","),collapse = "\n")})
+             
           }
         }
         
@@ -1956,24 +2040,45 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
           if(input$type=="cit") reactive_values$matrice_res_cit$res=res_temp$res else reactive_values$matrice_res_cit$res=res_temp$res_cit
           reactive_values$matrice_res_cit$data=res_temp$data
           if(!is.null(reactive_values$matrice_res_cit$res)){
-            updateSelectInput(session, inputId = "select_article", choices = 1:(dim(reactive_values$matrice_res_cit$res$prop_grande_discipline)[1]-1))
+            updateSelectInput(session, inputId = "select_article", choices = unique(c(reactive_values$matrice_res_ref$res$prop[["IDENTIFIANT"]],reactive_values$matrice_res_cit$res$prop[["IDENTIFIANT"]])))
             
-            output$plot_article_cit<-renderPlot({
+            output$plot_article_cit<-renderPlotly({
               
-              ind=which(reactive_values$matrice_res_cit$res$prop_grande_discipline[input$select_article,]!=0)
-              df <- data.frame(
-                group = Unaccent(names(reactive_values$matrice_res_cit$res$prop_grande_discipline[input$select_article,])[ind]),
-                value = unlist(reactive_values$matrice_res_cit$res$prop_grande_discipline[input$select_article,ind])/sum(reactive_values$matrice_res_cit$res$prop_grande_discipline[input$select_article,ind])
-              )
+              error=tryCatch({
+                line=which(reactive_values$matrice_res_cit$res$prop[["IDENTIFIANT"]]%in%input$select_article)
+                ind=which(reactive_values$matrice_res_cit$res$prop_grande_discipline[line,]!=0)
+                title_graph=paste0("Main subjects  \n of article ",reactive_values$matrice_res_cit$res$prop[["TITLE"]][[line]])
+                df <- data.frame(
+                  group = Unaccent(names(reactive_values$matrice_res_cit$res$prop_grande_discipline[line,])[ind]),
+                  value = unlist(reactive_values$matrice_res_cit$res$prop_grande_discipline[line,ind])/sum(reactive_values$matrice_res_cit$res$prop_grande_discipline[line,ind])
+                )
+                
+                
+              },
+              error=function(cond){
+                return(NA)
+              })
+              if(length(error)==1){ 
+                if(is.na(error)){
+                  print("is the if ")
+                  title_graph="no data"
+                  df <- data.frame(
+                    group = "no data",
+                    value = 1)
+                  
+                }
+              } 
               
+                
               
-              bp<- ggplot(df, aes(x="", y=value, fill=group))+
-                geom_bar(width = 1, stat = "identity")
+              plots_article_cit <- plot_ly(df, labels = ~group, values = ~value, type = 'pie')
+              plots_article_cit <- plots_article_cit %>% layout(title = title_graph,
+                                                            legend = list(font = list(size = 9)),
+                                                            xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+                                                            yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
               
-              
-              reactive_values$plots_article_cit <- bp + coord_polar("y", start=0)+ggtitle(paste0("Main subjects  \n of article",input$select_article))
-              return(reactive_values$plots_article_cit)
-              
+              return(plots_article_cit)
+                
             })
             
             
@@ -1987,7 +2092,7 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
               })
               
             
-            output$plot_total_cit<-renderPlot({# plot des theme citations 
+            output$plot_total_cit<-renderPlotly({# plot des theme citations 
               
               
               df <- data.frame(
@@ -1996,24 +2101,20 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
               )
               
               
-              bp<- ggplot(df, aes(x="", y=value, fill=group))+
-                geom_bar(width = 1, stat = "identity")
+              plots_total_cit <- plot_ly(df, labels = ~group, values = ~value, type = 'pie')
+              plots_total_cit <- plots_total_cit %>% layout(title = paste0("Main subjects  \n of the whole corpus"),
+                                                                legend = list(font = list(size = 9)),
+                                                                xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+                                                                yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+              
+              return(plots_total_cit)
               
               
-              reactive_values$plots_total_cit <- bp + coord_polar("y", start=0)+ggtitle(paste0("Main subjects  \n of the whole corpus"))
-              return(reactive_values$plots_total_cit)
               
             })   
             
-            output$downloadPlot_article_cit <- downloadHandler(
-              filename = function(){paste("test",'.pdf',sep='')},
-              
-              content = function(file) {
-                ggsave(file,plot=reactive_values$plots_total_cit)
-              })
             
-            
-            output$text_cit<-renderText({paste("ID:",round(reactive_values$matrice_res_cit$res$id,2),"DD:",round(reactive_values$matrice_res_cit$res$dd,2),"MD:",round(reactive_values$matrice_res_cit$res$md,2),"DIA:",paste(round(unlist(reactive_values$matrice_res_cit$res$dia[[as.numeric(input$select_article)]]),digits = 2),collapse = ","),collapse = "\n")})
+            #output$text_cit<-renderText({paste("ID:",round(reactive_values$matrice_res_cit$res$id,2),"DD:",round(reactive_values$matrice_res_cit$res$dd,2),"MD:",round(reactive_values$matrice_res_cit$res$md,2),"DIA:",paste(round(unlist(reactive_values$matrice_res_cit$res$dia[[as.numeric(input$select_article)]]),digits = 2),collapse = ","),collapse = "\n")})
           }
         }
       showModal(modalDialog(
