@@ -43,7 +43,7 @@ ui <-dashboardPage(skin = "red",
                      #si le probleme est  regle decommenter laligne du dessous 
                      menuItem("Import_bibext", tabName = "import_wos", icon = icon("file-export")),
                      menuItem("History", tabName = "history", icon = icon("address-card")),
-                     menuItem("Worcdloud Graphics", tabName = "wordcloud", icon = icon("th")),
+                     menuItem("Wordcloud Graphics", tabName = "wordcloud", icon = icon("th")),
                      menuItem("Network Graphics", tabName = "network", icon = icon("project-diagram")),
                      menuItem("Reasech interdisciplinarity", tabName = "DB", icon = icon("database")),
                      menuItem("Result interdisciplinarity", tabName = "calculinterdisciplinarity", icon = icon("database")),
@@ -391,7 +391,8 @@ ui <-dashboardPage(skin = "red",
                                          #   downloadButton("downloadPlot_total_ref", "Download Plot(s)"),#total ref 
                                             downloadButton("downloadref", "Download data references")
                                     ),
-                                    textOutput("text_ref")
+                                    textOutput("text_ref"),
+                                    dataTableOutput("table_data_ref_interdi")
                             ),
                             tabPanel("cit",
                                      column(width = 6,
@@ -403,7 +404,8 @@ ui <-dashboardPage(skin = "red",
                                            # downloadButton("downloadPlot_total_cit", "Download Plot(s)"),
                                             downloadButton("downloadcit", "Download data citation")
                                      ),
-                                     textOutput("text_cit")
+                                     textOutput("text_cit"),
+                                     dataTableOutput("table_data_cit_interdi")
                               
                                      
                                      
@@ -494,9 +496,13 @@ server <- function(input, output, session) {
     table_categ_gd=NULL,
     wos_data=NULL,
     plots_article_ref=NULL,
-    data_merge=NULL
+    data_merge=NULL,
+    secteur_is_finish=FALSE,
+    states=list(source = c("plot_article_ref", "plot_total_ref"), value = c(-99,-99), changed = c(FALSE,FALSE))
     
-  )  
+  #   data_cit=NULL
+  #   data_ref=NULL
+   )  
   #copy des variable reactive dans les output pour leurs permetre d'etre invisible 
   output$show_header <- reactive({
     reactive_values$show_header
@@ -1901,11 +1907,12 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
         
         
     }else{
-        print("passe else ")
-       error=tryCatch({
-         res_temp<-global_merge_and_cal_interdis(ads=reactive_values$res_ads,arxiv=reactive_values$res_arxiv,pumed=reactive_values$res_pumed,wos=reactive_values$ref_wos,journal_table_ref = reactive_values$journal_table_ref,table_categ_gd = reactive_values$table_categ_gd,type = input$type,table_dist =reactive_values$table_dist,col_journal=c(input$col_journal_ads,input$col_journal_arxiv,input$col_journal_pumed,input$col_journal_wos))
+        
+      
+      error=tryCatch({
          
-          
+        res_temp<-global_merge_and_cal_interdis(ads=reactive_values$res_ads,arxiv=reactive_values$res_arxiv,pumed=reactive_values$res_pumed,wos=reactive_values$ref_wos,journal_table_ref = reactive_values$journal_table_ref,table_categ_gd = reactive_values$table_categ_gd,type = input$type,table_dist =reactive_values$table_dist,col_journal=c(input$col_journal_ads,input$col_journal_arxiv,input$col_journal_pumed,input$col_journal_wos))
+        
         },
          error=function(cond){ 
         print("aiie")  #reactive_values$ok_analyse=FALSE
@@ -1964,13 +1971,15 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
                }
             }
               print("plote")
-                plots_article_ref <- plot_ly(df, labels = ~group, values = ~value, type = 'pie')
-               plots_article_ref <- plots_article_ref %>% layout(title = title_graph,
+                plot_article_ref <- plot_ly(df, labels = ~group, values = ~value,key=~group, type = 'pie',source = "plot_article_ref")
+               plot_article_ref <- plot_article_ref %>% layout(title = title_graph,
                                                                  legend = list(font = list(size = 9)),
                                                                   xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
                                                                   yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
-               #reactive_values$plots_article_ref <- bp + coord_polar("y", start=0)+ggtitle(paste0("Main subjects  \n of article",input$select_article))
-               return(plots_article_ref)
+                            #reactive_values$plots_article_ref <- bp + coord_polar("y", start=0)+ggtitle(paste0("Main subjects  \n of article",input$select_article))
+               
+               reactive_values$secteur_is_finish<-TRUE
+               return(plot_article_ref)
                
              })
                
@@ -1996,20 +2005,73 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
                  )
                  
                  
-                 plots_total_ref <- plot_ly(df, labels = ~group, values = ~value, type = 'pie')
-                 plots_total_ref <- plots_total_ref %>% layout(title = paste0("Main subjects  \n of the whole corpus"),
+                 plot_total_ref <- plot_ly(df, labels = ~group, values = ~value,key=~group, type = 'pie',source = "plot_total_ref")
+                 plot_total_ref <- plot_total_ref %>% layout(title = paste0("Main subjects  \n of the whole corpus"),
                                                                    legend = list(font = list(size = 9)),
                                                                    xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
                                                                    yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
-                
-                 return(plots_total_ref)
+                  
+                   reactive_values$secteur_is_finish<-TRUE
+                   return(plot_total_ref)
                  #output$text_ref<-renderText({paste("ID:",round(reactive_values$matrice_res_ref$res$id,2),"DD;",round(reactive_values$matrice_res_ref$res$dd,2),"MD:",round(reactive_values$matrice_res_ref$res$md,2),"DIA:",paste(round(unlist(reactive_values$matrice_res_ref$res$dia[[as.numeric(line)]]),digits = 2),collapse = ","),collapse = "\n")})
-               })   
+               })
+               
+               
+               observe({
+                 View(reactive_values$matrice_res_ref$res$prop)
+                  if(reactive_values$secteur_is_finish==TRUE){
+                    for(src in reactive_values$states$source){
+                      clicked<-event_data("plotly_click", source = src)
+                      
+                      if( !is.null(clicked) ){
+                        value <- clicked$pointNumber
+                        if(reactive_values$states$value[reactive_values$states$source==src]!=value ){
+                          print(value)
+                          print(clicked$key)
+                          reactive_values$states$value[reactive_values$states$source==src] <- value
+                          reactive_values$states$changed[reactive_values$states$source==src] <- TRUE
+                        }
+                      }
+                    }
+                    if(sum(reactive_values$states$changed)>0) print(paste(reactive_values$states$source[reactive_values$states$changed], 'has changed'))
+                    
+                    print("avant ouput")
+                    print(reactive_values$states$source[reactive_values$states$changed])
+                      
+                  output$table_data_ref_interdi <- renderDataTable({
+                    print(dim(reactive_values$matrice_res_ref$data))
+                    print("apres ouput")
+                    ind_global=NULL
+                    print(reactive_values$states$source[reactive_values$states$changed])
+                    
+                    if(sum(reactive_values$states$changed)>0){
+                      if(reactive_values$states$source[reactive_values$states$changed]=="plot_total_ref"){
+      
+                        col=which(names(reactive_values$matrice_res_ref$res$prop_grande_discipline)==clicked$key)
+                        ind=which(reactive_values$matrice_res_ref$res$prop_grande_discipline[,col]>0)
+                        if(length(ind)>0) ind=ind[-length(ind)]
+                        id=reactive_values$matrice_res_ref$res$prop[["CONTRIBUTION"]][ind] 
+                        ind_global=unique(unlist(id)))
+                        
+                        
+                      }
+                    }
+                    
+                    if(!is.null(ind_global)) return(reactive_values$matrice_res_ref$data[ind_global,])
+                    
+                    reactive_values$states$changed <- c(FALSE,FALSE)
+                    
+                  })
+                      
+                      
+                  }
+                })
+               
                output$downloadPlot_total_ref <- downloadHandler(
                  filename = function(){paste("test",'.pdf',sep='')},
                  
                  content = function(file) {
-                   ggsave(file,plot=reactive_values$plots_total_ref)
+                   ggsave(file,plot=reactive_values$plot_total_ref)
                  },
                  
                  
