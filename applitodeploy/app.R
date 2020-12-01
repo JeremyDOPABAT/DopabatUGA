@@ -498,7 +498,7 @@ server <- function(input, output, session) {
     plots_article_ref=NULL,
     data_merge=NULL,
     secteur_is_finish=FALSE,
-    states=list(source = c("plot_article_ref", "plot_total_ref"), value = c(-99,-99), changed = c(FALSE,FALSE))
+    states=list(source = c("plot_article_ref", "plot_total_ref"), value = c(-99,-99), changed = c(FALSE,FALSE),key=NULL)
     
   #   data_cit=NULL
   #   data_ref=NULL
@@ -1908,11 +1908,11 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
         
     }else{
         
-      
+      res_temp<-global_merge_and_cal_interdis(ads=reactive_values$res_ads,arxiv=reactive_values$res_arxiv,pumed=reactive_values$res_pumed,wos=reactive_values$ref_wos,journal_table_ref = reactive_values$journal_table_ref,table_categ_gd = reactive_values$table_categ_gd,type = input$type,table_dist =reactive_values$table_dist,col_journal=c(input$col_journal_ads,input$col_journal_arxiv,input$col_journal_pumed,input$col_journal_wos))
       error=tryCatch({
          
-        res_temp<-global_merge_and_cal_interdis(ads=reactive_values$res_ads,arxiv=reactive_values$res_arxiv,pumed=reactive_values$res_pumed,wos=reactive_values$ref_wos,journal_table_ref = reactive_values$journal_table_ref,table_categ_gd = reactive_values$table_categ_gd,type = input$type,table_dist =reactive_values$table_dist,col_journal=c(input$col_journal_ads,input$col_journal_arxiv,input$col_journal_pumed,input$col_journal_wos))
         
+        print("trororororoorl")
         },
          error=function(cond){ 
         print("aiie")  #reactive_values$ok_analyse=FALSE
@@ -2016,56 +2016,77 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
                  #output$text_ref<-renderText({paste("ID:",round(reactive_values$matrice_res_ref$res$id,2),"DD;",round(reactive_values$matrice_res_ref$res$dd,2),"MD:",round(reactive_values$matrice_res_ref$res$md,2),"DIA:",paste(round(unlist(reactive_values$matrice_res_ref$res$dia[[as.numeric(line)]]),digits = 2),collapse = ","),collapse = "\n")})
                })
                
-               
-               observe({
-                 View(reactive_values$matrice_res_ref$res$prop)
-                  if(reactive_values$secteur_is_finish==TRUE){
-                    for(src in reactive_values$states$source){
+               states_2 <- reactiveValues(source = c(reactive_values$states$source[[1]], reactive_values$states$source[[2]]), value = c(-1,-1), changed = c(FALSE,FALSE),key=NULL)
+               observeEvent({c(event_data("plotly_click", source =states_2$source[[2]],priority = "event"),event_data("plotly_click", source =states_2$source[[1]],priority = "event") ) },{
+                 #kk<<-kk+1
+                 print(event_data("plotly_click", source =states_2$source[[2]],priority = "event"))
+                # if(kk==2) browser() 
+                 if(reactive_values$secteur_is_finish==TRUE){
+                    for(src in states_2$source){
                       clicked<-event_data("plotly_click", source = src)
                       
                       if( !is.null(clicked) ){
                         value <- clicked$pointNumber
-                        if(reactive_values$states$value[reactive_values$states$source==src]!=value ){
-                          print(value)
-                          print(clicked$key)
-                          reactive_values$states$value[reactive_values$states$source==src] <- value
-                          reactive_values$states$changed[reactive_values$states$source==src] <- TRUE
+                        if(states_2$value[states_2$source==src]!=value ){
+                          
+                          states_2$value[states_2$source==src] <- value
+                          states_2$changed[states_2$source==src] <- TRUE
+                          states_2$key=clicked$key
                         }
                       }
                     }
-                    if(sum(reactive_values$states$changed)>0) print(paste(reactive_values$states$source[reactive_values$states$changed], 'has changed'))
-                    
-                    print("avant ouput")
-                    print(reactive_values$states$source[reactive_values$states$changed])
-                      
-                  output$table_data_ref_interdi <- renderDataTable({
-                    print(dim(reactive_values$matrice_res_ref$data))
-                    print("apres ouput")
+              if(sum(states_2$changed)>0){
+                print("passe")
+                # pour eviter la réactualisation 2 fois de l'event quand une des variable change on passe a une autre variable non vu 
+                reactive_values$states$changed=states_2$changed
+                reactive_values$states$source=states_2$source
+                reactive_values$states$key=states_2$key
+        
+                output$table_data_ref_interdi <- renderDataTable({
                     ind_global=NULL
-                    print(reactive_values$states$source[reactive_values$states$changed])
-                    
-                    if(sum(reactive_values$states$changed)>0){
-                      if(reactive_values$states$source[reactive_values$states$changed]=="plot_total_ref"){
-      
-                        col=which(names(reactive_values$matrice_res_ref$res$prop_grande_discipline)==clicked$key)
-                        ind=which(reactive_values$matrice_res_ref$res$prop_grande_discipline[,col]>0)
-                        if(length(ind)>0) ind=ind[-length(ind)]
-                        id=reactive_values$matrice_res_ref$res$prop[["CONTRIBUTION"]][ind] 
-                        ind_global=unique(unlist(id)))
-                        
-                        
-                      }
-                    }
-                    
-                    if(!is.null(ind_global)) return(reactive_values$matrice_res_ref$data[ind_global,])
-                    
-                    reactive_values$states$changed <- c(FALSE,FALSE)
-                    
+                    print(paste(reactive_values$states$source[reactive_values$states$changed], 'has changed'))
+                    print(reactive_values$states$key)
+                    col=which(reactive_values$states$key[[1]]==Unaccent(names(reactive_values$matrice_res_ref$res$prop_grande_discipline)))
+
+                        if(reactive_values$states$source[reactive_values$states$changed]=="plot_total_ref"){
+                          ind=dim(reactive_values$matrice_res_ref$res$prop_grande_discipline)[1]
+                       
+                         # id=reactive_values$matrice_res_ref$res$contribution[ind,col]
+                            #browser()
+
+                        }else{
+
+                         ind=which(reactive_values$matrice_res_ref$res$prop[["IDENTIFIANT"]]==input$select_article)
+
+                        }
+                       print("ind")
+                       print(ind)
+                       
+                       print("col")
+                       print(col)
+                     #  browser()
+                       id=reactive_values$matrice_res_ref$res$contribution[ind,col]
+                       print("id")
+                       print(id)
+                       ind_global=as.numeric(unique(strsplit(gsub(" ","",(id)),split = ",")[[1]]))
+                       print("ind_global")
+                       print(ind_global)
+                       
+
+                    #
+                    # if(!is.null(ind_global))
+                    return(reactive_values$matrice_res_ref$data[ind_global,])
+                    #
+
+
                   })
+                states_2$changed <- c(FALSE,FALSE)
+                }    
                       
-                      
-                  }
-                })
+              }
+                 
+                 
+                },ignoreNULL = TRUE)
                
                output$downloadPlot_total_ref <- downloadHandler(
                  filename = function(){paste("test",'.pdf',sep='')},
