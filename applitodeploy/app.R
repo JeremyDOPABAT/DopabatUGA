@@ -498,7 +498,8 @@ server <- function(input, output, session) {
     plots_article_ref=NULL,
     data_merge=NULL,
     secteur_is_finish=FALSE,
-    states=list(source = c("plot_article_ref", "plot_total_ref"), value = c(-99,-99), changed = c(FALSE,FALSE),key=NULL)
+    states=list(source = c("plot_article_ref", "plot_total_ref"), value = c(-99,-99), changed = c(FALSE,FALSE),key=NULL),
+    states_cit=list(source = c("plot_article_cit", "plot_total_cit"), value = c(-99,-99), changed = c(FALSE,FALSE),key=NULL)
     
   #   data_cit=NULL
   #   data_ref=NULL
@@ -1907,12 +1908,12 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
         
         
     }else{
-        
-      res_temp<-global_merge_and_cal_interdis(ads=reactive_values$res_ads,arxiv=reactive_values$res_arxiv,pumed=reactive_values$res_pumed,wos=reactive_values$ref_wos,journal_table_ref = reactive_values$journal_table_ref,table_categ_gd = reactive_values$table_categ_gd,type = input$type,table_dist =reactive_values$table_dist,col_journal=c(input$col_journal_ads,input$col_journal_arxiv,input$col_journal_pumed,input$col_journal_wos))
+      #browser()
+      res_temp<-global_merge_and_cal_interdis(ads=reactive_values$res_ads,arxiv=reactive_values$res_arxiv,pumed=reactive_values$res_pumed,wos=reactive_values$ref_wos,journal_table_ref = reactive_values$journal_table_ref,table_categ_gd = reactive_values$table_categ_gd,type = input$type,table_dist =reactive_values$table_dist,col_journal=c(input$col_journal_ads,input$col_journal_arxiv,input$col_journal_pumed,input$col_journal_wos))   
+      
       error=tryCatch({
-         
+        print("troooo")
         
-        print("trororororoorl")
         },
          error=function(cond){ 
         print("aiie")  #reactive_values$ok_analyse=FALSE
@@ -1930,12 +1931,20 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
     if(!is.null(error)){
       
       if(input$type=="ref"||input$type=="all" ){    
-        if(input$type=="ref") reactive_values$matrice_res_ref$res=res_temp$res else reactive_values$matrice_res_ref$res=res_temp$res_ref
-        reactive_values$matrice_res_ref$data=res_temp$data 
+        if(input$type=="ref"){
+          reactive_values$matrice_res_ref$res=res_temp$res 
+          reactive_values$matrice_res_ref$data=res_temp$data
+          }else {
+            reactive_values$matrice_res_ref$res=res_temp$res_ref
+            reactive_values$matrice_res_ref$data=res_temp$data_ref
+          }
+          
         
         
         
         if(!is.null(reactive_values$matrice_res_ref$res)){
+          print("nnnnnnnnnnnnnnnnnooooooooooooon nul")
+          reactive_values$secteur_is_finish<-FALSE
           updateSelectInput(session, inputId = "select_article", choices = unique(c(reactive_values$matrice_res_ref$res$prop[["IDENTIFIANT"]],reactive_values$matrice_res_cit$res$prop[["IDENTIFIANT"]])))
      #     View(reactive_values$matrice_res_ref$res$prop_grande_discipline)   
           #View(reactive_values$matrice_res_ref$res$prop)
@@ -2016,7 +2025,7 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
                  #output$text_ref<-renderText({paste("ID:",round(reactive_values$matrice_res_ref$res$id,2),"DD;",round(reactive_values$matrice_res_ref$res$dd,2),"MD:",round(reactive_values$matrice_res_ref$res$md,2),"DIA:",paste(round(unlist(reactive_values$matrice_res_ref$res$dia[[as.numeric(line)]]),digits = 2),collapse = ","),collapse = "\n")})
                })
                
-               states_2 <- reactiveValues(source = c(reactive_values$states$source[[1]], reactive_values$states$source[[2]]), value = c(-1,-1), changed = c(FALSE,FALSE),key=NULL)
+               states_2 <- reactiveValues(source =reactive_values$states$source, value = c(-1,-1), changed = c(FALSE,FALSE),key=NULL)
                observeEvent({c(event_data("plotly_click", source =states_2$source[[2]],priority = "event"),event_data("plotly_click", source =states_2$source[[1]],priority = "event") ) },{
                  #kk<<-kk+1
                  print(event_data("plotly_click", source =states_2$source[[2]],priority = "event"))
@@ -2064,7 +2073,6 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
                        
                        print("col")
                        print(col)
-                     #  browser()
                        id=reactive_values$matrice_res_ref$res$contribution[ind,col]
                        print("id")
                        print(id)
@@ -2075,7 +2083,15 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
 
                     #
                     # if(!is.null(ind_global))
-                    return(reactive_values$matrice_res_ref$data[ind_global,])
+                       table_data=datatable(df_flatten(reactive_values$matrice_res_ref$data[ind_global,]), options = list(scrollX = TRUE, columnDefs = list(list(
+                         targets = "_all" ,render = JS(
+                           "function(data, type, row, meta) {",
+                           "return type === 'display' && data.length > 70 ?",
+                           "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
+                           "}")
+                       ))))
+                       View(df_flatten(reactive_values$matrice_res_ref$data[ind_global,]))
+                    return(table_data)
                     #
 
 
@@ -2120,9 +2136,23 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
         }
         
         if(input$type=="cit"||input$type=="all") {
-          if(input$type=="cit") reactive_values$matrice_res_cit$res=res_temp$res else reactive_values$matrice_res_cit$res=res_temp$res_cit
-          reactive_values$matrice_res_cit$data=res_temp$data
+          
+          if(input$type=="cit"){
+            reactive_values$matrice_res_cit$res=res_temp$res
+            reactive_values$matrice_res_cit$data=res_temp$data
+            
+          }else{
+            reactive_values$matrice_res_cit$res=res_temp$res_cit
+            reactive_values$matrice_res_cit$data=res_temp$data_cit
+          }
+          
+          print("ahhhhhhhhhhhhhhhhhhhhhhhh")
+          print(dim(reactive_values$matrice_res_cit$data))
+          print(dim(reactive_values$matrice_res_ref$data))
           if(!is.null(reactive_values$matrice_res_cit$res)){
+            print("nooooooooooooooon nul cit")
+            
+            reactive_values$secteur_is_finish<-FALSE
             updateSelectInput(session, inputId = "select_article", choices = unique(c(reactive_values$matrice_res_ref$res$prop[["IDENTIFIANT"]],reactive_values$matrice_res_cit$res$prop[["IDENTIFIANT"]])))
             
             output$plot_article_cit<-renderPlotly({
@@ -2154,13 +2184,13 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
               
                 
               
-              plots_article_cit <- plot_ly(df, labels = ~group, values = ~value, type = 'pie')
-              plots_article_cit <- plots_article_cit %>% layout(title = title_graph,
+              plot_article_cit <- plot_ly(df, labels = ~group, values = ~value, type = 'pie',key=~group,source ="plot_article_cit" )
+              plot_article_cit <- plot_article_cit %>% layout(title = title_graph,
                                                             legend = list(font = list(size = 9)),
                                                             xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
                                                             yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
               
-              return(plots_article_cit)
+              return(plot_article_cit)
                 
             })
             
@@ -2171,7 +2201,7 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
               filename = function(){paste("test",'.pdf',sep='')},
               
               content = function(file) {
-                ggsave(file,plot=reactive_values$plots_article_cit)
+                ggsave(file,plot=reactive_values$plot_article_cit)
               })
               
             
@@ -2184,19 +2214,97 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
               )
               
               
-              plots_total_cit <- plot_ly(df, labels = ~group, values = ~value, type = 'pie')
-              plots_total_cit <- plots_total_cit %>% layout(title = paste0("Main subjects  \n of the whole corpus"),
+              plot_total_cit <- plot_ly(df, labels = ~group,key=~group, values = ~value, type = 'pie',source = "plot_total_cit")
+              plot_total_cit <- plot_total_cit %>% layout(title = paste0("Main subjects  \n of the whole corpus"),
                                                                 legend = list(font = list(size = 9)),
                                                                 xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
                                                                 yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
-              
-              return(plots_total_cit)
+              reactive_values$secteur_is_finish<-TRUE
+              return(plot_total_cit)
               
               
               
             })   
             
             
+            states_cit_2 <- reactiveValues(source =reactive_values$states_cit$source, value = c(-1,-1), changed = c(FALSE,FALSE),key=NULL)
+            observeEvent({c(event_data("plotly_click", source =states_cit_2$source[[2]],priority = "event"),event_data("plotly_click", source =states_cit_2$source[[1]],priority = "event") ) },{
+              #kk<<-kk+1
+              print(event_data("plotly_click", source =states_cit_2$source[[2]],priority = "event"))
+              # if(kk==2) browser() 
+              if(reactive_values$secteur_is_finish==TRUE){
+                for(src in states_cit_2$source){
+                  clicked<-event_data("plotly_click", source = src)
+                  
+                  if( !is.null(clicked) ){
+                    value <- clicked$pointNumber
+                    if(states_cit_2$value[states_cit_2$source==src]!=value ){
+                      
+                      states_cit_2$value[states_cit_2$source==src] <- value
+                      states_cit_2$changed[states_cit_2$source==src] <- TRUE
+                      states_cit_2$key=clicked$key
+                    }
+                  }
+                }
+                if(sum(states_cit_2$changed)>0){
+                  print("passe")
+                  # pour eviter la réactualisation 2 fois de l'event quand une des variable change on passe a une autre variable non vu 
+                  reactive_values$states_cit$changed=states_cit_2$changed
+                  reactive_values$states_cit$source=states_cit_2$source
+                  reactive_values$states_cit$key=states_cit_2$key
+                  
+                  output$table_data_cit_interdi <- renderDataTable({
+                    ind_global=NULL
+                    print(paste(reactive_values$states_cit$source[reactive_values$states_cit$changed], 'has changed'))
+                    print(reactive_values$states_cit$key)
+                    col=which(reactive_values$states_cit$key[[1]]==Unaccent(names(reactive_values$matrice_res_cit$res$prop_grande_discipline)))
+                    
+                    if(reactive_values$states_cit$source[reactive_values$states_cit$changed]=="plot_total_cit"){
+                      ind=dim(reactive_values$matrice_res_cit$res$prop_grande_discipline)[1]
+                      
+                      # id=reactive_values$matrice_res_ref$res$contribution[ind,col]
+                      #browser()
+                      
+                    }else{
+                      
+                      ind=which(reactive_values$matrice_res_cit$res$prop[["IDENTIFIANT"]]==input$select_article)
+                      
+                    }
+                    print("ind")
+                    print(ind)
+                    
+                    print("col")
+                    print(col)
+                    id=reactive_values$matrice_res_cit$res$contribution[ind,col]
+                    print("id")
+                    print(id)
+                    ind_global=as.numeric(unique(strsplit(gsub(" ","",(id)),split = ",")[[1]]))
+                    print("ind_global")
+                    print(ind_global)
+                    
+                    
+                    #
+                    # if(!is.null(ind_global))
+                    table_data=datatable(df_flatten(reactive_values$matrice_res_cit$data[ind_global,]), options = list(scrollX = TRUE, columnDefs = list(list(
+                      targets = "_all" ,render = JS(
+                        "function(data, type, row, meta) {",
+                        "return type === 'display' && data.length > 70 ?",
+                        "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
+                        "}")
+                    ))))
+                 
+                    return(table_data)
+                    #
+                    
+                    
+                  })
+                  states_cit_2$changed <- c(FALSE,FALSE)
+                }    
+                
+              }
+              
+              
+            },ignoreNULL = TRUE)  
             #output$text_cit<-renderText({paste("ID:",round(reactive_values$matrice_res_cit$res$id,2),"DD:",round(reactive_values$matrice_res_cit$res$dd,2),"MD:",round(reactive_values$matrice_res_cit$res$md,2),"DIA:",paste(round(unlist(reactive_values$matrice_res_cit$res$dia[[as.numeric(input$select_article)]]),digits = 2),collapse = ","),collapse = "\n")})
           }
         }
