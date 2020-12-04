@@ -1894,9 +1894,9 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
     
   
     print("yesssssssssssss")
-    reactive_values$journal_table_ref=read.csv("data/table_categ_wos.csv", sep = ";",header = TRUE,stringsAsFactors = FALSE)
+    reactive_values$journal_table_ref=read.csv("data/table_categ_wos.csv", sep = ";",header = TRUE,encoding = "Latin-1",stringsAsFactors = FALSE)
     reactive_values$table_dist<-read.table(file="data/category_similarity_matrix.txt",header = TRUE,sep = " ",dec ="." )
-    reactive_values$table_categ_gd=read.csv(file="data/categ_wos.csv",header = TRUE,stringsAsFactors = FALSE,sep = ";")
+    reactive_values$table_categ_gd=read.csv(file="data/categ_wos.csv",header = TRUE,stringsAsFactors = FALSE,encoding = "Latin-1",sep = ";")
     print(input$type)
     if(length(reactive_values$privious_datapath_csv)==0 && length(reactive_values$privious_datapath_wos)==0){
         showModal(modalDialog(
@@ -1909,10 +1909,10 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
         
     }else{
       #browser()
-      res_temp<-global_merge_and_cal_interdis(ads=reactive_values$res_ads,arxiv=reactive_values$res_arxiv,pumed=reactive_values$res_pumed,wos=reactive_values$ref_wos,journal_table_ref = reactive_values$journal_table_ref,table_categ_gd = reactive_values$table_categ_gd,type = input$type,table_dist =reactive_values$table_dist,col_journal=c(input$col_journal_ads,input$col_journal_arxiv,input$col_journal_pumed,input$col_journal_wos))   
       
       error=tryCatch({
-        print("troooo")
+        res_temp<-global_merge_and_cal_interdis(ads=reactive_values$res_ads,arxiv=reactive_values$res_arxiv,pumed=reactive_values$res_pumed,wos=reactive_values$ref_wos,journal_table_ref = reactive_values$journal_table_ref,table_categ_gd = reactive_values$table_categ_gd,type = input$type,table_dist =reactive_values$table_dist,col_journal=c(input$col_journal_ads,input$col_journal_arxiv,input$col_journal_pumed,input$col_journal_wos))   
+        
         
         },
          error=function(cond){ 
@@ -2028,6 +2028,7 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
                states_2 <- reactiveValues(source =reactive_values$states$source, value = c(-1,-1), changed = c(FALSE,FALSE),key=NULL)
                observeEvent({c(event_data("plotly_click", source =states_2$source[[2]],priority = "event"),event_data("plotly_click", source =states_2$source[[1]],priority = "event") ) },{
                  #kk<<-kk+1
+                 print("voiciiiiii le point cliquer ")
                  print(event_data("plotly_click", source =states_2$source[[2]],priority = "event"))
                 # if(kk==2) browser() 
                  if(reactive_values$secteur_is_finish==TRUE){
@@ -2090,7 +2091,7 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
                            "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
                            "}")
                        ))))
-                       View(df_flatten(reactive_values$matrice_res_ref$data[ind_global,]))
+                      # View(df_flatten(reactive_values$matrice_res_ref$data[ind_global,]))
                     return(table_data)
                     #
 

@@ -2856,13 +2856,11 @@ interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd
     identifier="cited identifier"
     title="cited title"
   }
-  print(dim(data_gl))
-  print(names(data_gl))
   #View(data_gl)
   
   nb_categ=unlist(data_gl[[journal_domaine]]) #on pr?parer les colonne de la table de containgence 
   if(length(nb_categ)>0){
-    list_categ<-names(table(nb_categ))
+    list_categ<-Unaccent(names(table(nb_categ)))
     matrice_prop=as.data.frame(matrix(0,ncol=length(list_categ)))# initialisation de la matrice 
     matrice_contribution=as.data.frame(matrix(0,ncol=length(list_categ)))
     names(matrice_prop)=list_categ
