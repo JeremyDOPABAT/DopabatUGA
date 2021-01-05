@@ -1912,11 +1912,12 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
       
       
     }else{
+      
+         
       #browser()
-      res_temp<-global_merge_and_cal_interdis(ads=reactive_values$res_ads,arxiv=reactive_values$res_arxiv,pumed=reactive_values$res_pumed,wos=reactive_values$ref_wos,journal_table_ref = reactive_values$journal_table_ref,table_categ_gd = reactive_values$table_categ_gd,type = input$type,table_dist =reactive_values$table_dist,col_journal=c(input$col_journal_ads,input$col_journal_arxiv,input$col_journal_pumed,input$col_journal_wos))   
       
       error=tryCatch({
-      print("toooo")  
+        res_temp<-global_merge_and_cal_interdis(ads=reactive_values$res_ads,arxiv=reactive_values$res_arxiv,pumed=reactive_values$res_pumed,wos=reactive_values$ref_wos,journal_table_ref = reactive_values$journal_table_ref,table_categ_gd = reactive_values$table_categ_gd,type = input$type,table_dist =reactive_values$table_dist,col_journal=c(input$col_journal_ads,input$col_journal_arxiv,input$col_journal_pumed,input$col_journal_wos))  
         
       },
       error=function(cond){ 
@@ -1983,7 +1984,7 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
                   
                 }
               }
-              print("plote")
+            
               plot_article_ref <- plot_ly(df, labels = ~group, values = ~value,key=~group, type = 'pie',source = "plot_article_ref")
               plot_article_ref <- plot_article_ref %>% layout(title = title_graph,
                                                               legend = list(font = list(size = 9)),
@@ -1992,14 +1993,14 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
               #reactive_values$plots_article_ref <- bp + coord_polar("y", start=0)+ggtitle(paste0("Main subjects  \n of article",input$select_article))
               
                 
-              ind_stat=which(reactive_values$matrice_res_ref$res$prop[["IDENTIFIANT"]]==input$select_article)
-              reactive_values$pct_ref[1]=mean(unlist(reactive_values$matrice_res_ref$data[ind_stat,]$refered_trouver_global_dicipline))
-              
+              ind_stat=which(reactive_values$matrice_res_ref$data[["refering identifier"]]==input$select_article)
+              reactive_values$pct_ref[1]=mean(unlist(reactive_values$matrice_res_ref$data[ind_stat,]$refered_indice_pct_found))
+              View(reactive_values$matrice_res_ref$data[ind_stat,])
               reactive_values$secteur_is_finish<-TRUE
               return(plot_article_ref)
               
             })
-            output$stat_journ_ref_article<-renderText({paste("pourcentage accuracy of graphique aticle",round(reactive_values$pct_ref[1],digits = 2))})          
+            output$stat_journ_ref_article<-renderText({paste("pourcentage accuracy of graphique aticle",round(reactive_values$pct_ref[1],digits =8))})          
             # output$downloadPlot_article_ref <- downloadHandler(
             #   filename = function(){paste("test",'.pdf',sep='')},
             #   
@@ -2030,7 +2031,7 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
               
               
               
-              reactive_values$pct_ref[2]=mean(unlist(reactive_values$matrice_res_ref$data$refered_trouver_global_dicipline))
+              reactive_values$pct_ref[2]=mean(unlist(reactive_values$matrice_res_ref$data$refered_indice_pct_found))
               
               reactive_values$secteur_is_finish<-TRUE
               
@@ -2188,8 +2189,8 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
                                                               legend = list(font = list(size = 9)),
                                                               xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
                                                               yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
-              ind_stat=which(reactive_values$matrice_res_ref$res$prop[["IDENTIFIANT"]]==input$select_article)
-              reactive_values$pct_cit[1]=mean(unlist(reactive_values$matrice_res_ref$data[ind_stat,]$refered_trouver_global_dicipline))
+              ind_stat=which(reactive_values$matrice_res_cit$data[["cited identifier"]]==input$select_article)
+              reactive_values$pct_cit[1]=mean(unlist(reactive_values$matrice_res_cit$data[ind_stat,]$citing_indice_pct_found))
               
               return(plot_article_cit)
               
@@ -2221,7 +2222,7 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
                                                           xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
                                                           yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
               reactive_values$secteur_is_finish<-TRUE
-              reactive_values$pct_cit[2]=mean(unlist(reactive_values$matrice_res_ref$data[ind_stat,]$refered_trouver_global_dicipline))
+              reactive_values$pct_cit[2]=mean(unlist(reactive_values$matrice_res_cit$data$citing_indice_pct_found))
               
               return(plot_total_cit)
               

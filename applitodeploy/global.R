@@ -3060,13 +3060,13 @@ combine_analyse_data<-function(df_global,journal_table_ref,type){
     
     df_global$refered_journal_domaine=dom[1,]
     df_global$refered_global_dicipline=dom[2,]
-    df_global$refered_trouver_global_dicipline=dom[3,]
+    df_global$refered_indice_pct_found=dom[3,]
     
   }else{#pour les citation il n'y a pas de patricularite dans le wos
     res<-find_journal_domaine(journal_data = df_global$`citing journal`,journal_table_ref = journal_table_ref,issn = df_global$`citing issn`,source =df_global$source )
     df_global$citing_journal_domaine=res[1,]
     df_global$citing_global_dicipline=res[2,]
-    df_global$citing_trouver_global_dicipline=dom[3,]
+    df_global$citing_indice_pct_found=res[3,]
   }
   return(df_global)  
 }
