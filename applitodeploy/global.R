@@ -2878,7 +2878,8 @@ interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd
     names(matrice_contribution)=list_categ
     precedent=""# initialisation , a chaque nouvelle article(id diff?rent) on ce?e une nouvelle ligne.
     for(i in 1:dim(data_gl)[1]){
-      if(!is.null(data_gl[[journal_domaine]][[i]])){
+      print(i)
+      if(!is.na(data_gl[[journal_domaine]][[i]])){
         if(precedent!=data_gl[[identifier]][[i]]){
           line=rep(0,length(list_categ))
           matrice_prop=rbind(matrice_prop,line)
@@ -2902,6 +2903,7 @@ interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd
     
     
     matrice_prop<-matrice_prop[-1,]# on enl?ve la prermi?re ligne consitituer uniquement de 0
+    
     matrice_contribution=matrice_contribution[-1,]
     matrice_prop<-type.convert(matrice_prop) # chiffre en chiffre 
     sumcol=colSums(matrice_prop)
@@ -2912,17 +2914,18 @@ interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd
     sumrow=rowSums(matrice_prop)
     
     
-    
     dia=sapply(1:dim(matrice_prop)[1],FUN = function(x){# calvule des dia par article et du total en derni_re ligne 
       
       cal=0
       matrice_prop[x,]=matrice_prop[x,]/sumrow[[x]]# contingence a pourcentage 
+      
       lien<-list()
       
       for(i in 1:dim(matrice_prop)[2]){# il faut adittionner les couple donc parcourir les colonne deux fois 
         
         for(j in 1:dim(matrice_prop)[2]){
-          
+          print(matrice_prop[x,i])
+          print(matrice_prop[x,j])
           if(matrice_prop[x,i]!=0 && matrice_prop[x,j]!=0){
             
             n1=names(matrice_prop)[i]

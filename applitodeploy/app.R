@@ -134,7 +134,7 @@ ui <-dashboardPage(skin = "red",
                                                                                                                                                    column(3,offset = 1,selectInput("keyword_selection", "Keywords column", choices = "", width = "300px"),
                                                                                                                                                           selectInput("domain_selection", "Domain column", choices = "", width = "300px")),
                                                                                                                                                    column(3,offset = 1,selectInput("date_selection", "Date publication column", choices = "", width = "300px"),
-                                                                                                                                                          selectInput("id_arxiv_selection", "arxiv id column", choices = "", width = "300px")),
+                                                                                                                                                          conditionalPanel('output.show_arxiv_abilities',selectInput("id_arxiv_selection", "arxiv id column", choices = "", width = "300px"))),
                                                                                                                                                    #,conditionalPanel('output.show_ref',
                                                                                                                                                    #column(3,offset = 1,selectInput("ref_selection", "Reference column", choices = "", width = "300px"))
                                                                                                                                                    #),
@@ -295,7 +295,7 @@ ui <-dashboardPage(skin = "red",
                                             #choix de la ou des bases 
                                             checkboxInput("ads", "ADS", FALSE),
                                             checkboxInput("pubmed", "Pubmed", FALSE),
-                                            checkboxInput("arxiv", "ArXiv", FALSE),
+                                            conditionalPanel('output.show_arxiv_abilities',checkboxInput("arxiv", "ArXiv", FALSE)),
                                             
                                             tags$div(title="Citation : aticle which cite an other aticle in the corpus. Reference: articles use to build the articles on the corpus.",radioButtons("type", "What data do you want to fetch ?",
                                                                                                                                                                                                    choices = c(Citations = "cit",
@@ -333,19 +333,7 @@ ui <-dashboardPage(skin = "red",
                                                                                 actionButton("ads_error", "Show error(s)"),
                                                                                 actionButton("ads_cit_ask","Show publication with doute"),
                                                                                 dataTableOutput("table_data_ref1"))),
-                                               tabPanel("ArXiv", conditionalPanel('output.show_arxiv_res_window',
-                                                                                  radioButtons("col_journal_arxiv", "How is the journal names?",
-                                                                                               choices = c("Complet journal name" = "Full.Journal.Title",
-                                                                                                           "Abreviation journal name" = "JCR.Abbreviated.Title"
-                                                                                               ),
-                                                                                               selected = "Full.Journal.Title",inline = TRUE),
-                                                                                  conditionalPanel('output.show_ref',
-                                                                                                   actionButton("arxiv_ref_accept", "Show references")),
-                                                                                  conditionalPanel('output.show_cit',
-                                                                                                   actionButton("arxiv_cit_accept", "Show citations")),
-                                                                                  actionButton("arxiv_error", "Show error(s)"),
-                                                                                  actionButton("arxiv_ask","Show publication found with doute"),
-                                                                                  dataTableOutput("table_data_ref2"))),
+                                               
                                                tabPanel("Pubmed", conditionalPanel('output.show_pumed_res_window',
                                                                                    radioButtons("col_journal_pumed", "How is the journal names?",
                                                                                                 choices = c("Complet journal name" = "Full.Journal.Title",
@@ -364,7 +352,20 @@ ui <-dashboardPage(skin = "red",
                                                                                                                              choices = c("Complet journal name" = "Full.Journal.Title",
                                                                                                                                          "Abreviation journal name" = "JCR.Abbreviated.Title"
                                                                                                                              ),
-                                                                                                                             selected = "JCR.Abbreviated.Title"), dataTableOutput("table_data_ref4")))
+                                                                                                                             selected = "JCR.Abbreviated.Title"), dataTableOutput("table_data_ref4"))),
+                                               conditionalPanel('output.show_arxiv_abilities',tabPanel("ArXiv", conditionalPanel('output.show_arxiv_res_window',
+                                                                                                                                 radioButtons("col_journal_arxiv", "How is the journal names?",
+                                                                                                                                              choices = c("Complet journal name" = "Full.Journal.Title",
+                                                                                                                                                          "Abreviation journal name" = "JCR.Abbreviated.Title"
+                                                                                                                                              ),
+                                                                                                                                              selected = "Full.Journal.Title",inline = TRUE),
+                                                                                                                                 conditionalPanel('output.show_ref',
+                                                                                                                                                  actionButton("arxiv_ref_accept", "Show references")),
+                                                                                                                                 conditionalPanel('output.show_cit',
+                                                                                                                                                  actionButton("arxiv_cit_accept", "Show citations")),
+                                                                                                                                 actionButton("arxiv_error", "Show error(s)"),
+                                                                                                                                 actionButton("arxiv_ask","Show publication found with doute"),
+                                                                                                                                 dataTableOutput("table_data_ref2"))))
                                                
                                                
                                                
@@ -504,10 +505,9 @@ server <- function(input, output, session) {
     states=list(source = c("plot_article_ref", "plot_total_ref"), value = c(-99,-99), changed = c(FALSE,FALSE),key=NULL),
     states_cit=list(source = c("plot_article_cit", "plot_total_cit"), value = c(-99,-99), changed = c(FALSE,FALSE),key=NULL),
     pct_ref=c(NULL,NULL),
-    pct_cit=c(NULL,NULL)
+    pct_cit=c(NULL,NULL),
+    show_arxiv_abilities=FALSE #temps que arxiv n'a pas un moyen de fonctionner cela restera a faux 
     
-    #   data_cit=NULL
-    #   data_ref=NULL
   )  
   #copy des variable reactive dans les output pour leurs permetre d'etre invisible 
   output$show_header <- reactive({
@@ -545,7 +545,12 @@ server <- function(input, output, session) {
   output$show_wos_res_window<- reactive({
     reactive_values$show_wos_res_window
   })
+  output$show_arxiv_abilities<- reactive({
+    reactive_values$show_arxiv_abilities
+  })
+  
   # on rand invisible les variable de conditionnemetn ainsi tous ce qui leurs et lie ne sera pas montrees 
+  outputOptions(output, "show_arxiv_abilities", suspendWhenHidden = FALSE)
   outputOptions(output, "show_header", suspendWhenHidden = FALSE)
   outputOptions(output, "show_pdf_valid", suspendWhenHidden = FALSE)
   outputOptions(output, "show_token_ads", suspendWhenHidden = FALSE)
@@ -679,7 +684,7 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
         updateSelectInput(session, inputId = "author_selection", choices = names(df))
         updateSelectInput(session, inputId = "domain_selection", choices = c("none",names(df)))
         updateSelectInput(session, inputId = "date_selection", choices = names(df))
-        updateSelectInput(session, inputId = "id_arxiv_selection", choices = c("none",names(df)))
+        conditionalPanel('output.show_arxiv_abilities',updateSelectInput(session, inputId = "id_arxiv_selection", choices = c("none",names(df))))
         # affichage de la table 
         output$contents <- renderDataTable({
           if(input$disp == "head") {# si head on affiche que les deux premiere ligne 
@@ -1914,7 +1919,6 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
     }else{
       
          
-      #browser()
       
       error=tryCatch({
         res_temp<-global_merge_and_cal_interdis(ads=reactive_values$res_ads,arxiv=reactive_values$res_arxiv,pumed=reactive_values$res_pumed,wos=reactive_values$ref_wos,journal_table_ref = reactive_values$journal_table_ref,table_categ_gd = reactive_values$table_categ_gd,type = input$type,table_dist =reactive_values$table_dist,col_journal=c(input$col_journal_ads,input$col_journal_arxiv,input$col_journal_pumed,input$col_journal_wos))  
@@ -1995,12 +1999,12 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
                 
               ind_stat=which(reactive_values$matrice_res_ref$data[["refering identifier"]]==input$select_article)
               reactive_values$pct_ref[1]=mean(unlist(reactive_values$matrice_res_ref$data[ind_stat,]$refered_indice_pct_found))
-              View(reactive_values$matrice_res_ref$data[ind_stat,])
+             # View(reactive_values$matrice_res_ref$data[ind_stat,])
               reactive_values$secteur_is_finish<-TRUE
               return(plot_article_ref)
               
             })
-            output$stat_journ_ref_article<-renderText({paste("pourcentage accuracy of graphique aticle",round(reactive_values$pct_ref[1],digits =8))})          
+            output$stat_journ_ref_article<-renderText({paste("pourcentage accuracy of graphique aticle",round(reactive_values$pct_ref[1],digits =2))})          
             # output$downloadPlot_article_ref <- downloadHandler(
             #   filename = function(){paste("test",'.pdf',sep='')},
             #   
