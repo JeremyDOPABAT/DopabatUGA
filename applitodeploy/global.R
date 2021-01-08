@@ -1,4 +1,3 @@
-
 library(network)
 library(igraph)
 library(igraphdata)
@@ -1457,7 +1456,7 @@ find_journal_domaine<-function(journal_data,journal_table_ref,issn="",essn="",so
             # }
             
           }
-         
+          
         }
         if(trouver==FALSE){
           ab=c(ab,NA)
@@ -2878,7 +2877,7 @@ interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd
     names(matrice_contribution)=list_categ
     precedent=""# initialisation , a chaque nouvelle article(id diff?rent) on ce?e une nouvelle ligne.
     for(i in 1:dim(data_gl)[1]){
-      if(!is.null(data_gl[[journal_domaine]][[i]])){
+      if(!is.na(data_gl[[journal_domaine]][[i]])){
         if(precedent!=data_gl[[identifier]][[i]]){
           line=rep(0,length(list_categ))
           matrice_prop=rbind(matrice_prop,line)
@@ -2902,6 +2901,7 @@ interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd
     
     
     matrice_prop<-matrice_prop[-1,]# on enl?ve la prermi?re ligne consitituer uniquement de 0
+    
     matrice_contribution=matrice_contribution[-1,]
     matrice_prop<-type.convert(matrice_prop) # chiffre en chiffre 
     sumcol=colSums(matrice_prop)
@@ -2912,17 +2912,16 @@ interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd
     sumrow=rowSums(matrice_prop)
     
     
-    
     dia=sapply(1:dim(matrice_prop)[1],FUN = function(x){# calvule des dia par article et du total en derni_re ligne 
       
       cal=0
       matrice_prop[x,]=matrice_prop[x,]/sumrow[[x]]# contingence a pourcentage 
+      
       lien<-list()
       
       for(i in 1:dim(matrice_prop)[2]){# il faut adittionner les couple donc parcourir les colonne deux fois 
         
         for(j in 1:dim(matrice_prop)[2]){
-          
           if(matrice_prop[x,i]!=0 && matrice_prop[x,j]!=0){
             
             n1=names(matrice_prop)[i]
@@ -3060,13 +3059,13 @@ combine_analyse_data<-function(df_global,journal_table_ref,type){
     
     df_global$refered_journal_domaine=dom[1,]
     df_global$refered_global_dicipline=dom[2,]
-    df_global$refered_trouver_global_dicipline=dom[3,]
+    df_global$refered_indice_pct_found=dom[3,]
     
   }else{#pour les citation il n'y a pas de patricularite dans le wos
     res<-find_journal_domaine(journal_data = df_global$`citing journal`,journal_table_ref = journal_table_ref,issn = df_global$`citing issn`,source =df_global$source )
     df_global$citing_journal_domaine=res[1,]
     df_global$citing_global_dicipline=res[2,]
-    df_global$citing_trouver_global_dicipline=dom[3,]
+    df_global$citing_indice_pct_found=res[3,]
   }
   return(df_global)  
 }
