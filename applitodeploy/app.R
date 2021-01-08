@@ -380,7 +380,7 @@ ui <-dashboardPage(skin = "red",
                                       #dans cette onglet l'utilisateur vas pouvoir voir les resultat de l'interdiciplinarite, par article.
                                       fluidPage(
                                         selectInput("select_article", "Select the number of the article for the graph",NULL),
-                                        tabBox(width = 12,height = 600, title = "result interdisciplinarity(soon)",
+                                        tabBox(width = 12,height = 600, title = "result interdisciplinarity",
                                                tabPanel("ref",
                                                         column(width = 6,
                                                                textOutput("stat_journ_ref_article"),
