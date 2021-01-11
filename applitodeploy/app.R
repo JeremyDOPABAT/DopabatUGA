@@ -881,15 +881,15 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
       input$root,
       input$domain)
     },{
+      if(input$domain==FALSE){
+        reactive_values$graph=make_network_graph(keywords_lem_complet,year,top_number=input$networktop,interval_year=input$networkintervalyear,sup_ones=input$supones,root_weight = input$root,domain = FALSE)
+      }else{
+        reactive_values$graph=make_network_graph(domainall,year,top_number=input$networktop,interval_year=input$networkintervalyear,sup_ones=input$supones,root_weight = input$root,domain = TRUE)
+        
+      }
       
       error=tryCatch({
-        if(input$domain==FALSE){
-          reactive_values$graph=make_network_graph(keywords_lem_complet,year,top_number=input$networktop,interval_year=input$networkintervalyear,sup_ones=input$supones,root_weight = input$root,domain = FALSE)
-          print("aaaaa")
-        }else{
-          reactive_values$graph=make_network_graph(domainall,year,top_number=input$networktop,interval_year=input$networkintervalyear,sup_ones=input$supones,root_weight = input$root,domain = TRUE)
-          
-        }
+        print("test") 
         
         
         

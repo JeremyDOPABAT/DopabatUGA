@@ -364,28 +364,32 @@ make_network_graph<-function(keywords,publication_date=0,top_number=0,interval_y
   
   
   suppressWarnings(if(!is.na(as.numeric(top_number))) top_number<-as.numeric(top_number))
-  
   if(is.numeric(top_number) & top_number>0) top=TRUE
   
   suppressWarnings(if(!is.na(as.numeric(interval_year))) interval_year<-as.numeric(interval_year))
   
+  print("avant if year")  
+  print(interval_year)
+  print(is.numeric(interval_year) & interval_year>0)
   if(is.numeric(interval_year) & interval_year>0){
     
     
     year<-publication_date
     
-    diff<-max(year)-min(year)# calcule du nombre de graph necessaire 
+    diff<-max(year,na.rm = TRUE)-min(year,na.rm = TRUE)# calcule du nombre de graph necessaire 
     
     iter<-ceiling(diff/interval_year)
     if(iter<1) iter=1
     
+    
+    print("avant if for")  
     for (i in 1:iter){# on cr? chaqun des graphs
       if(i!=iter){# si on est pas sur la derni?re date
-        index_year<-((year>=min(year)+(i-1)*interval_year) &(year<min(year)+i*interval_year))
+        index_year<-((year>=min(year,na.rm = TRUE)+(i-1)*interval_year) &(year<min(year,na.rm = TRUE)+i*interval_year))
         add_brack="["
       }
       else{
-        index_year<-((year>=min(year)+(i-1)*interval_year) &(year<=min(year)+i*interval_year))
+        index_year<-((year>=min(year,na.rm = TRUE)+(i-1)*interval_year) &(year<=min(year,na.rm = TRUE)+i*interval_year))
         add_brack="]"
       }
       key_c<-keywords[index_year]# on ne prend que les mots clef dans l'interval qui nous interesse 
@@ -394,7 +398,7 @@ make_network_graph<-function(keywords,publication_date=0,top_number=0,interval_y
       from=c()
       to=c()
       
-      
+      print("avant if dom")
       #on cree les liste 
       if(domain==FALSE){
         res=make_input_notwork_graph(key_c)
@@ -421,20 +425,20 @@ make_network_graph<-function(keywords,publication_date=0,top_number=0,interval_y
       V(c_igraph)$title=names(wei)
       V(c_igraph)$group="node(keyword)"
       
-      
+      print("avant if sup")
       # cr?ation du graphique en assignant ces caract?ristique(permet une utilisation plus simple )
       if(sup_ones==TRUE){ # on supprime les sommet non interessant 
         ind_sup<-V(c_igraph)$weight==1
         c_igraph=delete_vertices(c_igraph,ind_sup)
         add_title_sup="found more than ones,"
       }   
-      b=min(year)+(i)*interval_year
-      if(b>max(year)) b<-max(year)
-      main_title=paste("Graph of ",add_title_domaine,add_title_top,add_title_sup , "year :[",min(year)+(i-1)*interval_year,":",b,add_brack)
+      b=min(year,na.rm = TRUE)+(i)*interval_year
+      if(b>max(year,na.rm = TRUE)) b<-max(year,na.rm = TRUE)
+      main_title=paste("Graph of ",add_title_domaine,add_title_top,add_title_sup , "year :[",min(year,na.rm = TRUE)+(i-1)*interval_year,":",b,add_brack)
       if(root_weight==TRUE){
         V(c_igraph)$size=sqrt(V(c_igraph)$size)  
       }
-      
+      print("avant if top")
       if(top==TRUE ){# on se focalise sur les sommets les plus pris 
         c_igraph<-make_top_graph(c_igraph,wei,top_number)
         add_title_top=paste("top",top_number,",")
