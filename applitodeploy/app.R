@@ -95,7 +95,7 @@ ui <-dashboardPage(skin = "red",
                                                          selected = "Latin-1"),
                                             tags$hr(),
                                             radioButtons("disp", "Display",
-                                                         choices = c(Head = "head",
+                                                         choices = c(Head = "Few lines",
                                                                      All = "all"),
                                                          selected = "head"),
                                             tags$hr(),
@@ -204,7 +204,7 @@ ui <-dashboardPage(skin = "red",
                                                                                                                                                                                          "Firstname Lastname" = "1"),
                                                                                                                                                                              selected = "1")),
                                             radioButtons("disp_wos", "Display",
-                                                         choices = c(Head = "head",# mode de visualisation du fichier 
+                                                         choices = c(Head = "Few lines",# mode de visualisation du fichier 
                                                                      All = "all"),
                                                          selected = "head"),
                                             
@@ -331,7 +331,7 @@ ui <-dashboardPage(skin = "red",
                                                                                                  actionButton("ads_cit_accept", "Show citations")
                                                                                 ),
                                                                                 actionButton("ads_error", "Show error(s)"),
-                                                                                actionButton("ads_cit_ask","Show publication with doute"),
+                                                                                actionButton("ads_ask","Show publication with doute"),
                                                                                 dataTableOutput("table_data_ref1"))),
                                                
                                                tabPanel("Pubmed", conditionalPanel('output.show_pumed_res_window',
@@ -434,9 +434,15 @@ ui <-dashboardPage(skin = "red",
                                           htmlOutput("text"),
                                           HTML('<br>'),
                                           HTML('<br>'),
-                                          tags$div(HTML('<img src="logo_uga.png" hight="120" width="120">'),HTML('<img src = "logo_colex.png" hight="135" width="135">' )),
+                                          tags$div(HTML('<img src="logo_ads.png" hight="130" width="130">'),
+                                                   HTML('<img src = "logo_pub.png" hight="120" width="120">' ),
+                                                   HTML('<img src = "logo_lens.png" hight="120" width="120">' )),
                                           HTML('<br>'),
                                           HTML('<br>'),
+                                          HTML('<br>'),
+                                          HTML('<br>'),
+                                          tags$div(HTML('<img src="logo_uga.png" hight="120" width="120">'),
+                                                   HTML('<img src = "logo_colex.png" hight="135" width="135">' )),
                                           HTML('<br>'),
                                           tags$div(HTML('<img src = "logo_cnrs.png" hight="100" width="100">' ),HTML('<img src = "logo_psl.png" hight="100" width="100">' ))
                                         )
@@ -506,6 +512,7 @@ server <- function(input, output, session) {
     states_cit=list(source = c("plot_article_cit", "plot_total_cit"), value = c(-99,-99), changed = c(FALSE,FALSE),key=NULL),
     pct_ref=c(NULL,NULL),
     pct_cit=c(NULL,NULL),
+    transfer_done=list(ads=NULL,arxiv=NULL,pumed=NULL),
     show_arxiv_abilities=FALSE #temps que arxiv n'a pas un moyen de fonctionner cela restera a faux 
     
   )  
@@ -569,7 +576,7 @@ server <- function(input, output, session) {
   
   #ce qui suit est le texte present dans la partie about 
   output$text <- renderText({
-    paste( paste0(R.Version()[c("major","minor")], collapse = "."), h3("DOPABAT, what is it ?"),"\n","DOPABAT (Développement d'outils d'analyse bibliométrique et d'audience des thèses) is a project funded by Collex-Persée.
+    paste(  h3("DOPABAT, what is it ?"),"\n","DOPABAT (Développement d'outils d'analyse bibliométrique et d'audience des thèses) is a project funded by Collex-Persée.
            A national infrastructure of technique and sciences which supports French researchers. The objectives are, on the one hand, to know the importance of theses in the scientific production and, on the other hand, to know the importance of the cooperation between laboratories on the themes of Physics and Astronomy. 
            At first this project was a researcheress request that consisted in the analysis of PHDs coming from two universities. DOPABAT aims to analyse all the bibliometric data, keywords, domains of study, citations, references",
            h3("DOPABAT,who is it?"),"
@@ -591,8 +598,11 @@ server <- function(input, output, session) {
            "to contact us: dopabat@univ-grenoble-alpes.fr",
            'This project is funded  by <a href="https://www.collexpersee.eu/">  GIS Collex Persée</a> according to  <a href="https://https://www.collexpersee.eu/les-projets//">  APP 2019</a> ',
            h3("The Blog"), "here is the adress of the blog to see the back ground of the project : <a href='https://dopabat.inist.fr/'> : https://dopabat.inist.fr/ </a>",
-           "This blog is describing the problem, the methodes and the steps of the project
-We like to thanks ADS,PUMED , ARXIV,  for answering our questions during developpement."
+           "This blog is describing the problem, the methodes and the steps of the project",h3("Thanks"),"
+           
+All the DOPABAT team would like to thank ADS, PUMED and LENS for their disposal and support during all the development phase. We personally thank all the databases that allow the platform to work. 
+We ask all the users to   cite the different souces they use to make the graphs.
+"
            
     )
     
@@ -885,7 +895,6 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
       error=tryCatch({
         if(input$domain==FALSE){
           reactive_values$graph=make_network_graph(keywords_lem_complet,year,top_number=input$networktop,interval_year=input$networkintervalyear,sup_ones=input$supones,root_weight = input$root,domain = FALSE)
-          print("aaaaa")
         }else{
           reactive_values$graph=make_network_graph(domainall,year,top_number=input$networktop,interval_year=input$networkintervalyear,sup_ones=input$supones,root_weight = input$root,domain = TRUE)
           
@@ -1647,30 +1656,41 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
     })
   })
   
-  observeEvent(input$ads_cit_ask,{
+  observeEvent({
+    c(input$ads_ask,
+      reactive_values$transfer_done$ads)}
+               ,{
     
     reactive_values$table_to_show_ref=reactive_values$res_ads$dataframe_publi_found[(reactive_values$res_ads$dataframe_publi_found$check_title_pct<reactive_values$value_same_min_accept) &(reactive_values$res_ads$dataframe_publi_found$check_title_pct>=reactive_values$value_same_min_ask),]
-    
     if(dim(reactive_values$table_to_show_ref)[1]>0) rownames(reactive_values$table_to_show_ref)<-1:nrow(reactive_values$table_to_show_ref)
-    df <-reactiveValues(data =cbind(Actions = shinyInput( FUN = actionButton, n=nrow(reactive_values$table_to_show_ref), id='button_', label = "Transfer",  onclick = 'Shiny.setInputValue(\"select_button\", this.id, {priority: \"event\"})' ),reactive_values$table_to_show_ref
-    ) )
-    print(input$select_button)
+  
+    if(!is.null(reactive_values$transfer_done$ads)){ 
+  
+      ind_temp=reactive_values$table_to_show_ref$bibcode%in%reactive_values$transfer_done$ads
+      reactive_values$table_to_show_ref=reactive_values$table_to_show_ref[!ind_temp,]  
+    }
     
-    output$table_data_ref1<- DT::renderDataTable(
-      df_flatten(df$data), escape = FALSE, options = list( lengthMenu = c(5, 25, 50), pageLength = 25,
-                                                           
-                                                           scrollX = TRUE, columnDefs = list(list(
-                                                             targets = "_all" ,render = JS(
-                                                               "function(data, type, row, meta) {",
-                                                               "return type === 'display' && data.length > 200 ?",
-                                                               "'<span title=\"' + data + '\">' + data.substr(0, 200) + '...</span>' : data;",
-                                                               "}")
-                                                           )))
-    )
+      df <-reactiveValues(data =cbind(Actions = shinyInput( FUN = actionButton, n=nrow(reactive_values$table_to_show_ref), id='button_', label = "Transfer",  onclick = 'Shiny.setInputValue(\"select_button\", this.id, {priority: \"event\"})' ),reactive_values$table_to_show_ref
+      ) )
+      
+      output$table_data_ref1<- DT::renderDataTable(
+        df_flatten(df$data), escape = FALSE, options = list( lengthMenu = c(5, 25, 50), pageLength = 25,
+                                                             
+                                                             scrollX = TRUE, columnDefs = list(list(
+                                                               targets = "_all" ,render = JS(
+                                                                 "function(data, type, row, meta) {",
+                                                                 "return type === 'display' && data.length > 200 ?",
+                                                                 "'<span title=\"' + data + '\">' + data.substr(0, 200) + '...</span>' : data;",
+                                                                 "}")
+                                                             )))
+      )
     
+    
+    
+    #if(length(reactive_values$transfer_done$ads)>1) browser()
     
     reactive_values$active_source="ADS"
-  })
+  },ignoreInit = TRUE)
   
   observeEvent(input$select_button, {
     
@@ -1692,6 +1712,7 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
         ind_ref_2=which(reactive_values$table_to_show_ref$bibcode[[selectedRow]]==unlist(reactive_values$res_ads$dataframe_ref_accept$`refering identifier`))# ligne déja ajouter
         if(length(ind_ref_2)==0)if(!is.null(dim(reactive_values$res_ads$dataframe_ref_ask[ind_ref_1,])[1]))  if(dim(reactive_values$res_ads$dataframe_ref_ask[ind_ref_1,])[1]>0)reactive_values$res_ads$dataframe_ref_accept=rbind(reactive_values$res_ads$dataframe_ref_accept,reactive_values$res_ads$dataframe_ref_ask[ind_ref_1,])
       }
+      reactive_values$transfer_done$ads=c(reactive_values$transfer_done$ads,reactive_values$table_to_show_ref$bibcode[[selectedRow]])  
       
     }
     
@@ -1709,6 +1730,7 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
         
         if(length(ind_ref_2)==0) if(!is.null(dim(reactive_values$res_arxiv$res_reference_ask[ind_ref_1,])[1])) if(dim(reactive_values$res_arxiv$res_reference_ask[ind_ref_1,])[1]>0) reactive_values$res_arxiv$res_reference_accept=rbind(reactive_values$res_arxiv$res_reference_accept,reactive_values$res_arxiv$res_reference_ask[ind_ref_1,])
       }
+      reactive_values$transfer_done$ads=c(reactive_values$transfer_done$arxiv,reactive_values$table_to_show_ref$abs_link[[selectedRow]]) 
     }  
     
     if(reactive_values$active_source=="PUBMED"){
@@ -1722,7 +1744,7 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
         ind_ref_2=which(reactive_values$table_to_show_ref$id[[selectedRow]]==unlist(reactive_values$res_pumed$dataframe_ref_accept$`refering identifier`))# ligne déja ajouter
         if(length(ind_ref_2)==0) if(dim(reactive_values$res_pumed$dataframe_ref_ask[ind_ref_1,])[1])  if(dim(reactive_values$res_pumed$dataframe_ref_ask[ind_ref_1,])[1]>0) reactive_values$res_pumed$dataframe_ref_accept=rbind(reactive_values$res_pumed$dataframe_ref_accept,reactive_values$res_ads$dataframe_ref_ask[ind_ref_1,])
       }
-      
+      reactive_values$transfer_done$ads=c(reactive_values$transfer_done$pumed,reactive_values$table_to_show_ref$id[[selectedRow]])   
     }
   })
   
@@ -1775,8 +1797,6 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
       #   need(reactive_values$data_wos, "No bibtext data"),
       #   need(!is.null(reactive_values$data_wos), "")
       # )
-      print("voicciiiiiii les erreur ")
-      print(reactive_values$res_arxiv$error_querry)
       table_data=datatable(df_flatten(reactive_values$res_arxiv$error_querry), options = list(scrollX = TRUE, columnDefs = list(list(
         targets = "_all" ,render = JS(
           "function(data, type, row, meta) {",
@@ -1788,11 +1808,25 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
       
     })
   })
-  observeEvent(input$arxiv_ask,{
+  observeEvent({
+    c(
+    input$arxiv_ask,
+    reactive_values$transfer_done$arxiv
+                  )},{
     reactive_values$table_to_show_ref=reactive_values$res_arxiv$res_publi_foundt[(reactive_values$res_arxiv$res_publi_foundt$check_pct<reactive_values$value_same_min_accept),]
+   
     
+     
     if(dim(reactive_values$table_to_show_ref)[1]>0) rownames(reactive_values$table_to_show_ref)<-1:nrow(reactive_values$table_to_show_ref)
-    df <- reactiveValues(data =cbind(Actions = shinyInput( FUN = actionButton, n=nrow(reactive_values$table_to_show_ref), id='button_', label = "Transfer",  onclick = 'Shiny.setInputValue(\"select_button\", this.id, {priority: \"event\"})' ),reactive_values$table_to_show_ref
+    
+    if(!is.null(reactive_values$transfer_done$arxiv)){ 
+      
+      ind_temp=reactive_values$table_to_show_ref$abs_link%in%reactive_values$transfer_done$arxiv
+      reactive_values$table_to_show_ref=reactive_values$table_to_show_ref[!ind_temp,]  
+    }
+    
+    
+     df <- reactiveValues(data =cbind(Actions = shinyInput( FUN = actionButton, n=nrow(reactive_values$table_to_show_ref), id='button_', label = "Transfer",  onclick = 'Shiny.setInputValue(\"select_button\", this.id, {priority: \"event\"})' ),reactive_values$table_to_show_ref
     ) )
     
     output$table_data_ref2<- DT::renderDataTable(
@@ -1810,7 +1844,7 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
     
     reactive_values$active_source="ARXIV"
     
-  })
+  },ignoreInit = TRUE)
   observeEvent(input$pubmed_ref_accept,{
     output$table_data_ref3 <- renderDataTable({
       # validate(
@@ -1865,12 +1899,23 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
       
     })
   })
-  observeEvent(input$pubmed_ask,{
+  observeEvent({
+    c(input$pubmed_ask,
+      reactive_values$transfer_done$pumed)
+                  },{
     
     print("je passe sur pumed ask")
     reactive_values$table_to_show_ref=reactive_values$res_pumed$dataframe_publi_found[(reactive_values$res_pumed$dataframe_publi_found$check_title_pct<reactive_values$value_same_min_accept),]
     
     if(dim(reactive_values$table_to_show_ref)[1]>0) rownames(reactive_values$table_to_show_ref)<-1:nrow(reactive_values$table_to_show_ref)
+    
+    if(!is.null(reactive_values$transfer_done$pumed)){ 
+      
+      ind_temp=reactive_values$table_to_show_ref$id%in%reactive_values$transfer_done$pumed
+      reactive_values$table_to_show_ref=reactive_values$table_to_show_ref[!ind_temp,]  
+    }
+    
+    
     df <- reactiveValues(data =cbind(Actions = shinyInput( FUN = actionButton, n=nrow(reactive_values$table_to_show_ref), id='button_', label = "Transfer",  onclick = 'Shiny.setInputValue(\"select_button\", this.id, {priority: \"event\"})' ),reactive_values$table_to_show_ref    ) )
     
     output$table_data_ref2<- DT::renderDataTable(
@@ -1888,7 +1933,7 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
     
     reactive_values$active_source="PUBMED"
     
-  })
+  },ignoreInit = TRUE)
   #partie interdiciplinarité ----
   
   
@@ -1917,8 +1962,8 @@ We like to thanks ADS,PUMED , ARXIV,  for answering our questions during develop
       
       
     }else{
-      
-         
+      #browser()
+     
       
       error=tryCatch({
         res_temp<-global_merge_and_cal_interdis(ads=reactive_values$res_ads,arxiv=reactive_values$res_arxiv,pumed=reactive_values$res_pumed,wos=reactive_values$ref_wos,journal_table_ref = reactive_values$journal_table_ref,table_categ_gd = reactive_values$table_categ_gd,type = input$type,table_dist =reactive_values$table_dist,col_journal=c(input$col_journal_ads,input$col_journal_arxiv,input$col_journal_pumed,input$col_journal_wos))  

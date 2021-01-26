@@ -1,10 +1,8 @@
-
 library(network)
 library(igraph)
 library(igraphdata)
 require("tm")
 require('wordcloud')
-#
 require("RColorBrewer")
 require("rvest")
 require("visNetwork")
@@ -248,14 +246,14 @@ make_wordcloud<-function(keywords,publication_date=0,interval_year=0,simple_word
   
   if(is.numeric(interval_year) & interval_year>0){
     
-    diff<-max(year)-min(year)
+    diff<-max(year,na.rm=TRUE)-min(year,year,na.rm=TRUE)
     iter<-ceiling(diff/interval_year)
     for (i in 1:iter){
       if(i!=iter){# si on est pas sur la derni?re date
-        index_year<-((year>=min(year)+(i-1)*interval_year) &(year<min(year)+i*interval_year))
+        index_year<-((year>=min(year,na.rm=TRUE)+(i-1)*interval_year) &(year<min(year,na.rm=TRUE)+i*interval_year))
         add_brack="["
       }else{
-        index_year<-((year>=min(year)+(i-1)*interval_year) &(year<=min(year)+i*interval_year))
+        index_year<-((year>=min(year,na.rm=TRUE)+(i-1)*interval_year) &(year<=min(year,na.rm=TRUE)+i*interval_year))
         add_brack="]"
       }
       #print(table(year[index_year]))
@@ -285,14 +283,14 @@ make_wordcloud<-function(keywords,publication_date=0,interval_year=0,simple_word
         t_word<-t_word[order(factor(t_word, levels=names(t_freq)))]
       }
       if(length(t_freq)!=0){
-        b=min(year)+(i)*interval_year
+        b=min(year,na.rm = TRUE)+(i)*interval_year
         #print(head(sort(t_freq,decreasing=TRUE),10))
         if(b>max(year)) b<-max(year)
         
         p_res[i]=wordcloud(words = t_word, freq = t_freq, min.freq = minfreq,
                            max.words=max_word_print, random.order=FALSE, rot.per=0.35,
                            colors=brewer.pal(8, "Dark2"),scale = c(1.5, 0.3))
-        titre<-paste("top",max_word_print,"mots cl?s",add_title,"ann?e(s) [",min(year)+(i-1)*interval_year,":",b,add_brack,"( frequence de mot min:",minfreq,")")
+        titre<-paste("top",max_word_print,"mots cl?s",add_title,"ann?e(s) [",min(year,na.rm = TRUE)+(i-1)*interval_year,":",b,add_brack,"( frequence de mot min:",minfreq,")")
         mtext(titre,side=2)
         
         #print(head(sort(t_freq,decreasing=TRUE),10))
@@ -366,28 +364,32 @@ make_network_graph<-function(keywords,publication_date=0,top_number=0,interval_y
   
   
   suppressWarnings(if(!is.na(as.numeric(top_number))) top_number<-as.numeric(top_number))
-  
   if(is.numeric(top_number) & top_number>0) top=TRUE
   
   suppressWarnings(if(!is.na(as.numeric(interval_year))) interval_year<-as.numeric(interval_year))
   
+  print("avant if year")  
+  print(interval_year)
+  print(is.numeric(interval_year) & interval_year>0)
   if(is.numeric(interval_year) & interval_year>0){
     
     
     year<-publication_date
     
-    diff<-max(year)-min(year)# calcule du nombre de graph necessaire 
+    diff<-max(year,na.rm = TRUE)-min(year,na.rm = TRUE)# calcule du nombre de graph necessaire 
     
     iter<-ceiling(diff/interval_year)
     if(iter<1) iter=1
     
+    
+    print("avant if for")  
     for (i in 1:iter){# on cr? chaqun des graphs
       if(i!=iter){# si on est pas sur la derni?re date
-        index_year<-((year>=min(year)+(i-1)*interval_year) &(year<min(year)+i*interval_year))
+        index_year<-((year>=min(year,na.rm = TRUE)+(i-1)*interval_year) &(year<min(year,na.rm = TRUE)+i*interval_year))
         add_brack="["
       }
-      else{
-        index_year<-((year>=min(year)+(i-1)*interval_year) &(year<=min(year)+i*interval_year))
+      else{ 
+        index_year<-((year>=min(year,na.rm = TRUE)+(i-1)*interval_year) &(year<=min(year,na.rm = TRUE)+i*interval_year))
         add_brack="]"
       }
       key_c<-keywords[index_year]# on ne prend que les mots clef dans l'interval qui nous interesse 
@@ -396,7 +398,7 @@ make_network_graph<-function(keywords,publication_date=0,top_number=0,interval_y
       from=c()
       to=c()
       
-      
+      print("avant if dom")
       #on cree les liste 
       if(domain==FALSE){
         res=make_input_notwork_graph(key_c)
@@ -423,20 +425,20 @@ make_network_graph<-function(keywords,publication_date=0,top_number=0,interval_y
       V(c_igraph)$title=names(wei)
       V(c_igraph)$group="node(keyword)"
       
-      
+      print("avant if sup")
       # cr?ation du graphique en assignant ces caract?ristique(permet une utilisation plus simple )
       if(sup_ones==TRUE){ # on supprime les sommet non interessant 
         ind_sup<-V(c_igraph)$weight==1
         c_igraph=delete_vertices(c_igraph,ind_sup)
         add_title_sup="found more than ones,"
       }   
-      b=min(year)+(i)*interval_year
-      if(b>max(year)) b<-max(year)
-      main_title=paste("Graph of ",add_title_domaine,add_title_top,add_title_sup , "year :[",min(year)+(i-1)*interval_year,":",b,add_brack)
+      b=min(year,na.rm = TRUE)+(i)*interval_year
+      if(b>max(year,na.rm = TRUE)) b<-max(year,na.rm = TRUE)
+      main_title=paste("Graph of ",add_title_domaine,add_title_top,add_title_sup , "year :[",min(year,na.rm = TRUE)+(i-1)*interval_year,":",b,add_brack)
       if(root_weight==TRUE){
         V(c_igraph)$size=sqrt(V(c_igraph)$size)  
       }
-      
+      print("avant if top")
       if(top==TRUE ){# on se focalise sur les sommets les plus pris 
         c_igraph<-make_top_graph(c_igraph,wei,top_number)
         add_title_top=paste("top",top_number,",")
@@ -743,7 +745,7 @@ get_cit_or_ref<-function(resdt,type="cit",token){# on r?cup?re les infodes citat
       message='Please wait',
       detail=paste0("doing ",type, ' search in ads ...'),
       value=0, {
-        
+
         for(j in 1:count){# on parcour tout les ref/cit
           first<-(j-1)*pas_cit+1
           last<-j*pas_cit
@@ -1166,9 +1168,12 @@ ads_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,val
         
         
         
+        
         (ti_querry=paste0("%22",gsub("[]]","%5D",gsub("`",'%60',gsub("[[]","%5B",gsub("[(]","%28",gsub("[)]","%29",gsub("<","%3C",gsub(">","%3E",gsub("=","%3D",gsub('[}{]',"",gsub("&","%26",gsub('"','%22',gsub("\\", "",gsub(":","%3A",gsub("/","%2F",gsub("'","%27",gsub(" ","%20",
-                                                                                                                                                                                                                                                                             gsub(",","%2c",gsub("e?","e",gsub("?","",gsub("%","%25",(tolower(Unaccent(ti_data[first:last])))),fixed=TRUE),fixed = TRUE)))))), 
+                                                                                                                                                                                                                                                                             gsub(",","%2c",gsub("e?","e",gsub("-"," ",gsub("[?$]","",gsub("%","%25",(tolower(Unaccent(ti_data[first:last]))))),fixed=TRUE),fixed = TRUE)))))), 
                                                                                                                                                                                                                   fixed=TRUE)))))))))))), collapse = 'OR','%22'))
+        
+        
         
         
         adress=paste0('author%3A%28',au_querry,'%29AND%20title%3A%28',ti_querry,'%29&fl=reference%20citation%20author%20title%20database%20pubdate%20bibcode%20keyword%20pub%20&sort=date%20desc&rows=500&start=',0)
@@ -1294,12 +1299,12 @@ pumed_get_element_id<-function(id_list,type){
   },
   
   warning=function(cond){# si erreur on met en forme les informations 
-    titre_error=as.data.frame(ti_data[first:last])
+    titre_error=as.data.frame(id_list_string)
     names(titre_error)=c("Publication title")
     titre_error["Status error"]=r$status
     titre_error$Message=message_error(r)
     titre_error["Data impact"]=type
-    titre_error$h=h
+    titre_error$h=NA
     return(titre_error)
   })
   
@@ -1394,22 +1399,22 @@ find_journal_domaine<-function(journal_data,journal_table_ref,issn="",essn="",so
   dom=sapply(1:length(journal_data),FUN=function(x){
     #marker
     trouver=FALSE
-    # print(x)
+    
     withProgress(
       message='Please wait',
       detail=paste0("matching journal"),
       value=0, {
-        for(h in 1:inter){# boucle principale qui parcour les donn?es 
-          incProgress(1/inter)
-          
+    for(h in 1:inter){# boucle principale qui parcour les donn?es
+      incProgress(1/inter)
+
           first<-(h-1)*pas+1# premier individu a prendre en compte(ligne)
           last<-h*pas       # dernier ""   "      "       "   "
           if(last>dim(journal_table_ref)[1]) last<-dim(journal_table_ref)[1]
           journal_courant=journal_table_ref[first:last,]
           
           
-          #print(x)
-          if(!is.na(journal_data[[x]]) && trouver==FALSE  ) {
+          print(x)
+          if(!(is.na(journal_data[[x]]) ||is.null(journal_data[[x]]))  && trouver==FALSE  ) {
             if(length(issn)!=0){ if(!is.null(issn[x]) &&issn[x]!="" && !is.na(issn[x]) ){# on trouve l'iissn si il est present 
               ind=which(issn[[x]]==journal_courant$issn) 
               if(length(ind)>0){
@@ -1458,7 +1463,7 @@ find_journal_domaine<-function(journal_data,journal_table_ref,issn="",essn="",so
             # }
             
           }
-         
+          
         }
         if(trouver==FALSE){
           ab=c(ab,NA)
@@ -1605,7 +1610,7 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,pas=8,value_same_min_a
   
   
   
-  
+  print("arriver a dif cit")
   if(type!="cit"){# on prend soit les citation soit "all soit uniquement les reference 
     
     if(source_name!="") res_new_s=res_rest else  res_new_s=res_new
@@ -1672,6 +1677,7 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,pas=8,value_same_min_a
   
   
   #travaile sur les citation_______________________________________________
+  print("arriver a dif ref")
   if(type!="ref"){
     #recup?ration des identifiaant de citation ________________________________
     id_list=(unlist(res_new$id))
@@ -1688,6 +1694,7 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,pas=8,value_same_min_a
       value=0, {
         #
         for(h in(1:inter)){
+          print(h)
           incProgress(1/inter) # augmentation de la barre de chargement
           first<-(h-1)*pas+1
           last<-h*pas
@@ -1718,7 +1725,8 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,pas=8,value_same_min_a
             error_querry<-rbind(error_querry,error)
             error=c()
             
-          }else {#si il n'y a pas d'erreur  
+          }else {#si il n'y a pas d'erreur
+            
             result<- jsonlite::fromJSON(txt = httr::content(r, 'text'), simplifyDataFrame = TRUE)
             list_citation_globale=result$linksets$linksetdbs
             
@@ -1742,6 +1750,7 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,pas=8,value_same_min_a
           
         }
       })
+    print("deuxieme partie ")
     if(length(id_raw)!=dim(res_new)[1] && !is.null(res_new) ) id_raw<-c(id_raw,rep(NA,dim(res_new)[1]-length(id_raw)))
     res_new$citation<-id_raw
     
@@ -1750,6 +1759,7 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,pas=8,value_same_min_a
       inter=ceiling(length(id_list_citation_final)/pas)
       res_cit=c()
       for(h in(1:inter)){
+        print(h)
         first<-(h-1)*pas+1
         last<-h*pas
         if(last>length(id_list_citation_final)) last<-length(id_list_citation_final)
@@ -1769,13 +1779,47 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,pas=8,value_same_min_a
       names(res_cit)<-c("id_cit","auteur_cit","titre_cit","date_cit","essn_cit","issn_cit", "journal_cit")
       
       
+
       ind_id<-sapply(res_cit$id_cit,function(x){
         return(grep(x,(res_new$citation)))
       })
-      res_cit_final=cbind(res_new[ind_id,],res_cit)
+
+      multi_cit_article<-sapply(ind_id,function(x){
+          return(length(x))
+        })
+
+      multi_cit_article<-which(multi_cit_article>1)
+
+      couple=list(indice_id_cit=list(), indice_id_res_new=list())# on va recrée les couple en trop après l'association
+      for(i in multi_cit_article){
+
+        couple$indice_id_cit=append(couple$indice_id_cit,i)
+        couple$indice_id_res_new=append(couple$indice_id_res_new,ind_id[[i]][-1])#on enleve le premier deja dans l'association de base
+        ind_id[[i]]=ind_id[[i]][1]
+      }
+
+      
+      res_cit_final=cbind(res_new[unlist(ind_id),],res_cit)
       res_cit_final<-res_cit_final[,-which(names(res_cit_final)=="ref_pmid")]
       res_cit_final<-res_cit_final[,-which(names(res_cit_final)=="citation")]
       
+      
+      # on ne peu pas le faire avant pour éviter de changer la dimention du res cit 
+      #on rajoute ce qui a été enlever au préalable 
+      for(i in 1:length(multi_cit_article)){
+        temp=c()# table temp
+        res_cit_temp=sapply(1:length(couple$indice_id_res_new[[i]]),FUN = function(x){
+          temp=rbind(temp,res_cit[couple$indice_id_cit[[i]],]) 
+        })
+        res_cit_temp=as.data.frame(t(res_cit_temp),stringsAsFactors = FALSE)
+        res_new_temp=res_new[couple$indice_id_res_new[[i]],]
+        
+        temp=cbind(res_new_temp,res_cit_temp)
+        #on enleve les colonne en trop 
+        temp<-temp[,-which(names(temp)=="ref_pmid")]
+        temp<-temp[,-which(names(temp)=="citation")]
+        res_cit_final=rbind(res_cit_final,temp)
+      }
       names(res_cit_final)<- c("cited identifier","cited auth","cited title","cited date","cited journal","h","cited issn","cited essn","check","check ind","citing identifier", "citing auth","citing title","citing date","citing essn","citing issn","citing journal" )
       if(dim(res_cit_final)[1]>0)res_cit_final<-res_cit_final[order(unlist(res_cit_final$`cited identifier`)),]
       
@@ -2869,8 +2913,10 @@ interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd
     title="cited title"
   }
   #View(data_gl)
-  
+ # browser()
   nb_categ=unlist(data_gl[[journal_domaine]]) #on pr?parer les colonne de la table de containgence 
+  remouve=which(is.na(nb_categ)) 
+  if(length(remouve)>0 && length(nb_categ[-remouve])>0) 
   if(length(nb_categ)>0){
     list_categ<-Unaccent(names(table(nb_categ)))
     matrice_prop=as.data.frame(matrix(0,ncol=length(list_categ)))# initialisation de la matrice 
@@ -2879,7 +2925,6 @@ interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd
     names(matrice_contribution)=list_categ
     precedent=""# initialisation , a chaque nouvelle article(id diff?rent) on ce?e une nouvelle ligne.
     for(i in 1:dim(data_gl)[1]){
-      print(i)
       if(!is.na(data_gl[[journal_domaine]][[i]])){
         if(precedent!=data_gl[[identifier]][[i]]){
           line=rep(0,length(list_categ))
@@ -2925,8 +2970,6 @@ interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd
       for(i in 1:dim(matrice_prop)[2]){# il faut adittionner les couple donc parcourir les colonne deux fois 
         
         for(j in 1:dim(matrice_prop)[2]){
-          print(matrice_prop[x,i])
-          print(matrice_prop[x,j])
           if(matrice_prop[x,i]!=0 && matrice_prop[x,j]!=0){
             
             n1=names(matrice_prop)[i]
@@ -3028,9 +3071,9 @@ merge_result_data_base<-function(ads,arxiv,pumed,wos,col_journal=c(NULL,NULL,NUL
   }
   
   
-  if(!is.null(ads)) ads_data$source=col_journal[1]
-  if(!is.null(arxiv)) arxi_data$source=col_journal[2]
-  if(!is.null(pumed)) pumed_data$source=col_journal[3]
+  if(!is.null(ads_data)) ads_data$source=col_journal[1]
+  if(!is.null(arxi_data)) arxi_data$source=col_journal[2]
+  if(!is.null(pumed_data)) pumed_data$source=col_journal[3]
   
   
   data_merge=as.data.frame(rbind.fill(ads_data,arxi_data),stringsAsFactors = FALSE)

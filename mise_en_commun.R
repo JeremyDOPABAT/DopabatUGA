@@ -14,14 +14,15 @@ library(plyr)
 
 ths$position_name=1
 ths$sep=","
+ths$source="CSV"
 
 
 
 
-
-dim(res_data_nasa_ads$error_querry_publi)
 View(res_arxiv$res_publi_foundt)
 View(res_to_save)
+
+res_data_nasa_ads=extraction_data_api_nasa_ads(data_pub=ths,ti_name=ti_name,au_name=au_name,token=token,pas=8,value_same_min_accept=0.95,value_same_min_ask = 0.85,type="all",sep_vector_in_data ="sep",position_vector_in_data = "position_name",source_name = "source" )
 
 
 res_arxiv=extraction_data_api_arxiv(data_pub=ths,ti_name=ti_name,au_name=au_name,pas=8,value_same_min_accept=0.95,value_same_min_ask = 0.85,type = "all",sep_vector_in_data ="sep",position_vector_in_data = "position_name")
@@ -238,7 +239,6 @@ str(bib)
 # 
 # 
 
-res_data_nasa_ads=extraction_data_api_nasa_ads(data_pub=ths,ti_name=ti_name,au_name=au_name,token=token,pas=8,value_same_min_accept=0.95,value_same_min_ask = 0.85,type="all",sep_vector_in_data ="sep",position_vector_in_data = "position_name" )
 # dim(res_data_nasa_ads$dataframe_ref_accept)
 # 
 
