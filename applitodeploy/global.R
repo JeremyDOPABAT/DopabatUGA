@@ -246,14 +246,14 @@ make_wordcloud<-function(keywords,publication_date=0,interval_year=0,simple_word
   
   if(is.numeric(interval_year) & interval_year>0){
     
-    diff<-max(year)-min(year)
+    diff<-max(year,na.rm=TRUE)-min(year,year,na.rm=TRUE)
     iter<-ceiling(diff/interval_year)
     for (i in 1:iter){
       if(i!=iter){# si on est pas sur la derni?re date
-        index_year<-((year>=min(year)+(i-1)*interval_year) &(year<min(year)+i*interval_year))
+        index_year<-((year>=min(year,na.rm=TRUE)+(i-1)*interval_year) &(year<min(year,na.rm=TRUE)+i*interval_year))
         add_brack="["
       }else{
-        index_year<-((year>=min(year)+(i-1)*interval_year) &(year<=min(year)+i*interval_year))
+        index_year<-((year>=min(year,na.rm=TRUE)+(i-1)*interval_year) &(year<=min(year,na.rm=TRUE)+i*interval_year))
         add_brack="]"
       }
       #print(table(year[index_year]))
@@ -283,14 +283,14 @@ make_wordcloud<-function(keywords,publication_date=0,interval_year=0,simple_word
         t_word<-t_word[order(factor(t_word, levels=names(t_freq)))]
       }
       if(length(t_freq)!=0){
-        b=min(year)+(i)*interval_year
+        b=min(year,na.rm = TRUE)+(i)*interval_year
         #print(head(sort(t_freq,decreasing=TRUE),10))
         if(b>max(year)) b<-max(year)
         
         p_res[i]=wordcloud(words = t_word, freq = t_freq, min.freq = minfreq,
                            max.words=max_word_print, random.order=FALSE, rot.per=0.35,
                            colors=brewer.pal(8, "Dark2"),scale = c(1.5, 0.3))
-        titre<-paste("top",max_word_print,"mots cl?s",add_title,"ann?e(s) [",min(year)+(i-1)*interval_year,":",b,add_brack,"( frequence de mot min:",minfreq,")")
+        titre<-paste("top",max_word_print,"mots cl?s",add_title,"ann?e(s) [",min(year,na.rm = TRUE)+(i-1)*interval_year,":",b,add_brack,"( frequence de mot min:",minfreq,")")
         mtext(titre,side=2)
         
         #print(head(sort(t_freq,decreasing=TRUE),10))
@@ -388,7 +388,7 @@ make_network_graph<-function(keywords,publication_date=0,top_number=0,interval_y
         index_year<-((year>=min(year,na.rm = TRUE)+(i-1)*interval_year) &(year<min(year,na.rm = TRUE)+i*interval_year))
         add_brack="["
       }
-      else{
+      else{ 
         index_year<-((year>=min(year,na.rm = TRUE)+(i-1)*interval_year) &(year<=min(year,na.rm = TRUE)+i*interval_year))
         add_brack="]"
       }
@@ -1168,9 +1168,12 @@ ads_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,val
         
         
         
+        
         (ti_querry=paste0("%22",gsub("[]]","%5D",gsub("`",'%60',gsub("[[]","%5B",gsub("[(]","%28",gsub("[)]","%29",gsub("<","%3C",gsub(">","%3E",gsub("=","%3D",gsub('[}{]',"",gsub("&","%26",gsub('"','%22',gsub("\\", "",gsub(":","%3A",gsub("/","%2F",gsub("'","%27",gsub(" ","%20",
-                                                                                                                                                                                                                                                                             gsub(",","%2c",gsub("e?","e",gsub("?","",gsub("%","%25",(tolower(Unaccent(ti_data[first:last])))),fixed=TRUE),fixed = TRUE)))))), 
+                                                                                                                                                                                                                                                                             gsub(",","%2c",gsub("e?","e",gsub("-"," ",gsub("[?$]","",gsub("%","%25",(tolower(Unaccent(ti_data[first:last]))))),fixed=TRUE),fixed = TRUE)))))), 
                                                                                                                                                                                                                   fixed=TRUE)))))))))))), collapse = 'OR','%22'))
+        
+        
         
         
         adress=paste0('author%3A%28',au_querry,'%29AND%20title%3A%28',ti_querry,'%29&fl=reference%20citation%20author%20title%20database%20pubdate%20bibcode%20keyword%20pub%20&sort=date%20desc&rows=500&start=',0)
@@ -1296,12 +1299,12 @@ pumed_get_element_id<-function(id_list,type){
   },
   
   warning=function(cond){# si erreur on met en forme les informations 
-    titre_error=as.data.frame(ti_data[first:last])
+    titre_error=as.data.frame(id_list_string)
     names(titre_error)=c("Publication title")
     titre_error["Status error"]=r$status
     titre_error$Message=message_error(r)
     titre_error["Data impact"]=type
-    titre_error$h=h
+    titre_error$h=NA
     return(titre_error)
   })
   
@@ -1396,12 +1399,12 @@ find_journal_domaine<-function(journal_data,journal_table_ref,issn="",essn="",so
   dom=sapply(1:length(journal_data),FUN=function(x){
     #marker
     trouver=FALSE
-    # print(x)
+    
     withProgress(
       message='Please wait',
       detail=paste0("matching journal"),
       value=0, {
-        for(h in 1:inter){# boucle principale qui parcour les donn?es 
+        for(h in 1:inter){# boucle principale qui parcour les donn?es
           incProgress(1/inter)
           
           first<-(h-1)*pas+1# premier individu a prendre en compte(ligne)
@@ -1410,8 +1413,8 @@ find_journal_domaine<-function(journal_data,journal_table_ref,issn="",essn="",so
           journal_courant=journal_table_ref[first:last,]
           
           
-          #print(x)
-          if(!is.na(journal_data[[x]]) && trouver==FALSE  ) {
+          print(x)
+          if(!(is.na(journal_data[[x]]) ||is.null(journal_data[[x]]))  && trouver==FALSE  ) {
             if(length(issn)!=0){ if(!is.null(issn[x]) &&issn[x]!="" && !is.na(issn[x]) ){# on trouve l'iissn si il est present 
               ind=which(issn[[x]]==journal_courant$issn) 
               if(length(ind)>0){
@@ -1607,7 +1610,7 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,pas=8,value_same_min_a
   
   
   
-  
+  print("arriver a dif cit")
   if(type!="cit"){# on prend soit les citation soit "all soit uniquement les reference 
     
     if(source_name!="") res_new_s=res_rest else  res_new_s=res_new
@@ -1674,6 +1677,7 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,pas=8,value_same_min_a
   
   
   #travaile sur les citation_______________________________________________
+  print("arriver a dif ref")
   if(type!="ref"){
     #recup?ration des identifiaant de citation ________________________________
     id_list=(unlist(res_new$id))
@@ -1690,6 +1694,7 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,pas=8,value_same_min_a
       value=0, {
         #
         for(h in(1:inter)){
+          print(h)
           incProgress(1/inter) # augmentation de la barre de chargement
           first<-(h-1)*pas+1
           last<-h*pas
@@ -1720,7 +1725,8 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,pas=8,value_same_min_a
             error_querry<-rbind(error_querry,error)
             error=c()
             
-          }else {#si il n'y a pas d'erreur  
+          }else {#si il n'y a pas d'erreur
+            
             result<- jsonlite::fromJSON(txt = httr::content(r, 'text'), simplifyDataFrame = TRUE)
             list_citation_globale=result$linksets$linksetdbs
             
@@ -1744,6 +1750,7 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,pas=8,value_same_min_a
           
         }
       })
+    print("deuxieme partie ")
     if(length(id_raw)!=dim(res_new)[1] && !is.null(res_new) ) id_raw<-c(id_raw,rep(NA,dim(res_new)[1]-length(id_raw)))
     res_new$citation<-id_raw
     
@@ -1752,6 +1759,7 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,pas=8,value_same_min_a
       inter=ceiling(length(id_list_citation_final)/pas)
       res_cit=c()
       for(h in(1:inter)){
+        print(h)
         first<-(h-1)*pas+1
         last<-h*pas
         if(last>length(id_list_citation_final)) last<-length(id_list_citation_final)
@@ -1771,13 +1779,47 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,pas=8,value_same_min_a
       names(res_cit)<-c("id_cit","auteur_cit","titre_cit","date_cit","essn_cit","issn_cit", "journal_cit")
       
       
+      
       ind_id<-sapply(res_cit$id_cit,function(x){
         return(grep(x,(res_new$citation)))
       })
-      res_cit_final=cbind(res_new[ind_id,],res_cit)
+      
+      multi_cit_article<-sapply(ind_id,function(x){
+        return(length(x))
+      })
+      
+      multi_cit_article<-which(multi_cit_article>1)
+      
+      couple=list(indice_id_cit=list(), indice_id_res_new=list())# on va recrée les couple en trop après l'association
+      for(i in multi_cit_article){
+        
+        couple$indice_id_cit=append(couple$indice_id_cit,i)
+        couple$indice_id_res_new=append(couple$indice_id_res_new,ind_id[[i]][-1])#on enleve le premier deja dans l'association de base
+        ind_id[[i]]=ind_id[[i]][1]
+      }
+      
+      
+      res_cit_final=cbind(res_new[unlist(ind_id),],res_cit)
       res_cit_final<-res_cit_final[,-which(names(res_cit_final)=="ref_pmid")]
       res_cit_final<-res_cit_final[,-which(names(res_cit_final)=="citation")]
       
+      
+      # on ne peu pas le faire avant pour éviter de changer la dimention du res cit 
+      #on rajoute ce qui a été enlever au préalable 
+      for(i in 1:length(multi_cit_article)){
+        temp=c()# table temp
+        res_cit_temp=sapply(1:length(couple$indice_id_res_new[[i]]),FUN = function(x){
+          temp=rbind(temp,res_cit[couple$indice_id_cit[[i]],]) 
+        })
+        res_cit_temp=as.data.frame(t(res_cit_temp),stringsAsFactors = FALSE)
+        res_new_temp=res_new[couple$indice_id_res_new[[i]],]
+        
+        temp=cbind(res_new_temp,res_cit_temp)
+        #on enleve les colonne en trop 
+        temp<-temp[,-which(names(temp)=="ref_pmid")]
+        temp<-temp[,-which(names(temp)=="citation")]
+        res_cit_final=rbind(res_cit_final,temp)
+      }
       names(res_cit_final)<- c("cited identifier","cited auth","cited title","cited date","cited journal","h","cited issn","cited essn","check","check ind","citing identifier", "citing auth","citing title","citing date","citing essn","citing issn","citing journal" )
       if(dim(res_cit_final)[1]>0)res_cit_final<-res_cit_final[order(unlist(res_cit_final$`cited identifier`)),]
       
@@ -2871,133 +2913,135 @@ interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd
     title="cited title"
   }
   #View(data_gl)
-  
+  # browser()
   nb_categ=unlist(data_gl[[journal_domaine]]) #on pr?parer les colonne de la table de containgence 
-  if(length(nb_categ)>0){
-    list_categ<-Unaccent(names(table(nb_categ)))
-    matrice_prop=as.data.frame(matrix(0,ncol=length(list_categ)))# initialisation de la matrice 
-    matrice_contribution=as.data.frame(matrix(0,ncol=length(list_categ)))
-    names(matrice_prop)=list_categ
-    names(matrice_contribution)=list_categ
-    precedent=""# initialisation , a chaque nouvelle article(id diff?rent) on ce?e une nouvelle ligne.
-    for(i in 1:dim(data_gl)[1]){
-      if(!is.na(data_gl[[journal_domaine]][[i]])){
-        if(precedent!=data_gl[[identifier]][[i]]){
-          line=rep(0,length(list_categ))
-          matrice_prop=rbind(matrice_prop,line)
-          line=rep(list(0),length(list_categ))
-          matrice_contribution=rbind(matrice_contribution,line)
-          col_identifier=c(col_identifier,data_gl[[identifier]][[i]])
-          col_title=c(col_title,paste0(str_sub(string = data_gl[[title]][[i]],start = 1,end = 20),"..."))
+  remouve=which(is.na(nb_categ)) 
+  if(length(remouve)>0 && length(nb_categ[-remouve])>0) 
+    if(length(nb_categ)>0){
+      list_categ<-Unaccent(names(table(nb_categ)))
+      matrice_prop=as.data.frame(matrix(0,ncol=length(list_categ)))# initialisation de la matrice 
+      matrice_contribution=as.data.frame(matrix(0,ncol=length(list_categ)))
+      names(matrice_prop)=list_categ
+      names(matrice_contribution)=list_categ
+      precedent=""# initialisation , a chaque nouvelle article(id diff?rent) on ce?e une nouvelle ligne.
+      for(i in 1:dim(data_gl)[1]){
+        if(!is.na(data_gl[[journal_domaine]][[i]])){
+          if(precedent!=data_gl[[identifier]][[i]]){
+            line=rep(0,length(list_categ))
+            matrice_prop=rbind(matrice_prop,line)
+            line=rep(list(0),length(list_categ))
+            matrice_contribution=rbind(matrice_contribution,line)
+            col_identifier=c(col_identifier,data_gl[[identifier]][[i]])
+            col_title=c(col_title,paste0(str_sub(string = data_gl[[title]][[i]],start = 1,end = 20),"..."))
+          }
+          
+          col_ind=match(unique(data_gl[[journal_domaine]][[i]]),names(matrice_prop))#donne les bon indice de colonne 
+          
+          col_ind=col_ind[!is.na(col_ind)]
+          
+          matrice_prop[dim(matrice_prop)[1],col_ind]= matrice_prop[dim(matrice_prop)[1],col_ind]+1 #mis a jour des compteur 
+          temp= sapply(1:length(col_ind),FUN=function(x) list(toString(c(unlist(matrice_contribution[dim(matrice_contribution)[1],col_ind[x]]),i))))
+          matrice_contribution[dim(matrice_contribution)[1],col_ind]=temp
+          precedent=data_gl[[identifier]][[i]]#avancement du curseur 
+          #if(length(col_ind)>1) browser()
+        }
+      }
+      
+      
+      matrice_prop<-matrice_prop[-1,]# on enl?ve la prermi?re ligne consitituer uniquement de 0
+      
+      matrice_contribution=matrice_contribution[-1,]
+      matrice_prop<-type.convert(matrice_prop) # chiffre en chiffre 
+      sumcol=colSums(matrice_prop)
+      matrice_prop=rbind(matrice_prop,sumcol)
+      contri_total=sapply(1:dim(matrice_contribution)[2],FUN = function(x){paste0(unlist(matrice_contribution[,x]),collapse = ",")})
+      matrice_contribution=rbind(matrice_contribution,contri_total)
+      
+      sumrow=rowSums(matrice_prop)
+      
+      
+      dia=sapply(1:dim(matrice_prop)[1],FUN = function(x){# calvule des dia par article et du total en derni_re ligne 
+        
+        cal=0
+        matrice_prop[x,]=matrice_prop[x,]/sumrow[[x]]# contingence a pourcentage 
+        
+        lien<-list()
+        
+        for(i in 1:dim(matrice_prop)[2]){# il faut adittionner les couple donc parcourir les colonne deux fois 
+          
+          for(j in 1:dim(matrice_prop)[2]){
+            if(matrice_prop[x,i]!=0 && matrice_prop[x,j]!=0){
+              
+              n1=names(matrice_prop)[i]
+              n2=names(matrice_prop)[j]
+              dij=table_dist[n1,n2]
+              lien=append(list(c(n1,n2)),lien)
+              cal=cal+matrice_prop[x,i]*matrice_prop[x,j]*dij
+            }
+          }
         }
         
-        col_ind=match(unique(data_gl[[journal_domaine]][[i]]),names(matrice_prop))#donne les bon indice de colonne 
         
-        col_ind=col_ind[!is.na(col_ind)]
         
-        matrice_prop[dim(matrice_prop)[1],col_ind]= matrice_prop[dim(matrice_prop)[1],col_ind]+1 #mis a jour des compteur 
-        temp= sapply(1:length(col_ind),FUN=function(x) list(toString(c(unlist(matrice_contribution[dim(matrice_contribution)[1],col_ind[x]]),i))))
-        matrice_contribution[dim(matrice_contribution)[1],col_ind]=temp
-        precedent=data_gl[[identifier]][[i]]#avancement du curseur 
-        #if(length(col_ind)>1) browser()
-      }
-    }
-    
-    
-    matrice_prop<-matrice_prop[-1,]# on enl?ve la prermi?re ligne consitituer uniquement de 0
-    
-    matrice_contribution=matrice_contribution[-1,]
-    matrice_prop<-type.convert(matrice_prop) # chiffre en chiffre 
-    sumcol=colSums(matrice_prop)
-    matrice_prop=rbind(matrice_prop,sumcol)
-    contri_total=sapply(1:dim(matrice_contribution)[2],FUN = function(x){paste0(unlist(matrice_contribution[,x]),collapse = ",")})
-    matrice_contribution=rbind(matrice_contribution,contri_total)
-    
-    sumrow=rowSums(matrice_prop)
-    
-    
-    dia=sapply(1:dim(matrice_prop)[1],FUN = function(x){# calvule des dia par article et du total en derni_re ligne 
-      
-      cal=0
-      matrice_prop[x,]=matrice_prop[x,]/sumrow[[x]]# contingence a pourcentage 
-      
-      lien<-list()
-      
-      for(i in 1:dim(matrice_prop)[2]){# il faut adittionner les couple donc parcourir les colonne deux fois 
+        return(list(valeur=cal,couple=lien))
         
+        
+        #return(list(proportion=matrice_prop,distance=table_dist))
+      })
+      (DD=unlist(dia["valeur",][length(dia["valeur",])]))
+      
+      (ID=mean(unlist(dia["valeur",][-length(dia["valeur",])])))
+      dia=dia[,-dim(dia)[2]] 
+      
+      (MD=DD-ID)
+      
+      # path_gd="data/categ_wos.csv"
+      # 
+      # table_categ_gd=read.csv(file=data/categ_wos.csv,header = TRUE,stringsAsFactors = FALSE,sep = ";")
+      # 
+      
+      table_conversion=sapply(1:length(names(matrice_prop)),FUN=function(x){#construction de la table de conversion 
+        ind=grep(names(matrice_prop)[[x]],table_categ_gd$catcod)
+        return(unique(c(table_categ_gd$OST.Category[ind],table_categ_gd$catcod[ind])))
+      })#affectation des cat?gorie OST
+      table_conversion=t(table_conversion)
+      new_col=unique(table_conversion[,1])
+      new_matrice_prop=as.data.frame(matrix(0,ncol=length(new_col),nrow = dim(matrice_prop)[1]))
+      new_matrice_contribution=as.data.frame(matrix(list(0),ncol=length(new_col),nrow = dim(matrice_contribution)[1]))
+      names(new_matrice_prop)=new_col
+      names(new_matrice_contribution)=new_col
+      
+      for(i in 1:dim(matrice_prop)[1]){
         for(j in 1:dim(matrice_prop)[2]){
-          if(matrice_prop[x,i]!=0 && matrice_prop[x,j]!=0){
+          if(matrice_prop[i,j]!=0){
             
-            n1=names(matrice_prop)[i]
-            n2=names(matrice_prop)[j]
-            dij=table_dist[n1,n2]
-            lien=append(list(c(n1,n2)),lien)
-            cal=cal+matrice_prop[x,i]*matrice_prop[x,j]*dij
+            ind=grep(names(matrice_prop)[j],table_conversion[,2])
+            #if(length(ind)>0) browser()
+            new_matrice_prop[i,table_conversion[ind,1]]=new_matrice_prop[i,table_conversion[ind,1]]+matrice_prop[i,j]
+            new_matrice_contribution[i,table_conversion[ind,1]]=paste0(unique(strsplit(gsub(" ","",paste0(unlist(new_matrice_contribution[i,table_conversion[ind,1]]),",",unlist(matrice_contribution[i,j]),collapse = ",")),split = ",")[[1]]),collapse = ",")# certaine ligne une fois merger compte pour plusieurs fois car certain journal multidiciplinaire sont dans plusiur colonne donc le unique peret de ne pas avoir a les afficher plusieurs fois 
+            
           }
         }
       }
       
+      #  View(new_matrice_contribution)
+      #View(new_matrice_prop)
+      col_identifier=c(col_identifier,"TOTAL")
+      col_title=c(col_title,"TOTAL")
       
+      #print("coool")
+      #print((col_identifier))
+      #print(dim(new_matrice_prop))
+      matrice_prop=as.data.frame(matrice_prop,stringsAsFactors = FALSE)
+      matrice_prop["IDENTIFIANT"]=col_identifier
+      matrice_prop["TITLE"]=col_title
       
-      return(list(valeur=cal,couple=lien))
-      
-      
-      #return(list(proportion=matrice_prop,distance=table_dist))
-    })
-    (DD=unlist(dia["valeur",][length(dia["valeur",])]))
-    
-    (ID=mean(unlist(dia["valeur",][-length(dia["valeur",])])))
-    dia=dia[,-dim(dia)[2]] 
-    
-    (MD=DD-ID)
-    
-    # path_gd="data/categ_wos.csv"
-    # 
-    # table_categ_gd=read.csv(file=data/categ_wos.csv,header = TRUE,stringsAsFactors = FALSE,sep = ";")
-    # 
-    
-    table_conversion=sapply(1:length(names(matrice_prop)),FUN=function(x){#construction de la table de conversion 
-      ind=grep(names(matrice_prop)[[x]],table_categ_gd$catcod)
-      return(unique(c(table_categ_gd$OST.Category[ind],table_categ_gd$catcod[ind])))
-    })#affectation des cat?gorie OST
-    table_conversion=t(table_conversion)
-    new_col=unique(table_conversion[,1])
-    new_matrice_prop=as.data.frame(matrix(0,ncol=length(new_col),nrow = dim(matrice_prop)[1]))
-    new_matrice_contribution=as.data.frame(matrix(list(0),ncol=length(new_col),nrow = dim(matrice_contribution)[1]))
-    names(new_matrice_prop)=new_col
-    names(new_matrice_contribution)=new_col
-    
-    for(i in 1:dim(matrice_prop)[1]){
-      for(j in 1:dim(matrice_prop)[2]){
-        if(matrice_prop[i,j]!=0){
-          
-          ind=grep(names(matrice_prop)[j],table_conversion[,2])
-          #if(length(ind)>0) browser()
-          new_matrice_prop[i,table_conversion[ind,1]]=new_matrice_prop[i,table_conversion[ind,1]]+matrice_prop[i,j]
-          new_matrice_contribution[i,table_conversion[ind,1]]=paste0(unique(strsplit(gsub(" ","",paste0(unlist(new_matrice_contribution[i,table_conversion[ind,1]]),",",unlist(matrice_contribution[i,j]),collapse = ",")),split = ",")[[1]]),collapse = ",")# certaine ligne une fois merger compte pour plusieurs fois car certain journal multidiciplinaire sont dans plusiur colonne donc le unique peret de ne pas avoir a les afficher plusieurs fois 
-          
-        }
-      }
+      #matrice_prop[["CONTRIBUTION"]]=col_list_line
+      #print(dim(matrice_prop))
+      resultat<-list(dia=dia["valeur",],md=MD,id=ID,dd=DD,prop=matrice_prop,prop_grande_discipline=new_matrice_prop,contribution=new_matrice_contribution)
+    }else{
+      resultat=NULL
     }
-    
-    #  View(new_matrice_contribution)
-    #View(new_matrice_prop)
-    col_identifier=c(col_identifier,"TOTAL")
-    col_title=c(col_title,"TOTAL")
-    
-    #print("coool")
-    #print((col_identifier))
-    #print(dim(new_matrice_prop))
-    matrice_prop=as.data.frame(matrice_prop,stringsAsFactors = FALSE)
-    matrice_prop["IDENTIFIANT"]=col_identifier
-    matrice_prop["TITLE"]=col_title
-    
-    #matrice_prop[["CONTRIBUTION"]]=col_list_line
-    #print(dim(matrice_prop))
-    resultat<-list(dia=dia["valeur",],md=MD,id=ID,dd=DD,prop=matrice_prop,prop_grande_discipline=new_matrice_prop,contribution=new_matrice_contribution)
-  }else{
-    resultat=NULL
-  }
   
   
   return(resultat)
@@ -3027,9 +3071,9 @@ merge_result_data_base<-function(ads,arxiv,pumed,wos,col_journal=c(NULL,NULL,NUL
   }
   
   
-  if(!is.null(ads)) ads_data$source=col_journal[1]
-  if(!is.null(arxiv)) arxi_data$source=col_journal[2]
-  if(!is.null(pumed)) pumed_data$source=col_journal[3]
+  if(!is.null(ads_data)) ads_data$source=col_journal[1]
+  if(!is.null(arxi_data)) arxi_data$source=col_journal[2]
+  if(!is.null(pumed_data)) pumed_data$source=col_journal[3]
   
   
   data_merge=as.data.frame(rbind.fill(ads_data,arxi_data),stringsAsFactors = FALSE)
