@@ -31,7 +31,7 @@ library(DT)
 # # le ui permet de gerer le coté graphiques
 ui <- dashboardPage(skin = "red",
                     #menu
-                    dashboardHeader(title =span("", style = "font-size: 8px")),
+                    dashboardHeader(title = "SIGNATURE LABOS"),
                     dashboardSidebar( sidebarMenu(# menu des different onglet 
                         
                         menuItem("table", tabName = "table", icon = icon(name = "arrow-circle-up")),
@@ -96,19 +96,16 @@ server <- function(input, output, session) {# cote r , voici le programme
     
     
     output$text <- renderText({
-    "L’analyse porte sur les publications presentes dans le web of science, par consequent ces donnes peuvent être utilisees et diffusees compte tenu de notre abonnement a cette base de donnees.
-
-Les adresses sont celles presentes dans les publications referencees dans le Web of Science sur la periode de reference qui est mentionnee lors de la visualisation, 3 periodes sont disponibles (de 2018 à 2020).
-
-L'ensemble des lignes d'adresses du perimetre univ grenoble alpes sont analysees au sein d'une meme publication. Les adresses  de chaque unité sont obtenues par la recherche du nom de l'unite et du lieu geographique. Pour la plupart des unites, differentes variations de noms deja utilises par le passe sont prises en compte.
-
-Les unites non presentes sont celles qui n’ont aucune publications sans univ.grenoble alpes, ou qui n’ont aucune publication dans le Web of Science (unite en SHS en general).
-
-Lignes adresses est le nombre de lignes d’adresses de l’unite sur la période (supérieur en general au nombre de publications)
-
-Lignes non UGA est le nombre de ces mêmes lignes sans univ. Grenoble alpes
-
-Le taux d’erreur est le pourcentage de lignes sans univ. Grenoble alpes "
+    "L’analyse porte sur les publications presentes dans le web of science, 
+        par consequent ces donnees peuvent être utilisees et diffusees. 
+        Les adresses sont celles presentes dans les publications referencees dans le Web of Science sur la periode de reference qui 
+        est mentionnee lors de la visualisation : 3 periodes sont disponibles actuellement (de 2018 à 2020). 
+        L'ensemble des lignes d'adresses du perimetre univ. grenoble alpes sont analysees au sein d'une meme publication. 
+        Les adresses de chaque unité sont obtenues par la recherche du nom de l'unite et du lieu geographique. Pour la plupart des unites, 
+        differentes variations de noms deja utilisees sont prises en compte. Les unites non presentes sont celles qui n’ont pas de publication sans la mention à univ.grenoble alpes, 
+        ou qui n’ont aucune publication dans le Web of Science (unite en SHS en general).Informations sur les éléments visualisés :  Lignes adresses est le nombre de lignes d’adresses de l’unite sur la période (supérieur en general au nombre de publications),  
+        Lignes non UGA est le nombre de ces mêmes lignes sans univ. Grenoble alpes.  
+        Le taux d’erreur est le pourcentage de lignes sans univ. Grenoble alpes."
 })
     
     
