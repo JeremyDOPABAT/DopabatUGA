@@ -750,6 +750,7 @@ get_cit_or_ref<-function(resdt,type="cit",token){# on r?cup?re les infodes citat
           first<-(j-1)*pas_cit+1
           last<-j*pas_cit
           incProgress(1/count)
+
           
           
           if(last>length(res_temp)[1]) last<-length(res_temp)[1]
@@ -1165,17 +1166,14 @@ ads_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,val
         (au_querry=paste0("%22",gsub("&","%26",gsub("[(]","",gsub("[)]","",gsub(";",'%22AND%22',gsub("[?]","",gsub(",","%2C",gsub(", ",",",gsub(" ,",",",gsub('[}{]',"",gsub("\\", "", gsub(":","%3A",gsub("/","%2F",
                                                                                                                                                                                                            gsub(" ","%20",Unaccent((au_data[first:last])))))
                                                                                                                                                                              , fixed =TRUE)))))))))), collapse = 'OR','%22'))
-        
-        
-        
-        
+     
         (ti_querry=paste0("%22",gsub("[]]","%5D",gsub("`",'%60',gsub("[[]","%5B",gsub("[(]","%28",gsub("[)]","%29",gsub("<","%3C",gsub(">","%3E",gsub("=","%3D",gsub('[}{]',"",gsub("&","%26",gsub('"','%22',gsub("\\", "",gsub(":","%3A",gsub("/","%2F",gsub("'","%27",gsub(" ","%20",
                                                                                                                                                                                                                                                                              gsub(",","%2c",gsub("e?","e",gsub("-"," ",gsub("[?$]","",gsub("%","%25",(tolower(Unaccent(ti_data[first:last]))))),fixed=TRUE),fixed = TRUE)))))), 
                                                                                                                                                                                                                   fixed=TRUE)))))))))))), collapse = 'OR','%22'))
+
         
         
-        
-        
+     
         adress=paste0('author%3A%28',au_querry,'%29AND%20title%3A%28',ti_querry,'%29&fl=reference%20citation%20author%20title%20database%20pubdate%20bibcode%20keyword%20pub%20&sort=date%20desc&rows=500&start=',0)
         
         
@@ -1404,9 +1402,10 @@ find_journal_domaine<-function(journal_data,journal_table_ref,issn="",essn="",so
       message='Please wait',
       detail=paste0("matching journal"),
       value=0, {
-    for(h in 1:inter){# boucle principale qui parcour les donn?es
-      incProgress(1/inter)
 
+        for(h in 1:inter){# boucle principale qui parcour les donn?es
+          incProgress(1/inter)
+          
           first<-(h-1)*pas+1# premier individu a prendre en compte(ligne)
           last<-h*pas       # dernier ""   "      "       "   "
           if(last>dim(journal_table_ref)[1]) last<-dim(journal_table_ref)[1]
@@ -1434,6 +1433,7 @@ find_journal_domaine<-function(journal_data,journal_table_ref,issn="",essn="",so
                   trouver=TRUE
                 }
               }
+
             }
             #on seach le nom exacte du journal dans la liste de reference 
             if(trouver==FALSE){
@@ -1780,18 +1780,20 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,pas=8,value_same_min_a
       
       
 
+      
       ind_id<-sapply(res_cit$id_cit,function(x){
         return(grep(x,(res_new$citation)))
       })
-
+      
       multi_cit_article<-sapply(ind_id,function(x){
-          return(length(x))
-        })
-
+        return(length(x))
+      })
+      
       multi_cit_article<-which(multi_cit_article>1)
-
+      
       couple=list(indice_id_cit=list(), indice_id_res_new=list())# on va recrée les couple en trop après l'association
       for(i in multi_cit_article){
+        
 
         couple$indice_id_cit=append(couple$indice_id_cit,i)
         couple$indice_id_res_new=append(couple$indice_id_res_new,ind_id[[i]][-1])#on enleve le premier deja dans l'association de base
@@ -1887,7 +1889,7 @@ pumed_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,v
         
         
         phrase_cut=paste0(unlist(strsplit(paste0(ti_data[first:last],collapse ='[Title]+OR+')," ")),collapse ='+')#on ajoute les balise de titre pour signifier ce que le chercher et d?limiter chaque titree 
-        
+
         
         
         
@@ -1935,9 +1937,7 @@ pumed_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,v
         }else {#si il n'y a pas d'erreur 
           
           result <- jsonlite::fromJSON(txt = httr::content(r, 'text'), simplifyDataFrame = TRUE)
-          
           id_list<-result$esearchresult$idlist
-          
           # retourne les id ____________________________________
           #on requette les id retourn?e pour pouvoir avoir les diff?rente infos de la publie
           
@@ -2913,6 +2913,7 @@ interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd
     title="cited title"
   }
   #View(data_gl)
+
  # browser()
   nb_categ=unlist(data_gl[[journal_domaine]]) #on pr?parer les colonne de la table de containgence 
   remouve=which(is.na(nb_categ)) 
@@ -3020,9 +3021,29 @@ interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd
           new_matrice_prop[i,table_conversion[ind,1]]=new_matrice_prop[i,table_conversion[ind,1]]+matrice_prop[i,j]
           new_matrice_contribution[i,table_conversion[ind,1]]=paste0(unique(strsplit(gsub(" ","",paste0(unlist(new_matrice_contribution[i,table_conversion[ind,1]]),",",unlist(matrice_contribution[i,j]),collapse = ",")),split = ",")[[1]]),collapse = ",")# certaine ligne une fois merger compte pour plusieurs fois car certain journal multidiciplinaire sont dans plusiur colonne donc le unique peret de ne pas avoir a les afficher plusieurs fois 
           
+
         }
       }
+      
+      #  View(new_matrice_contribution)
+      #View(new_matrice_prop)
+      col_identifier=c(col_identifier,"TOTAL")
+      col_title=c(col_title,"TOTAL")
+      
+      #print("coool")
+      #print((col_identifier))
+      #print(dim(new_matrice_prop))
+      matrice_prop=as.data.frame(matrice_prop,stringsAsFactors = FALSE)
+      matrice_prop["IDENTIFIANT"]=col_identifier
+      matrice_prop["TITLE"]=col_title
+      
+      #matrice_prop[["CONTRIBUTION"]]=col_list_line
+      #print(dim(matrice_prop))
+      resultat<-list(dia=dia["valeur",],md=MD,id=ID,dd=DD,prop=matrice_prop,prop_grande_discipline=new_matrice_prop,contribution=new_matrice_contribution)
+    }else{
+      resultat=NULL
     }
+
     
     #  View(new_matrice_contribution)
     #View(new_matrice_prop)
@@ -3042,7 +3063,6 @@ interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd
   }else{
     resultat=NULL
   }
-  
   
   return(resultat)
 }
