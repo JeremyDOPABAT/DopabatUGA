@@ -95,7 +95,7 @@ ui <-dashboardPage(skin = "red",
                                                          selected = "Latin-1"),
                                             tags$hr(),
                                             radioButtons("disp", "Display",
-                                                         choices = c(Head = "Few lines",
+                                                         choices = c("Few lines" = "head",
                                                                      All = "all"),
                                                          selected = "head"),
                                             tags$hr(),
@@ -204,7 +204,7 @@ ui <-dashboardPage(skin = "red",
                                                                                                                                                                                          "Firstname Lastname" = "1"),
                                                                                                                                                                              selected = "1")),
                                             radioButtons("disp_wos", "Display",
-                                                         choices = c(Head = "Few lines",# mode de visualisation du fichier 
+                                                         choices = c("Few lines" = "head",# mode de visualisation du fichier 
                                                                      All = "all"),
                                                          selected = "head"),
                                             
@@ -272,7 +272,7 @@ ui <-dashboardPage(skin = "red",
                                       fluidRow(column(width=3,   tags$div(title="show only the bigest nodes with their relations ",selectInput("networktop","number of words for top graph",choices =c("None",1:20)))),
                                                column(width=3, tags$div(title="Supress th nodes taken only one time in the graph",checkboxInput("supones", "supress words taken one time only", value = FALSE)),
                                                       tags$div(title="Reduce the size of the nodes to root",checkboxInput("root", "passe the weight of nood to roots", value = FALSE))),
-                                               column(width=3,tags$div(title="One graph per number of year",selectInput("networkintervalyear","number of year per graphics",choices =c("None",1:20)))),
+                                               column(width=3,tags$div(title="One graph per number of year",selectInput("networkintervalyear","number of year per graphics",choices =c("All year",1:20)))),
                                                column(width=3, tags$div(title="switch to domain network",checkboxInput("domain", "show domain study ", value = FALSE)))
                                                
                                                
@@ -579,7 +579,7 @@ server <- function(input, output, session) {
     paste(  h3("DOPABAT, what is it ?"),"\n","DOPABAT (Développement d'outils d'analyse bibliométrique et d'audience des thèses) is a project funded by Collex-Persée.
            A national infrastructure of technique and sciences which supports French researchers. The objectives are, on the one hand, to know the importance of theses in the scientific production and, on the other hand, to know the importance of the cooperation between laboratories on the themes of Physics and Astronomy. 
            At first this project was a researcheress request that consisted in the analysis of PHDs coming from two universities. DOPABAT aims to analyse all the bibliometric data, keywords, domains of study, citations, references",
-           h3("DOPABAT,who is it?"),"
+            h3("DOPABAT,who is it?"),"
   <ul>
   <li>l'Université Grenoble Alpes</li>
 	  -DGD RIV\n
@@ -595,15 +595,15 @@ server <- function(input, output, session) {
 	 <li>Didier Vercueil  (Université Grenoble Alpes)</li>
   <li>Lucie Albaret  (Université Grenoble Alpes)</li>
 </ul>",
-           "to contact us: dopabat@univ-grenoble-alpes.fr",
-           'This project is funded  by <a href="https://www.collexpersee.eu/">  GIS Collex Persée</a> according to  <a href="https://https://www.collexpersee.eu/les-projets//">  APP 2019</a> ',
-           h3("The Blog"), "here is the adress of the blog to see the back ground of the project : <a href='https://dopabat.inist.fr/'> : https://dopabat.inist.fr/ </a>",
-           "This blog is describing the problem, the methodes and the steps of the project",h3("Thanks"),"
+            "to contact us: dopabat@univ-grenoble-alpes.fr",
+            'This project is funded  by <a href="https://www.collexpersee.eu/">  GIS Collex Persée</a> according to  <a href="https://https://www.collexpersee.eu/les-projets//">  APP 2019</a> ',
+            h3("The Blog"), "here is the adress of the blog to see the back ground of the project : <a href='https://dopabat.inist.fr/'> : https://dopabat.inist.fr/ </a>",
+            "This blog is describing the problem, the methodes and the steps of the project",h3("Thanks"),"
            
 All the DOPABAT team would like to thank ADS, PUMED and LENS for their disposal and support during all the development phase. We personally thank all the databases that allow the platform to work. 
 We ask all the users to   cite the different souces they use to make the graphs.
 "
-           
+            
     )
     
     
@@ -677,6 +677,7 @@ We ask all the users to   cite the different souces they use to make the graphs.
           ))
         }
       }else{
+        
         reactive_values$df_csv <- df
         #mise en forme de la table afficher 
         table_data=datatable(df_flatten(reactive_values$df_csv), options = list(scrollX = TRUE, columnDefs = list(list(
@@ -686,7 +687,6 @@ We ask all the users to   cite the different souces they use to make the graphs.
             "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
             "}")
         ))))
-        
         reactive_values$show_header <- TRUE# affichage du tableau des entete 
         # on met a jour les input en fct de se qui a ete charger pour pouvoir les selectionner les entete 
         updateSelectInput(session, inputId = "title_selection", choices = names(df))
@@ -710,11 +710,14 @@ We ask all the users to   cite the different souces they use to make the graphs.
             return(table_data)
           }
         })#end render___________________________
+        
+        
       }
       
     })
-    
+    print("end render")
   })
+  
   observeEvent(
     input$valid_table, {#une fois que la table est valide l'analyse se met en marche 
       if(input$file1$name %in% reactive_values$privious_datapath_csv){ # detection de doublon de fichier 
@@ -811,11 +814,11 @@ We ask all the users to   cite the different souces they use to make the graphs.
     
     reactive_values$df_global[["year"]]<-as.factor(year)
     if(max(year,na.rm = TRUE)-min(year,na.rm = TRUE)!=0){# on met a jour les parametre des graphiques 
-      updateSelectInput(session, inputId = "intervalyear",choices =c("None",1:(max(year,na.rm = TRUE)-min(year,na.rm = TRUE))))
-      updateSelectInput(session, inputId = "networkintervalyear",choices =c("None",1:(max(year,na.rm = TRUE)-min(year,na.rm = TRUE))))
+      updateSelectInput(session, inputId = "intervalyear",choices =c("Full year",1:(max(year,na.rm = TRUE)-min(year,na.rm = TRUE))))
+      updateSelectInput(session, inputId = "networkintervalyear",choices =c("Full year",1:(max(year,na.rm = TRUE)-min(year,na.rm = TRUE))))
     }else{
-      updateSelectInput(session, inputId = "intervalyear",choices =c("None",1:1))
-      updateSelectInput(session, inputId = "networkintervalyear",choices =c("None",1:1))
+      updateSelectInput(session, inputId = "intervalyear",choices =c("Full year",1:1))
+      updateSelectInput(session, inputId = "networkintervalyear",choices =c("Full year",1:1))
     }
     
     
@@ -1659,17 +1662,17 @@ We ask all the users to   cite the different souces they use to make the graphs.
   observeEvent({
     c(input$ads_ask,
       reactive_values$transfer_done$ads)}
-               ,{
-    
-    reactive_values$table_to_show_ref=reactive_values$res_ads$dataframe_publi_found[(reactive_values$res_ads$dataframe_publi_found$check_title_pct<reactive_values$value_same_min_accept) &(reactive_values$res_ads$dataframe_publi_found$check_title_pct>=reactive_values$value_same_min_ask),]
-    if(dim(reactive_values$table_to_show_ref)[1]>0) rownames(reactive_values$table_to_show_ref)<-1:nrow(reactive_values$table_to_show_ref)
-  
-    if(!is.null(reactive_values$transfer_done$ads)){ 
-  
-      ind_temp=reactive_values$table_to_show_ref$bibcode%in%reactive_values$transfer_done$ads
-      reactive_values$table_to_show_ref=reactive_values$table_to_show_ref[!ind_temp,]  
-    }
-    
+    ,{
+      
+      reactive_values$table_to_show_ref=reactive_values$res_ads$dataframe_publi_found[(reactive_values$res_ads$dataframe_publi_found$check_title_pct<reactive_values$value_same_min_accept) &(reactive_values$res_ads$dataframe_publi_found$check_title_pct>=reactive_values$value_same_min_ask),]
+      if(dim(reactive_values$table_to_show_ref)[1]>0) rownames(reactive_values$table_to_show_ref)<-1:nrow(reactive_values$table_to_show_ref)
+      
+      if(!is.null(reactive_values$transfer_done$ads)){ 
+        
+        ind_temp=reactive_values$table_to_show_ref$bibcode%in%reactive_values$transfer_done$ads
+        reactive_values$table_to_show_ref=reactive_values$table_to_show_ref[!ind_temp,]  
+      }
+      
       df <-reactiveValues(data =cbind(Actions = shinyInput( FUN = actionButton, n=nrow(reactive_values$table_to_show_ref), id='button_', label = "Transfer",  onclick = 'Shiny.setInputValue(\"select_button\", this.id, {priority: \"event\"})' ),reactive_values$table_to_show_ref
       ) )
       
@@ -1684,13 +1687,13 @@ We ask all the users to   cite the different souces they use to make the graphs.
                                                                  "}")
                                                              )))
       )
-    
-    
-    
-    #if(length(reactive_values$transfer_done$ads)>1) browser()
-    
-    reactive_values$active_source="ADS"
-  },ignoreInit = TRUE)
+      
+      
+      
+      #if(length(reactive_values$transfer_done$ads)>1) browser()
+      
+      reactive_values$active_source="ADS"
+    },ignoreInit = TRUE)
   
   observeEvent(input$select_button, {
     
@@ -1810,41 +1813,41 @@ We ask all the users to   cite the different souces they use to make the graphs.
   })
   observeEvent({
     c(
-    input$arxiv_ask,
-    reactive_values$transfer_done$arxiv
-                  )},{
-    reactive_values$table_to_show_ref=reactive_values$res_arxiv$res_publi_foundt[(reactive_values$res_arxiv$res_publi_foundt$check_pct<reactive_values$value_same_min_accept),]
-   
-    
-     
-    if(dim(reactive_values$table_to_show_ref)[1]>0) rownames(reactive_values$table_to_show_ref)<-1:nrow(reactive_values$table_to_show_ref)
-    
-    if(!is.null(reactive_values$transfer_done$arxiv)){ 
+      input$arxiv_ask,
+      reactive_values$transfer_done$arxiv
+    )},{
+      reactive_values$table_to_show_ref=reactive_values$res_arxiv$res_publi_foundt[(reactive_values$res_arxiv$res_publi_foundt$check_pct<reactive_values$value_same_min_accept),]
       
-      ind_temp=reactive_values$table_to_show_ref$abs_link%in%reactive_values$transfer_done$arxiv
-      reactive_values$table_to_show_ref=reactive_values$table_to_show_ref[!ind_temp,]  
-    }
-    
-    
-     df <- reactiveValues(data =cbind(Actions = shinyInput( FUN = actionButton, n=nrow(reactive_values$table_to_show_ref), id='button_', label = "Transfer",  onclick = 'Shiny.setInputValue(\"select_button\", this.id, {priority: \"event\"})' ),reactive_values$table_to_show_ref
-    ) )
-    
-    output$table_data_ref2<- DT::renderDataTable(
-      df_flatten(df$data), escape = FALSE, options = list( lengthMenu = c(5, 25, 50), pageLength = 25,
-                                                           
-                                                           scrollX = TRUE, columnDefs = list(list(
-                                                             targets = "_all" ,render = JS(
-                                                               "function(data, type, row, meta) {",
-                                                               "return type === 'display' && data.length > 200 ?",
-                                                               "'<span title=\"' + data + '\">' + data.substr(0, 200) + '...</span>' : data;",
-                                                               "}")
-                                                           )))
-    )
-    
-    
-    reactive_values$active_source="ARXIV"
-    
-  },ignoreInit = TRUE)
+      
+      
+      if(dim(reactive_values$table_to_show_ref)[1]>0) rownames(reactive_values$table_to_show_ref)<-1:nrow(reactive_values$table_to_show_ref)
+      
+      if(!is.null(reactive_values$transfer_done$arxiv)){ 
+        
+        ind_temp=reactive_values$table_to_show_ref$abs_link%in%reactive_values$transfer_done$arxiv
+        reactive_values$table_to_show_ref=reactive_values$table_to_show_ref[!ind_temp,]  
+      }
+      
+      
+      df <- reactiveValues(data =cbind(Actions = shinyInput( FUN = actionButton, n=nrow(reactive_values$table_to_show_ref), id='button_', label = "Transfer",  onclick = 'Shiny.setInputValue(\"select_button\", this.id, {priority: \"event\"})' ),reactive_values$table_to_show_ref
+      ) )
+      
+      output$table_data_ref2<- DT::renderDataTable(
+        df_flatten(df$data), escape = FALSE, options = list( lengthMenu = c(5, 25, 50), pageLength = 25,
+                                                             
+                                                             scrollX = TRUE, columnDefs = list(list(
+                                                               targets = "_all" ,render = JS(
+                                                                 "function(data, type, row, meta) {",
+                                                                 "return type === 'display' && data.length > 200 ?",
+                                                                 "'<span title=\"' + data + '\">' + data.substr(0, 200) + '...</span>' : data;",
+                                                                 "}")
+                                                             )))
+      )
+      
+      
+      reactive_values$active_source="ARXIV"
+      
+    },ignoreInit = TRUE)
   observeEvent(input$pubmed_ref_accept,{
     output$table_data_ref3 <- renderDataTable({
       # validate(
@@ -1902,7 +1905,7 @@ We ask all the users to   cite the different souces they use to make the graphs.
   observeEvent({
     c(input$pubmed_ask,
       reactive_values$transfer_done$pumed)
-                  },{
+  },{
     
     print("je passe sur pumed ask")
     reactive_values$table_to_show_ref=reactive_values$res_pumed$dataframe_publi_found[(reactive_values$res_pumed$dataframe_publi_found$check_title_pct<reactive_values$value_same_min_accept),]
@@ -1963,7 +1966,7 @@ We ask all the users to   cite the different souces they use to make the graphs.
       
     }else{
       #browser()
-     
+      
       
       error=tryCatch({
         res_temp<-global_merge_and_cal_interdis(ads=reactive_values$res_ads,arxiv=reactive_values$res_arxiv,pumed=reactive_values$res_pumed,wos=reactive_values$ref_wos,journal_table_ref = reactive_values$journal_table_ref,table_categ_gd = reactive_values$table_categ_gd,type = input$type,table_dist =reactive_values$table_dist,col_journal=c(input$col_journal_ads,input$col_journal_arxiv,input$col_journal_pumed,input$col_journal_wos))  
@@ -2033,7 +2036,7 @@ We ask all the users to   cite the different souces they use to make the graphs.
                   
                 }
               }
-            
+              
               plot_article_ref <- plot_ly(df, labels = ~group, values = ~value,key=~group, type = 'pie',source = "plot_article_ref")
               plot_article_ref <- plot_article_ref %>% layout(title = title_graph,
                                                               legend = list(font = list(size = 9)),
@@ -2041,10 +2044,10 @@ We ask all the users to   cite the different souces they use to make the graphs.
                                                               yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
               #reactive_values$plots_article_ref <- bp + coord_polar("y", start=0)+ggtitle(paste0("Main subjects  \n of article",input$select_article))
               
-                
+              
               ind_stat=which(reactive_values$matrice_res_ref$data[["refering identifier"]]==input$select_article)
               reactive_values$pct_ref[1]=mean(unlist(reactive_values$matrice_res_ref$data[ind_stat,]$refered_indice_pct_found))
-             # View(reactive_values$matrice_res_ref$data[ind_stat,])
+              # View(reactive_values$matrice_res_ref$data[ind_stat,])
               reactive_values$secteur_is_finish<-TRUE
               return(plot_article_ref)
               
