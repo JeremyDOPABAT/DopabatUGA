@@ -3,6 +3,16 @@ au_name <- readline(prompt="Nom de Variable 'Nom_auteur': ")#authFullName_s
 ti_name <- readline(prompt="Nom de Variable 'Titre_publication': ")#en_title_s
 date_name <- readline(prompt="Nom de colonne 'date_publication': ")#defenseDate_s producedDate_s
 ths<-read.csv(path_data, sep = ";",header = TRUE,stringsAsFactors = FALSE)
+
+
+
+test=data.table::fread(path_data,
+                  header = TRUE,
+                  sep = ";",
+                  quote = '"')
+
+dim(test)
+
 dim(ths)
 if(sum(duplicated(ths[c(au_name,ti_name)]))>0) ths<-ths[-(which(duplicated(ths[c(au_name,ti_name)])==TRUE)),]
 dim(ths)

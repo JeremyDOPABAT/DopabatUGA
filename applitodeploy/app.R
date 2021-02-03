@@ -95,7 +95,7 @@ ui <-dashboardPage(skin = "red",
                                                          selected = "Latin-1"),
                                             tags$hr(),
                                             radioButtons("disp", "Display",
-                                                         choices = c(Head = "Few lines",
+                                                         choices = c("Few lines" = "head",
                                                                      All = "all"),
                                                          selected = "head"),
                                             tags$hr(),
@@ -204,7 +204,7 @@ ui <-dashboardPage(skin = "red",
                                                                                                                                                                                          "Firstname Lastname" = "1"),
                                                                                                                                                                              selected = "1")),
                                             radioButtons("disp_wos", "Display",
-                                                         choices = c(Head = "Few lines",# mode de visualisation du fichier 
+                                                         choices = c("Few lines" = "head",# mode de visualisation du fichier 
                                                                      All = "all"),
                                                          selected = "head"),
                                             
@@ -272,7 +272,7 @@ ui <-dashboardPage(skin = "red",
                                       fluidRow(column(width=3,   tags$div(title="show only the bigest nodes with their relations ",selectInput("networktop","number of words for top graph",choices =c("None",1:20)))),
                                                column(width=3, tags$div(title="Supress th nodes taken only one time in the graph",checkboxInput("supones", "supress words taken one time only", value = FALSE)),
                                                       tags$div(title="Reduce the size of the nodes to root",checkboxInput("root", "passe the weight of nood to roots", value = FALSE))),
-                                               column(width=3,tags$div(title="One graph per number of year",selectInput("networkintervalyear","number of year per graphics",choices =c("None",1:20)))),
+                                               column(width=3,tags$div(title="One graph per number of year",selectInput("networkintervalyear","number of year per graphics",choices =c("All year",1:20)))),
                                                column(width=3, tags$div(title="switch to domain network",checkboxInput("domain", "show domain study ", value = FALSE)))
                                                
                                                
@@ -677,6 +677,7 @@ We ask all the users to   cite the different souces they use to make the graphs.
           ))
         }
       }else{
+        
         reactive_values$df_csv <- df
         #mise en forme de la table afficher 
         table_data=datatable(df_flatten(reactive_values$df_csv), options = list(scrollX = TRUE, columnDefs = list(list(
@@ -686,7 +687,6 @@ We ask all the users to   cite the different souces they use to make the graphs.
             "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
             "}")
         ))))
-        
         reactive_values$show_header <- TRUE# affichage du tableau des entete 
         # on met a jour les input en fct de se qui a ete charger pour pouvoir les selectionner les entete 
         updateSelectInput(session, inputId = "title_selection", choices = names(df))
@@ -710,11 +710,14 @@ We ask all the users to   cite the different souces they use to make the graphs.
             return(table_data)
           }
         })#end render___________________________
+        
+        
       }
       
     })
-    
+    print("end render")
   })
+  
   observeEvent(
     input$valid_table, {#une fois que la table est valide l'analyse se met en marche 
       if(input$file1$name %in% reactive_values$privious_datapath_csv){ # detection de doublon de fichier 
@@ -811,11 +814,11 @@ We ask all the users to   cite the different souces they use to make the graphs.
     
     reactive_values$df_global[["year"]]<-as.factor(year)
     if(max(year,na.rm = TRUE)-min(year,na.rm = TRUE)!=0){# on met a jour les parametre des graphiques 
-      updateSelectInput(session, inputId = "intervalyear",choices =c("None",1:(max(year,na.rm = TRUE)-min(year,na.rm = TRUE))))
-      updateSelectInput(session, inputId = "networkintervalyear",choices =c("None",1:(max(year,na.rm = TRUE)-min(year,na.rm = TRUE))))
+      updateSelectInput(session, inputId = "intervalyear",choices =c("Full year",1:(max(year,na.rm = TRUE)-min(year,na.rm = TRUE))))
+      updateSelectInput(session, inputId = "networkintervalyear",choices =c("Full year",1:(max(year,na.rm = TRUE)-min(year,na.rm = TRUE))))
     }else{
-      updateSelectInput(session, inputId = "intervalyear",choices =c("None",1:1))
-      updateSelectInput(session, inputId = "networkintervalyear",choices =c("None",1:1))
+      updateSelectInput(session, inputId = "intervalyear",choices =c("Full year",1:1))
+      updateSelectInput(session, inputId = "networkintervalyear",choices =c("Full year",1:1))
     }
     
     
