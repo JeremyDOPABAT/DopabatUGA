@@ -1581,18 +1581,18 @@ We ask all the users to   cite the different souces they use to make the graphs.
       }
       #mark3
       reactive_values$cal_temp=length(reactive_values$res_ads$dataframe_citation_accept$`cited identifier`)+
-                                length(reactive_values$res_ads$dataframe_ref_accept$`refering identifier`)+
-                                length(reactive_values$res_arxiv$res_citation_accept$`cited identifier`)+
-                                length(reactive_values$res_arxiv$res_reference_accept$`refering identifier`)+
-                                length(reactive_values$res_pumed$dataframe_citation_accept$`cited identifier`)+
-                                length(reactive_values$res_pumed$dataframe_ref_accept$`refering identifier`)
+        length(reactive_values$res_ads$dataframe_ref_accept$`refering identifier`)+
+        length(reactive_values$res_arxiv$res_citation_accept$`cited identifier`)+
+        length(reactive_values$res_arxiv$res_reference_accept$`refering identifier`)+
+        length(reactive_values$res_pumed$dataframe_citation_accept$`cited identifier`)+
+        length(reactive_values$res_pumed$dataframe_ref_accept$`refering identifier`)
       if(reactive_values$cal_temp>=1){
-      showModal(modalDialog(
-        title = "research ended",
-        "research ended you can press the calcul interdisciplinarity boutton.",
-        easyClose = TRUE,
-        footer = NULL
-      ))
+        showModal(modalDialog(
+          title = "research ended",
+          "research ended you can press the calcul interdisciplinarity boutton.",
+          easyClose = TRUE,
+          footer = NULL
+        ))
       }else{
         showModal(modalDialog(
           title = "research ended",
@@ -1694,14 +1694,14 @@ We ask all the users to   cite the different souces they use to make the graphs.
         
         output$table_data_ref1<- DT::renderDataTable(
           df_flatten(as.data.frame(df$data,stringsAsFactors = FALSE)), escape = FALSE, options = list( lengthMenu = c(5, 25, 50), pageLength = 25,
-                                                               
-                                                               scrollX = TRUE, columnDefs = list(list(
-                                                                 targets = "_all" ,render = JS(
-                                                                   "function(data, type, row, meta) {",
-                                                                   "return type === 'display' && data.length > 200 ?",
-                                                                   "'<span title=\"' + data + '\">' + data.substr(0, 200) + '...</span>' : data;",
-                                                                   "}")
-                                                               )))
+                                                                                                       
+                                                                                                       scrollX = TRUE, columnDefs = list(list(
+                                                                                                         targets = "_all" ,render = JS(
+                                                                                                           "function(data, type, row, meta) {",
+                                                                                                           "return type === 'display' && data.length > 200 ?",
+                                                                                                           "'<span title=\"' + data + '\">' + data.substr(0, 200) + '...</span>' : data;",
+                                                                                                           "}")
+                                                                                                       )))
         )
         
         
@@ -1733,7 +1733,7 @@ We ask all the users to   cite the different souces they use to make the graphs.
         if(length(ind_ref_2)==0)if(!is.null(dim(reactive_values$res_ads$dataframe_ref_ask[ind_ref_1,])[1]))  if(dim(reactive_values$res_ads$dataframe_ref_ask[ind_ref_1,])[1]>0)reactive_values$res_ads$dataframe_ref_accept=rbind(reactive_values$res_ads$dataframe_ref_accept,reactive_values$res_ads$dataframe_ref_ask[ind_ref_1,])
       }
       reactive_values$transfer_done$ads=c(reactive_values$transfer_done$ads,reactive_values$table_to_show_ref$bibcode[[selectedRow]])  
-    print("sortie ads select row")    
+      print("sortie ads select row")    
     }
     
     if(reactive_values$active_source=="ARXIV"){
@@ -1766,7 +1766,7 @@ We ask all the users to   cite the different souces they use to make the graphs.
       }
       reactive_values$transfer_done$pumed=c(reactive_values$transfer_done$pumed,reactive_values$table_to_show_ref$id[[selectedRow]])   
     }
-  
+    
   })
   
   
@@ -1854,14 +1854,14 @@ We ask all the users to   cite the different souces they use to make the graphs.
         
         output$table_data_ref2<- DT::renderDataTable(
           df_flatten(as.data.frame(df$data,stringsAsFactors = FALSE)), escape = FALSE, options = list( lengthMenu = c(5, 25, 50), pageLength = 25,
-                                                               
-                                                               scrollX = TRUE, columnDefs = list(list(
-                                                                 targets = "_all" ,render = JS(
-                                                                   "function(data, type, row, meta) {",
-                                                                   "return type === 'display' && data.length > 200 ?",
-                                                                   "'<span title=\"' + data + '\">' + data.substr(0, 200) + '...</span>' : data;",
-                                                                   "}")
-                                                               )))
+                                                                                                       
+                                                                                                       scrollX = TRUE, columnDefs = list(list(
+                                                                                                         targets = "_all" ,render = JS(
+                                                                                                           "function(data, type, row, meta) {",
+                                                                                                           "return type === 'display' && data.length > 200 ?",
+                                                                                                           "'<span title=\"' + data + '\">' + data.substr(0, 200) + '...</span>' : data;",
+                                                                                                           "}")
+                                                                                                       )))
         )
         
         
@@ -1943,19 +1943,19 @@ We ask all the users to   cite the different souces they use to make the graphs.
       
       output$table_data_ref2<- DT::renderDataTable(
         df_flatten(as.data.frame(df$data,stringsAsFactors = FALSE)), escape = FALSE, options = list( lengthMenu = c(5, 25, 50), pageLength = 25,
-                                                             
-                                                             scrollX = TRUE, columnDefs = list(list(
-                                                               targets = "_all" ,render = JS(
-                                                                 "function(data, type, row, meta) {",
-                                                                 "return type === 'display' && data.length > 200 ?",
-                                                                 "'<span title=\"' + data + '\">' + data.substr(0, 200) + '...</span>' : data;",
-                                                                 "}")
-                                                             )))
+                                                                                                     
+                                                                                                     scrollX = TRUE, columnDefs = list(list(
+                                                                                                       targets = "_all" ,render = JS(
+                                                                                                         "function(data, type, row, meta) {",
+                                                                                                         "return type === 'display' && data.length > 200 ?",
+                                                                                                         "'<span title=\"' + data + '\">' + data.substr(0, 200) + '...</span>' : data;",
+                                                                                                         "}")
+                                                                                                     )))
       )
       
       
       reactive_values$active_source="PUBMED"
-      }
+    }
   },ignoreInit = TRUE,ignoreNULL = TRUE)
   #partie interdiciplinarité ----
   
@@ -2422,7 +2422,7 @@ We ask all the users to   cite the different souces they use to make the graphs.
 
 
 # Run the app ----
-shinyApp(ui, server)#this is the last version of the app 
+shinyApp(ui, server)
 
 
 
