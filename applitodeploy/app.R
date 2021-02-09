@@ -513,6 +513,7 @@ server <- function(input, output, session) {
     pct_ref=c(NULL,NULL),
     pct_cit=c(NULL,NULL),
     transfer_done=list(ads=NULL,arxiv=NULL,pumed=NULL),
+    cal_temp=NULL,
     show_arxiv_abilities=FALSE #temps que arxiv n'a pas un moyen de fonctionner cela restera a faux 
     
   )  
@@ -1579,13 +1580,27 @@ We ask all the users to   cite the different souces they use to make the graphs.
         
       }
       #mark3
+      reactive_values$cal_temp=length(reactive_values$res_ads$dataframe_citation_accept$`cited identifier`)+
+                                length(reactive_values$res_ads$dataframe_ref_accept$`refering identifier`)+
+                                length(reactive_values$res_arxiv$res_citation_accept$`cited identifier`)+
+                                length(reactive_values$res_arxiv$res_reference_accept$`refering identifier`)+
+                                length(reactive_values$res_pumed$dataframe_citation_accept$`cited identifier`)+
+                                length(reactive_values$res_pumed$dataframe_ref_accept$`refering identifier`)
+      if(reactive_values$cal_temp>=1){
       showModal(modalDialog(
         title = "research ended",
         "research ended you can press the calcul interdisciplinarity boutton.",
         easyClose = TRUE,
         footer = NULL
       ))
-      
+      }else{
+        showModal(modalDialog(
+          title = "research ended",
+          "the research ended but no resultat was found.",
+          easyClose = TRUE,
+          footer = NULL
+        ))
+      }
       
     }
     # checkboxInput("ads", "ADS", FALSE),
@@ -1663,36 +1678,38 @@ We ask all the users to   cite the different souces they use to make the graphs.
     c(input$ads_ask,
       reactive_values$transfer_done$ads)}
     ,{
-      
-      reactive_values$table_to_show_ref=reactive_values$res_ads$dataframe_publi_found[(reactive_values$res_ads$dataframe_publi_found$check_title_pct<reactive_values$value_same_min_accept) &(reactive_values$res_ads$dataframe_publi_found$check_title_pct>=reactive_values$value_same_min_ask),]
-      if(dim(reactive_values$table_to_show_ref)[1]>0) rownames(reactive_values$table_to_show_ref)<-1:nrow(reactive_values$table_to_show_ref)
-      
-      if(!is.null(reactive_values$transfer_done$ads)){ 
+      if(input$ads_ask!=0){
+        print("je passe sur ads ask")
+        reactive_values$table_to_show_ref=reactive_values$res_ads$dataframe_publi_found[(reactive_values$res_ads$dataframe_publi_found$check_title_pct<reactive_values$value_same_min_accept) &(reactive_values$res_ads$dataframe_publi_found$check_title_pct>=reactive_values$value_same_min_ask),]
+        if(dim(reactive_values$table_to_show_ref)[1]>0) rownames(reactive_values$table_to_show_ref)<-1:nrow(reactive_values$table_to_show_ref)
         
-        ind_temp=reactive_values$table_to_show_ref$bibcode%in%reactive_values$transfer_done$ads
-        reactive_values$table_to_show_ref=reactive_values$table_to_show_ref[!ind_temp,]  
+        if(!is.null(reactive_values$transfer_done$ads)){ 
+          
+          ind_temp=reactive_values$table_to_show_ref$bibcode%in%reactive_values$transfer_done$ads
+          reactive_values$table_to_show_ref=reactive_values$table_to_show_ref[!ind_temp,]  
+        }
+        
+        df <-reactiveValues(data =cbind(Actions = shinyInput( FUN = actionButton, n=nrow(reactive_values$table_to_show_ref), id='button_', label = "Transfer",  onclick = 'Shiny.setInputValue(\"select_button\", this.id, {priority: \"event\"})' ),reactive_values$table_to_show_ref
+        ) )
+        
+        output$table_data_ref1<- DT::renderDataTable(
+          df_flatten(as.data.frame(df$data,stringsAsFactors = FALSE)), escape = FALSE, options = list( lengthMenu = c(5, 25, 50), pageLength = 25,
+                                                               
+                                                               scrollX = TRUE, columnDefs = list(list(
+                                                                 targets = "_all" ,render = JS(
+                                                                   "function(data, type, row, meta) {",
+                                                                   "return type === 'display' && data.length > 200 ?",
+                                                                   "'<span title=\"' + data + '\">' + data.substr(0, 200) + '...</span>' : data;",
+                                                                   "}")
+                                                               )))
+        )
+        
+        
+        
+        #if(length(reactive_values$transfer_done$ads)>1) browser()
+        
+        reactive_values$active_source="ADS"
       }
-      
-      df <-reactiveValues(data =cbind(Actions = shinyInput( FUN = actionButton, n=nrow(reactive_values$table_to_show_ref), id='button_', label = "Transfer",  onclick = 'Shiny.setInputValue(\"select_button\", this.id, {priority: \"event\"})' ),reactive_values$table_to_show_ref
-      ) )
-      
-      output$table_data_ref1<- DT::renderDataTable(
-        df_flatten(df$data), escape = FALSE, options = list( lengthMenu = c(5, 25, 50), pageLength = 25,
-                                                             
-                                                             scrollX = TRUE, columnDefs = list(list(
-                                                               targets = "_all" ,render = JS(
-                                                                 "function(data, type, row, meta) {",
-                                                                 "return type === 'display' && data.length > 200 ?",
-                                                                 "'<span title=\"' + data + '\">' + data.substr(0, 200) + '...</span>' : data;",
-                                                                 "}")
-                                                             )))
-      )
-      
-      
-      
-      #if(length(reactive_values$transfer_done$ads)>1) browser()
-      
-      reactive_values$active_source="ADS"
     },ignoreInit = TRUE)
   
   observeEvent(input$select_button, {
@@ -1716,7 +1733,7 @@ We ask all the users to   cite the different souces they use to make the graphs.
         if(length(ind_ref_2)==0)if(!is.null(dim(reactive_values$res_ads$dataframe_ref_ask[ind_ref_1,])[1]))  if(dim(reactive_values$res_ads$dataframe_ref_ask[ind_ref_1,])[1]>0)reactive_values$res_ads$dataframe_ref_accept=rbind(reactive_values$res_ads$dataframe_ref_accept,reactive_values$res_ads$dataframe_ref_ask[ind_ref_1,])
       }
       reactive_values$transfer_done$ads=c(reactive_values$transfer_done$ads,reactive_values$table_to_show_ref$bibcode[[selectedRow]])  
-      
+    print("sortie ads select row")    
     }
     
     if(reactive_values$active_source=="ARXIV"){
@@ -1733,7 +1750,7 @@ We ask all the users to   cite the different souces they use to make the graphs.
         
         if(length(ind_ref_2)==0) if(!is.null(dim(reactive_values$res_arxiv$res_reference_ask[ind_ref_1,])[1])) if(dim(reactive_values$res_arxiv$res_reference_ask[ind_ref_1,])[1]>0) reactive_values$res_arxiv$res_reference_accept=rbind(reactive_values$res_arxiv$res_reference_accept,reactive_values$res_arxiv$res_reference_ask[ind_ref_1,])
       }
-      reactive_values$transfer_done$ads=c(reactive_values$transfer_done$arxiv,reactive_values$table_to_show_ref$abs_link[[selectedRow]]) 
+      reactive_values$transfer_done$arxiv=c(reactive_values$transfer_done$arxiv,reactive_values$table_to_show_ref$abs_link[[selectedRow]]) 
     }  
     
     if(reactive_values$active_source=="PUBMED"){
@@ -1747,8 +1764,9 @@ We ask all the users to   cite the different souces they use to make the graphs.
         ind_ref_2=which(reactive_values$table_to_show_ref$id[[selectedRow]]==unlist(reactive_values$res_pumed$dataframe_ref_accept$`refering identifier`))# ligne déja ajouter
         if(length(ind_ref_2)==0) if(dim(reactive_values$res_pumed$dataframe_ref_ask[ind_ref_1,])[1])  if(dim(reactive_values$res_pumed$dataframe_ref_ask[ind_ref_1,])[1]>0) reactive_values$res_pumed$dataframe_ref_accept=rbind(reactive_values$res_pumed$dataframe_ref_accept,reactive_values$res_ads$dataframe_ref_ask[ind_ref_1,])
       }
-      reactive_values$transfer_done$ads=c(reactive_values$transfer_done$pumed,reactive_values$table_to_show_ref$id[[selectedRow]])   
+      reactive_values$transfer_done$pumed=c(reactive_values$transfer_done$pumed,reactive_values$table_to_show_ref$id[[selectedRow]])   
     }
+  
   })
   
   
@@ -1763,7 +1781,7 @@ We ask all the users to   cite the different souces they use to make the graphs.
       #   need(!is.null(reactive_values$data_wos), "")
       # )
       
-      table_data=datatable(df_flatten(reactive_values$res_arxiv$res_reference_accept), options = list(scrollX = TRUE, columnDefs = list(list(
+      table_data=datatable(df_flatten(as.data.frame(reactive_values$res_arxiv$res_reference_accept),stringsAsFactors = FALSE), options = list(scrollX = TRUE, columnDefs = list(list(
         targets = "_all" ,render = JS(
           "function(data, type, row, meta) {",
           "return type === 'display' && data.length > 70 ?",
@@ -1816,37 +1834,39 @@ We ask all the users to   cite the different souces they use to make the graphs.
       input$arxiv_ask,
       reactive_values$transfer_done$arxiv
     )},{
-      reactive_values$table_to_show_ref=reactive_values$res_arxiv$res_publi_foundt[(reactive_values$res_arxiv$res_publi_foundt$check_pct<reactive_values$value_same_min_accept),]
-      
-      
-      
-      if(dim(reactive_values$table_to_show_ref)[1]>0) rownames(reactive_values$table_to_show_ref)<-1:nrow(reactive_values$table_to_show_ref)
-      
-      if(!is.null(reactive_values$transfer_done$arxiv)){ 
+      if(input$arxiv_ask!=0){
+        print("je passe sur arxiv ask")
+        reactive_values$table_to_show_ref=reactive_values$res_arxiv$res_publi_foundt[(reactive_values$res_arxiv$res_publi_foundt$check_pct<reactive_values$value_same_min_accept),]
         
-        ind_temp=reactive_values$table_to_show_ref$abs_link%in%reactive_values$transfer_done$arxiv
-        reactive_values$table_to_show_ref=reactive_values$table_to_show_ref[!ind_temp,]  
+        
+        
+        if(dim(reactive_values$table_to_show_ref)[1]>0) rownames(reactive_values$table_to_show_ref)<-1:nrow(reactive_values$table_to_show_ref)
+        
+        if(!is.null(reactive_values$transfer_done$arxiv)){ 
+          
+          ind_temp=reactive_values$table_to_show_ref$abs_link%in%reactive_values$transfer_done$arxiv
+          reactive_values$table_to_show_ref=reactive_values$table_to_show_ref[!ind_temp,]  
+        }
+        
+        
+        df <- reactiveValues(data =cbind(Actions = shinyInput( FUN = actionButton, n=nrow(reactive_values$table_to_show_ref), id='button_', label = "Transfer",  onclick = 'Shiny.setInputValue(\"select_button\", this.id, {priority: \"event\"})' ),reactive_values$table_to_show_ref
+        ) )
+        
+        output$table_data_ref2<- DT::renderDataTable(
+          df_flatten(as.data.frame(df$data,stringsAsFactors = FALSE)), escape = FALSE, options = list( lengthMenu = c(5, 25, 50), pageLength = 25,
+                                                               
+                                                               scrollX = TRUE, columnDefs = list(list(
+                                                                 targets = "_all" ,render = JS(
+                                                                   "function(data, type, row, meta) {",
+                                                                   "return type === 'display' && data.length > 200 ?",
+                                                                   "'<span title=\"' + data + '\">' + data.substr(0, 200) + '...</span>' : data;",
+                                                                   "}")
+                                                               )))
+        )
+        
+        
+        reactive_values$active_source="ARXIV"
       }
-      
-      
-      df <- reactiveValues(data =cbind(Actions = shinyInput( FUN = actionButton, n=nrow(reactive_values$table_to_show_ref), id='button_', label = "Transfer",  onclick = 'Shiny.setInputValue(\"select_button\", this.id, {priority: \"event\"})' ),reactive_values$table_to_show_ref
-      ) )
-      
-      output$table_data_ref2<- DT::renderDataTable(
-        df_flatten(df$data), escape = FALSE, options = list( lengthMenu = c(5, 25, 50), pageLength = 25,
-                                                             
-                                                             scrollX = TRUE, columnDefs = list(list(
-                                                               targets = "_all" ,render = JS(
-                                                                 "function(data, type, row, meta) {",
-                                                                 "return type === 'display' && data.length > 200 ?",
-                                                                 "'<span title=\"' + data + '\">' + data.substr(0, 200) + '...</span>' : data;",
-                                                                 "}")
-                                                             )))
-      )
-      
-      
-      reactive_values$active_source="ARXIV"
-      
     },ignoreInit = TRUE)
   observeEvent(input$pubmed_ref_accept,{
     output$table_data_ref3 <- renderDataTable({
@@ -1906,37 +1926,37 @@ We ask all the users to   cite the different souces they use to make the graphs.
     c(input$pubmed_ask,
       reactive_values$transfer_done$pumed)
   },{
-    
-    print("je passe sur pumed ask")
-    reactive_values$table_to_show_ref=reactive_values$res_pumed$dataframe_publi_found[(reactive_values$res_pumed$dataframe_publi_found$check_title_pct<reactive_values$value_same_min_accept),]
-    
-    if(dim(reactive_values$table_to_show_ref)[1]>0) rownames(reactive_values$table_to_show_ref)<-1:nrow(reactive_values$table_to_show_ref)
-    
-    if(!is.null(reactive_values$transfer_done$pumed)){ 
+    if(input$pubmed_ask!=0){ 
+      print("je passe sur pumed ask")
+      reactive_values$table_to_show_ref=reactive_values$res_pumed$dataframe_publi_found[(reactive_values$res_pumed$dataframe_publi_found$check_title_pct<reactive_values$value_same_min_accept),]
       
-      ind_temp=reactive_values$table_to_show_ref$id%in%reactive_values$transfer_done$pumed
-      reactive_values$table_to_show_ref=reactive_values$table_to_show_ref[!ind_temp,]  
-    }
-    
-    
-    df <- reactiveValues(data =cbind(Actions = shinyInput( FUN = actionButton, n=nrow(reactive_values$table_to_show_ref), id='button_', label = "Transfer",  onclick = 'Shiny.setInputValue(\"select_button\", this.id, {priority: \"event\"})' ),reactive_values$table_to_show_ref    ) )
-    
-    output$table_data_ref2<- DT::renderDataTable(
-      df_flatten(df$data), escape = FALSE, options = list( lengthMenu = c(5, 25, 50), pageLength = 25,
-                                                           
-                                                           scrollX = TRUE, columnDefs = list(list(
-                                                             targets = "_all" ,render = JS(
-                                                               "function(data, type, row, meta) {",
-                                                               "return type === 'display' && data.length > 200 ?",
-                                                               "'<span title=\"' + data + '\">' + data.substr(0, 200) + '...</span>' : data;",
-                                                               "}")
-                                                           )))
-    )
-    
-    
-    reactive_values$active_source="PUBMED"
-    
-  },ignoreInit = TRUE)
+      if(dim(reactive_values$table_to_show_ref)[1]>0) rownames(reactive_values$table_to_show_ref)<-1:nrow(reactive_values$table_to_show_ref)
+      
+      if(!is.null(reactive_values$transfer_done$pumed)){ 
+        
+        ind_temp=reactive_values$table_to_show_ref$id%in%reactive_values$transfer_done$pumed
+        reactive_values$table_to_show_ref=reactive_values$table_to_show_ref[!ind_temp,]  
+      }
+      
+      
+      df <- reactiveValues(data =cbind(Actions = shinyInput( FUN = actionButton, n=nrow(reactive_values$table_to_show_ref), id='button_', label = "Transfer",  onclick = 'Shiny.setInputValue(\"select_button\", this.id, {priority: \"event\"})' ),reactive_values$table_to_show_ref    ) )
+      
+      output$table_data_ref2<- DT::renderDataTable(
+        df_flatten(as.data.frame(df$data,stringsAsFactors = FALSE)), escape = FALSE, options = list( lengthMenu = c(5, 25, 50), pageLength = 25,
+                                                             
+                                                             scrollX = TRUE, columnDefs = list(list(
+                                                               targets = "_all" ,render = JS(
+                                                                 "function(data, type, row, meta) {",
+                                                                 "return type === 'display' && data.length > 200 ?",
+                                                                 "'<span title=\"' + data + '\">' + data.substr(0, 200) + '...</span>' : data;",
+                                                                 "}")
+                                                             )))
+      )
+      
+      
+      reactive_values$active_source="PUBMED"
+      }
+  },ignoreInit = TRUE,ignoreNULL = TRUE)
   #partie interdiciplinarité ----
   
   

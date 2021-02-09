@@ -285,7 +285,7 @@ make_wordcloud<-function(keywords,publication_date=0,interval_year=0,simple_word
       if(length(t_freq)!=0){
         b=min(year,na.rm = TRUE)+(i)*interval_year
         #print(head(sort(t_freq,decreasing=TRUE),10))
-        if(b>max(year)) b<-max(year)
+        if(b>max(year,na.rm = TRUE)) b<-max(year,na.rm = TRUE)
         
         p_res[i]=wordcloud(words = t_word, freq = t_freq, min.freq = minfreq,
                            max.words=max_word_print, random.order=FALSE, rot.per=0.35,
