@@ -2422,7 +2422,7 @@ We ask all the users to   cite the different souces they use to make the graphs.
 
 
 # Run the app ----
-shinyApp(ui, server)
+shinyApp(ui, server)#this is the last version of the app 
 
 
 

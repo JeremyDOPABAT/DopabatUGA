@@ -24,37 +24,18 @@ library(plyr)
 
 ths$position_name=1
 ths$sep=","
-ths$source="csv"
-data_pub=ths
-source_name="source"
-sep_vector_in_data=""
-position_vector_in_data=""
-id_data=""
-pas=8
-value_same_min_ask=0.85
-value_same_min_accept=0.95
-data_rest=data_pub[data_pub[source_name]!="WOS",]
-if(dim(data_rest)[1]!=0) {
-  if(length(sep_vector_in_data)==1) if(sep_vector_in_data=="") sep="" else sep=data_rest[sep_vector_in_data][[1]]
-  if(length(position_vector_in_data)==1) if(position_vector_in_data=="") position_name=rep(1,dim(data_rest)[1]) else position_name=data_rest[position_vector_in_data][[1]]
-  
-  res_rest_all=arxiv_get_publi(data_rest[au_name][[1]],data_rest[ti_name][[1]],position_name,pas,value_same_min_ask,value_same_min_accept,sep,id_data)
-  
-  }
+ths$source="CSV"
 
 
 
 
-
-
-res_arxiv=extraction_data_api_arxiv(data_pub=ths,ti_name=ti_name,au_name=au_name,pas=8,value_same_min_accept=0.95,value_same_min_ask = 0.85,type = "cit",sep_vector_in_data ="sep",position_vector_in_data = "position_name")
 View(res_arxiv$res_publi_foundt)
+View(res_to_save)
+
+res_data_nasa_ads=extraction_data_api_nasa_ads(data_pub=ths,ti_name=ti_name,au_name=au_name,token=token,pas=8,value_same_min_accept=0.95,value_same_min_ask = 0.85,type="all",sep_vector_in_data ="sep",position_vector_in_data = "position_name",source_name = "source" )
 
 
-
-
-
-
+res_arxiv=extraction_data_api_arxiv(data_pub=ths,ti_name=ti_name,au_name=au_name,pas=8,value_same_min_accept=0.95,value_same_min_ask = 0.85,type = "all",sep_vector_in_data ="sep",position_vector_in_data = "position_name")
 res_pumed=extract_data_api_pumed(data_pub=ths,ti_name,au_name,pas=8,value_same_min_accept=0.85, value_same_min_ask=0.95,type="all",sep_vector_in_data ="sep",position_vector_in_data = "position_name")
 dim(res_data_nasa_ads$dataframe_citation_accept)
 dim(res_data_nasa_ads$dataframe_citation_accept)
@@ -265,14 +246,8 @@ str(bib)
 # 
 # 
 # 
-# global_merge_and_cal_interdis
-
 # 
-
-res_data_nasa_ads=extraction_data_api_nasa_ads(data_pub=ths,ti_name=ti_name,au_name=au_name,token=token,pas=8,value_same_min_accept=0.95,value_same_min_ask = 0.85,type="all",sep_vector_in_data ="sep",position_vector_in_data = "position_name",source_name = "source" )
-
-test=global_merge_and_cal_interdis(ads=res_data_nasa_ads,arxiv=NULL,pumed=NULL,wos=NULL,journal_table_ref = journal_table_ref,table_categ_gd = table_categ_gd,type = "all",table_dist =table_dist,col_journal=c("Full.Journal.Title"))
-
+# 
 
 # dim(res_data_nasa_ads$dataframe_ref_accept)
 # 

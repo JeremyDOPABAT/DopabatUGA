@@ -74,20 +74,85 @@ res_pumed=extract_data_api_pumed(data_pub=res_wos,ti_name,au_name,pas=8,value_sa
 
 
 
-path=choose.files(caption = "chosse your data file")
-data_wos<-convert2df(path,dbsource = "wos",format = "bibtex")
 
 data_wos$AU[1]
 
-test=bib2df::bib2df(path, separate_names = TRUE)
+
+
+
+
+
+test_T=bib2df::bib2df(path, separate_names = TRUE)
+View(test_T)
+
+
+
+View(test)
+
+
+
+
+tryCatch({
+  test_F=bib2df::bib2df(path, separate_names = FALSE)
+  
+    
+
+},
+
+error=function(cond){
+  return(-400)
+  print("error")
+},
+warning=function(cond){
+  return(-400)
+  print("war")
+})
+
+
+
+
+
+
+
+View(test_F)
+
+path=choose.files(caption = "chosse your data file")
+
+data_wos<-convert2df(path,dbsource = "wos",format = "bibtex")
+View(data_wos)
+
+
+test_F=bib2df::bib2df(path, separate_names = FALSE)
+
+test=conforme_bibtext(test_F,data_base = "BIB")
+View(test)
+
+test3=df_flatten(test)
+ind=which(is.na(test[[i]]))
+if(length(ind)>0 )
+  test[ind,i]="NULL"#na ne peu pas ?tre afficher dans la table donc on le remplace par "null" 
+
 
 res_wos$position_name=2
 res_wos$sep=";"
 res_wos$source="WOS"
 
 
-View(test)
+View(test3)
 
+
+
+
+# data tble 
+#fonction qui permet le bonne affichage des tables dans l'interface  
+
+#date_name="date"
+
+
+  # ind=which(is.null(res_f[[i]]))
+  # if(length(ind)>0 ) res_f[ind,i]=NA
+
+  
 voici_un_test<-extract_ref_wos(data_wos)
 
 test=as.data.frame(voici_un_test,stringsAsFactors = FALSE)
@@ -106,7 +171,7 @@ class(test)
 
 
 
-
+names(test)
 dim(test)
 View(test)
 typeof(test2)
@@ -167,6 +232,27 @@ View(test_with_no_na)
 
 
 
+
+
+
+
+
+
+
+
+
+path2=choose.files(caption = "chosse your data file")
+
+
+
+test_F=bib2df::bib2df(path2, separate_names = FALSE)
+
+
+
+
+(test1=grep(pattern = "^TITLE*",names(test_F)))
+(test2=grep(pattern = "^KEYWORDS*",names(test_F)))
+(test3=grep(pattern = "^AUTHOR*",names(test_F)))
 # 
 # 
 # 
