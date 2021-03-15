@@ -290,7 +290,7 @@ make_wordcloud<-function(keywords,publication_date=0,interval_year=0,simple_word
         p_res[i]=wordcloud(words = t_word, freq = t_freq, min.freq = minfreq,
                            max.words=max_word_print, random.order=FALSE, rot.per=0.35,
                            colors=brewer.pal(8, "Dark2"),scale = c(1.5, 0.3))
-        titre<-paste("top",max_word_print,"mots cl?s",add_title,"ann?e(s) [",min(year,na.rm = TRUE)+(i-1)*interval_year,":",b,add_brack,"( frequence de mot min:",minfreq,")")
+        suppressWarnings(titre<-paste("top",max_word_print,"keywords",add_title,"year(s) [",min(year,na.rm = TRUE)+(i-1)*as.numeric(interval_year),":",b,add_brack,"( minimum frequency:",minfreq,")"))
         mtext(titre,side=2)
         
         #print(head(sort(t_freq,decreasing=TRUE),10))
@@ -328,7 +328,8 @@ make_wordcloud<-function(keywords,publication_date=0,interval_year=0,simple_word
                          max.words=max_word_print, random.order=FALSE, rot.per=0.35,
                          colors=brewer.pal(8, "Dark2"),scale = c(1.5, 0.3))
       
-      titre<-paste("top",max_word_print,"keywords",add_title,",in,whole dataset ( minimum frequency :",minfreq,")")
+      suppressWarnings(titre<-paste("top",max_word_print,"keywords",add_title,",in whole dataset( minimum frequency:",minfreq,")"))
+      
       mtext(titre,side=2)
     }
     
@@ -1051,8 +1052,6 @@ fit_name_position<-function(au_data,position_base,position_togo,sep=""){
   #' @return vecteur author 
   
   if(length(sep)==1) {if(sep=="") sep=rep(";",length(au_data)) }
-  print(sep)
-  print(position_base)
   au_sep=sapply(1:length(au_data),FUN=function(x){ 
     if(length(au_data[[x]])!=1){
       au_data[[x]]=paste(au_data[[x]],collapse = ";")
@@ -1060,8 +1059,7 @@ fit_name_position<-function(au_data,position_base,position_togo,sep=""){
     }
     return(strsplit(au_data[[x]],sep[x]))
   })
-  print("apres s apply")
-  
+
   #togo==2
   test_full=sapply(1:length(au_data),FUN=function(x,position_b=position_base,position_tg=position_togo){
     fin=unlist(lapply(strsplit(unlist(au_sep[x]), split = " "), function(x) {
@@ -1246,7 +1244,7 @@ ads_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,val
             resdt$aut=sapply(1:dim(resdt)[1], FUN=function(x){paste(unlist(resdt$aut[x]),collapse = ' ; ')})  
             trouver<-unlist(resdt$titre)
             
-            indic_compaire_title<-compaire_title(trouver,ti_data)
+            indic_compaire_title<-compaire_title(Unaccent(trouver),Unaccent(ti_data))
             
             
             
@@ -1651,10 +1649,42 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,pas=8,value_same_min_a
         return(grep(x,(res_new$ref_pmid)))
       })
       
+      multi_cit_article<-sapply(ind_id,function(x){
+        return(length(x))
+      })
+      
+      multi_cit_article<-which(multi_cit_article>1)
+      
+      couple=list(indice_id_cit=list(), indice_id_res_new=list())# on va recrée les couple en trop après l'association
+      for(i in multi_cit_article){
+        
+        couple$indice_id_cit=append(couple$indice_id_cit,i)
+        couple$indice_id_res_new=append(couple$indice_id_res_new,ind_id[[i]][-1])#on enleve le premier deja dans l'association de base
+        ind_id[[i]]=ind_id[[i]][1]
+      }
+      
       
       
       res_ref_final=cbind(res_new[ind_id,],res_ref)
       res_ref_final<-res_ref_final[,-which(names(res_ref_final)=="ref_pmid")]
+      
+      # on ne peu pas le faire avant pour éviter de changer la dimention du res cit 
+      #on rajoute ce qui a été enlever au préalable 
+      for(i in 1:length(multi_cit_article)){
+        temp=c()# table temp
+        res_cit_temp=sapply(1:length(couple$indice_id_res_new[[i]]),FUN = function(x){
+          temp=rbind(temp,res_cit[couple$indice_id_cit[[i]],]) 
+        })
+        res_cit_temp=as.data.frame(t(res_cit_temp),stringsAsFactors = FALSE)
+        res_new_temp=res_new[couple$indice_id_res_new[[i]],]
+        
+        temp=cbind(res_new_temp,res_cit_temp)
+        #on enleve les colonne en trop 
+        temp<-temp[,-which(names(temp)=="ref_pmid")]
+        temp<-temp[,-which(names(temp)=="reference")]
+        res_ref_final=rbind(res_ref_final,temp)
+      }
+      
       names(res_ref_final)<- c("refering identifier","refering auth","refering title","refering date","refering journal","h","refering issn","refering essn","check","check ind","refered identifier", "refered auth","refered title","refered date","refered essn","refered issn","refered journal" )
       #View(res_ref_final)
       if(dim(res_ref)[1]>0) res_ref_final<-res_ref_final[order(unlist(res_ref_final$`refering identifier`)),]
@@ -2000,7 +2030,7 @@ pumed_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,v
     if(sum(duplicated(res$id))>0) res<-res[-(which(duplicated(res$id)==TRUE)),]# supression des doublon causer par la requette translatin 
     
     
-    indic_compaire_title<-compaire_title(res$titre,ti_data)
+    indic_compaire_title<-compaire_title(Unaccent(res$titre),Unaccent(ti_data))
     
     res$check_title_pct=indic_compaire_title[1,]
     res$check_title_ind=indic_compaire_title[2,]
@@ -2510,7 +2540,7 @@ arxiv_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,v
             ref_link=res_temp[8,]
             #last_good_res=xml_data
             # calcule du pourcentage de similitude par titre 
-            indic_compaire_title<-compaire_title(unlist(tps),ti_data[first:last])
+            indic_compaire_title<-compaire_title(Unaccent(unlist(tps)),Unaccent(ti_data[first:last]))
             check_title_pct<-unlist(indic_compaire_title[1,])
             check_title_ind<-unlist(indic_compaire_title[2,])+first-1
             #____________________________________________
@@ -2649,7 +2679,7 @@ arxiv_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,v
                 ref_link=res_temp[8,]
                 #last_good_res=xml_data
                 # calcule du pourcentage de similitude par titre 
-                indic_compaire_title<-compaire_title(unlist(tps),ti_data[first:last])
+                indic_compaire_title<-compaire_title(Unaccent(unlist(tps)),Unaccent(ti_data[first:last]))
                 check_title_pct<-unlist(indic_compaire_title[1,])
                 check_title_ind<-unlist(indic_compaire_title[2,])+first-1
                 #____________________________________________
@@ -3204,4 +3234,261 @@ get_cit_link_arxiv=function(titre_arxiv){
   
   lien_complet=paste0("https://scholar.google.com/",substr(lien,supdeb+1,supfin-2))
   return(lien_complet)
+}
+
+
+
+
+
+
+lens_get_cit_or_ref<-function(resdt,type="cit",token){# on r?cup?re les infodes citation uniquement 
+  #permet de recup?r? les citation et les reference d'ads grace a une base de publie en entr?e, 
+  #fonction interne 
+  #print(head(resdt))
+  last_good_result=NULL
+  res_cit=c()
+  if(type=="cit"){
+    if(sum(is.na(resdt$citation)!=length(resdt$citation))) res_temp=resdt[!is.na(resdt$citation),]$citation else res_temp=-666 # si on demande des sitation et il y en a pas 
+  } else {
+    if(sum(is.na(resdt$reference)!=length(resdt$reference)))res_temp=resdt[!is.na(resdt$reference),]$reference else res_temp=-666
+    
+  }
+  if(typeof(res_temp)=="list"){
+    #initialisation
+    res_temp=unique(unlist(res_temp))
+    error_querry_cit=c()
+    pas_cit=30
+    count=ceiling(length(res_temp)[1]/pas_cit)
+    size_res=c()
+    test=c()
+    start_RQ=0
+    res_cit=c()
+    # withProgress(
+    #   message='Please wait',
+    #   detail=paste0("doing ",type, ' search in lens ...'),
+    #   value=0, {
+    #     
+    for(j in 1:count){# on parcour tout les ref/cit
+      Sys.sleep(3)#3 sec between qurries lens terme of use 
+      first<-(j-1)*pas_cit+1
+      last<-j*pas_cit
+      #   incProgress(1/count)
+      
+      
+      if(last>length(res_temp)[1]) last<-length(res_temp)[1]
+      cit_ref_id=paste0('"',(res_temp[first:last]),'"',collapse = ",")
+      
+      request<- paste0('{
+            "query": {
+        "terms":{
+          "lens_id": [',cit_ref_id,']
+        }
+      },
+      "include": ["lens_id","date_published","title","source","authors"]
+      }')
+      
+      
+      r <- getScholarlyData(token, request)
+      r$status_code
+      
+      error=tryCatch({
+        querry_warning_message(r)
+        
+      },
+      
+      warning=function(cond){# mise en place de la table erreur
+        print("aie")
+        #print(message_error(r))
+        #print(paste0("https://api.adsabs.harvard.edu/v1/search/query?q=", adress))
+        titre_error=data.frame(titre=NA)
+        #names(titre_error)=c("Publication title")
+        titre_error$status=r$status
+        titre_error$message=message_error(r)
+        titre_error$type_error=type
+        return(titre_error)
+      })
+      # print("sortie error")
+      if(length(error)>0){
+        #print("dans le if ")
+        error_querry_cit<-rbind(error_querry_cit,error)
+        error=c()
+        
+      }else {
+        #print("dans le eslse")
+        result <-jsonlite::fromJSON(txt = httr::content(r, 'text'), simplifyDataFrame = TRUE,simplifyVector = TRUE)
+        
+        if(result$total>0){# si resultat on r?cup?re se qui nous interesse 
+          last_good_result=r
+          id=result$data$lens_id
+          aut=sapply(1:length(result$data$authors),FUN = function(x) return(list(result$data$authors[[x]]$last_name)))
+          titre=result$data$title
+          # doi=result$response$docs$doi# a fair  recr?e ou trouvr identifiant ads
+          pub=result$data$source$title
+          issn=result$data$source$issn
+          date=result$data$date_published
+          #on fait exixter les valeur manquante pour permetre lajoue 
+          issn[which(is.null(issn))]<-NA
+          aut[which(is.null(aut))]<-NA
+          titre[which(is.null(titre))]<-NA
+          date[which(is.null(date))]<-NA
+          
+          res_cit<-rbind(res_cit,cbind(j,id,aut,titre,date,issn,pub))
+        }
+        
+      }
+    }
+    # print("avant le if ")
+    if(j==count && (length(res_cit)[1]>0)) {#mise en forme finale 
+      #  print("dans le if" )
+      resdt_cit=as.data.frame(res_cit)
+      names(resdt_cit)[2:dim(resdt_cit)[2]]<-paste0(names(resdt_cit)[2:dim(resdt_cit)[2]],"_cit_ref")
+      if(type=="cit"){
+        ind_id<-sapply(resdt_cit$`id_cit_ref`,function(x){
+          return(grep(x,(resdt$citation)))
+        })
+      } else{
+        ind_id<-sapply(resdt_cit$`id_cit_ref`,function(x){
+          return(grep(x,(resdt$reference))) # on fait correspondre les titre de d?part avec leur citation  
+        })
+      }
+      
+      
+      
+      
+      total_res=c()
+      for(j in 1:length(ind_id)){
+        
+        total_res=rbind(total_res,(cbind(resdt$id[(ind_id[[j]])],resdt$title[ind_id[[j]]],  resdt$author[(ind_id[[j]])],resdt$date[(ind_id[[j]])],resdt$journal[ind_id[[j]]],
+                                         resdt_cit$`titre_cit_ref`[j],resdt_cit$`aut_cit_ref`[j],resdt_cit$`id_cit_ref`[j],
+                                         resdt_cit$`date_cit_ref`[j],resdt_cit$`pub_cit_ref`[j],resdt_cit$`issn_cit_ref`[j],resdt$check_title_pct[(ind_id[[j]])],resdt$check_title_ind[(ind_id[[j]])])))
+        
+      }
+      dim(total_res)
+      total_res=as.data.frame(total_res)
+      if(type=="cit"){
+        names(total_res)<-c("cited identifier","cited title","cited auth","cited date","cited journal", 
+                            "citing title","citing auth","citing identifier","citing date", "citing journal","citing issn","check","check ind" )
+      }else{
+        names(total_res)<-c("refering identifier","refering title","refering auth","refering date","refering journal", 
+                            "refered title","refered auth","refered identifier","refered date","refered journal","refered issn","check","check ind" )  
+      } 
+      result=list(res_cit_ref=total_res,error_table=error_querry_cit)
+    } else result=NULL
+    print("dernier if" )
+    if(length(dim(error_querry_cit)) && (j==count)) print("il y a des erreurs lors de l'agregation des info des citations") 
+    
+    #})
+    
+  } else result=NULL
+  
+  return(result)
+  
+}
+
+lens_get_publi<-function(au_data,ti_data,position_reel,pas,value_same_min_ask,value_same_min_accept,token,sep){
+
+  
+position_togo=rep(1,length(au_data))
+  
+  
+res_temp=supress_unfit_entry(ti_data,au_data,sep=sep,max_aut = 1)#permet d'aclimater les do,n?es a la bd (possiblement sortable de la fonction )  
+  
+
+ti_data=res_temp[[1]]
+au_data=res_temp[[2]]
+
+
+au_data=fit_name_position(au_data,position_reel,position_togo =position_togo,sep )
+au_data=sapply(1:length(au_data),FUN = function(x) paste(au_data[[x]],collapse = ";"))
+  
+    
+  inter=ceiling(length(au_data)[1]/pas)# nombre d'iteration
+  # withProgress(
+  #    message='Please wait',
+  #    detail='Doing reasearche of publication in ads...',
+  #    value=0, {
+  res=c()
+  for(h in 1:inter){# on parcoure les auteur et les titre par pas et on fait les roquette correspondante 
+    print(h)
+    first<-(h-1)*pas+1
+    last<-h*pas
+    # incProgress(1/inter)
+    if(last>length(au_data)) last<-length(au_data)
+    
+    
+    
+    
+    request=lens_make_main_request(gsub(","," ",Unaccent(au_data[first:last])),Unaccent(ti_data[first:last]))
+    
+    print("titre")
+    Sys.sleep(3)  
+    data <- getScholarlyData(token, request)
+    data$status_code
+    result <-jsonlite::fromJSON(txt = httr::content(data, 'text'), simplifyDataFrame = TRUE,simplifyVector = TRUE)
+    result$total
+    
+    error=tryCatch({#rep?rage des erreur 
+      querry_warning_message(data)
+      
+    },
+    
+    warning=function(cond){# mise en forme en cas d'erreur 
+      titre_error=as.data.frame(ti_data[first:last])
+      names(titre_error)=c("Publication title")
+      titre_error["Status error"]=data$status
+      titre_error$Message=message_error(data)
+      titre_error["Data impact"]="ref & cit"
+      titre_error$h=h
+      return(titre_error)
+    })
+    
+    
+    if(length(error)>0){
+      error_querry<-rbind(error_querry,error)
+      error=c()
+      
+    }else {#si il n'y a pas d'erreur 
+      
+      
+      if(result$total>0){
+        print("ouiiiiiii")
+        title=result$data$title
+        id=result$data$lens_id
+        author=sapply(1:length(result$data$authors),FUN = function(x) return(list(result$data$authors[[x]]$last_name)))
+        date=result$data$date_published
+        reference=result$data$references
+        citation=result$data$scholarly_citations
+        journal=result$data$source$title
+        
+        
+        if(is.null(reference)) reference=NA
+        if(is.null(citation)) citation=NA 
+        if(is.null(journal)) journal=NA 
+        
+        if(is.null(date)) date=NA
+        
+        res<-rbind(res,cbind(h,id,author,title, date,journal,citation,reference))
+        
+        
+      }
+      
+      # if(value_same_min_ask<1) reject=resdt[resdt$check_title_pct<value_same_min_ask,]# les rejet? sont ceux qui non pas assez de similitudfe pour aire dans les demande 
+      # resdt=resdt[resdt$check_title_pct>value_same_min_ask,]
+      # #ask est pas accepte car on le garde dans la dataframe pour que ceux ou on a un doute soit quand même treter 
+      
+      
+    }
+  }
+  resdt=as.data.frame(res,stringsAsFactors = FALSE)
+  indic_compaire_title<-compaire_title(Unaccent(resdt$title),Unaccent(ti_data))
+  
+  
+  
+  resdt["check_title_pct"]<-unlist(indic_compaire_title[1,])
+  resdt["check_title_ind"]<-unlist(indic_compaire_title[2,])
+  
+  if(value_same_min_ask<1) reject=resdt[resdt$check_title_pct<value_same_min_ask,]# les rejet? sont ceux qui non pas assez de similitudfe pour aire dans les demande 
+  resdt=resdt[resdt$check_title_pct>value_same_min_ask,]
+  dim(resdt)
+  return(list(res=resdt, error=error_querry,reject=reject))
 }
