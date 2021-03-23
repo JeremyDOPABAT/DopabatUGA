@@ -35,17 +35,17 @@ library(DT)
 # l'ui c'est toute la partie qui définie l'exterieur de l'interface, les boutons et les boite. 
 ui <-dashboardPage(skin = "red",
                    #menu
-                   dashboardHeader(title = "DOBABAT"),
+                   dashboardHeader(title = "DOPABAT"),
                    dashboardSidebar( sidebarMenu(
                      menuItem("Import_csv", tabName = "import_csv", icon = icon(name = "arrow-circle-up")),
                      #menuItem("Import_PDF", tabName = "import_pdf", icon = icon("file-pdf")),
                      #si le probleme est  regle decommenter laligne du dessous 
                      menuItem("Import_bibext", tabName = "import_wos", icon = icon("file-export")),
                      menuItem("History", tabName = "history", icon = icon("address-card")),
-                     menuItem("Wordcloud Graphics", tabName = "wordcloud", icon = icon("th")),
-                     menuItem("Network Graphics", tabName = "network", icon = icon("project-diagram")),
-                     menuItem("Reasech interdisciplinarity", tabName = "DB", icon = icon("database")),
-                     menuItem("Result interdisciplinarity", tabName = "calculinterdisciplinarity", icon = icon("database")),
+                     menuItem("Wordcloud graphics", tabName = "wordcloud", icon = icon("th")),
+                     menuItem("Network graphics", tabName = "network", icon = icon("project-diagram")),
+                     menuItem("interdisciplinarity reasech", tabName = "DB", icon = icon("database")),
+                     menuItem("Interdisciplinarity results", tabName = "calculinterdisciplinarity", icon = icon("database")),
                      menuItem("About us", tabName = "about", icon = icon("address-card"))
                      
                      #-------------------------------------------------------------------  
@@ -235,21 +235,21 @@ ui <-dashboardPage(skin = "red",
                               tabItem(tabName = "wordcloud",
                                       #onglet wordcloud ----
                                       #cet onglet permet la visualisation des mot clefs du corpus sous plusieurs forme. 
-                                      titlePanel("Words cloud graphics"),
+                                      titlePanel("Word cloud graphics"),
                                       
                                       
                                       #wordcloud
                                       # Sidebar layout with input and output definitions ----
                                       fluidRow( sidebarPanel(
                                         tags$div(title="One graph per number of year",selectInput("intervalyear","number of year per graphics",choices = "")),
-                                        numericInput("maxprint","max number of words on graph(s)",value=20,min=1,max=50,step=1)
+                                        numericInput("maxprint","max number of keywords on graphic(s)",value=20,min=1,max=50,step=1)
                                         
                                         
                                         
                                       ),
-                                      box(width = 4,checkboxInput("Simpleword", "literaly word analyse one by one"),
+                                      box(width = 4,checkboxInput("Simpleword", "literaly words analyse one by one"),
                                           #numericInput("minfreq","minimum freqency to be on graph(s)",value=1,min=1,max=50,step=1))
-                                          sliderInput("minfreq", label = "minimum freqency to be on graph(s)", min = 0, 
+                                          sliderInput("minfreq", label = "minimum freqency to be on graphic(s)", min = 0, 
                                                       max = 100, value = 50))
                                       
                                       
@@ -266,13 +266,13 @@ ui <-dashboardPage(skin = "red",
                               ),
                               
                               tabItem(tabName = "network",
-                                      titlePanel("network graphics"),
+                                      titlePanel("Network graphics"),
                                       htmlOutput("text_network"),
                                       downloadButton("downloadData", "Download acticles data"),
-                                      fluidRow(column(width=3,   tags$div(title="show only the bigest nodes with their relations ",selectInput("networktop","number of words for top graph",choices =c("None",1:20)))),
-                                               column(width=3, tags$div(title="Supress th nodes taken only one time in the graph",checkboxInput("supones", "supress words taken one time only", value = FALSE)),
+                                      fluidRow(column(width=3,   tags$div(title="show only the bigest nodes with their relations ",selectInput("networktop","number of keywords for top graph",choices =c("None",1:20)))),
+                                               column(width=3, tags$div(title="Supress th nodes taken only one time in the graphic",checkboxInput("supones", "supress keywords taken one time only", value = FALSE)),
                                                       tags$div(title="Reduce the size of the nodes to root",checkboxInput("root", "passe the weight of nood to roots", value = FALSE))),
-                                               column(width=3,tags$div(title="One graph per number of year",selectInput("networkintervalyear","number of year per graphics",choices =c("All year",1:20)))),
+                                               column(width=3,tags$div(title="One graphic per number of year",selectInput("networkintervalyear","number of year per graphics",choices =c("All year",1:20)))),
                                                column(width=3, tags$div(title="switch to domain network",checkboxInput("domain", "show domain study ", value = FALSE)))
                                                
                                                
@@ -286,7 +286,7 @@ ui <-dashboardPage(skin = "red",
                               ),
                               tabItem(tabName = "DB",
                                       #onglet database----
-                                      titlePanel("Research cit and ref "),
+                                      titlePanel("Research citations and references"),
                                       htmlOutput("text_database"),
                                       fluidRow(
                                         
@@ -294,7 +294,8 @@ ui <-dashboardPage(skin = "red",
                                             
                                             #choix de la ou des bases 
                                             checkboxInput("ads", "ADS", FALSE),
-                                            checkboxInput("pubmed", "Pubmed", FALSE),
+                                            checkboxInput("lens", "Lens", FALSE),
+                                            conditionalPanel('output.show_pumed_box',checkboxInput("pubmed", "Pubmed", FALSE)),
                                             conditionalPanel('output.show_arxiv_abilities',checkboxInput("arxiv", "ArXiv", FALSE)),
                                             
                                             tags$div(title="Citation : aticle which cite an other aticle in the corpus. Reference: articles use to build the articles on the corpus.",radioButtons("type", "What data do you want to fetch ?",
@@ -308,13 +309,13 @@ ui <-dashboardPage(skin = "red",
                                             actionButton("valid_DB", "Process the reaseach"),
                                             br(),
                                             actionButton("valid_data_research", "Calculate interdisiplinarity"),
-                                            
-                                            conditionalPanel('output.show_token_ads',textInput("token",label ="Token" )),
+                                            conditionalPanel('output.show_token_lens',textInput("token_lens",label ="Lens'token" )),
+                                            conditionalPanel('output.show_token_ads',textInput("token_ads",label ="ADS'Token" )),
                                             
                                             
                                             
                                         ),
-                                        tabBox(width = 8, title = "result data tab ",
+                                        tabBox(width = 8, title = "Results data tab ",
                                                #onglet resultat citation----
                                                # dans cette onglet lutilisateur va pouvoir voir le resultat des recherche sur les et faire dfferent chois. 
                                                tabPanel("ADS", conditionalPanel('output.show_ads_res_window',
@@ -482,6 +483,7 @@ server <- function(input, output, session) {
     plots=NULL,
     numberwordcloud=1,
     show_token_ads=FALSE,
+    show_token_lens=FALSE,
     show_id_arxiv=FALSE,
     show_wos_valid=FALSE,
     show_ref=FALSE,
@@ -514,6 +516,7 @@ server <- function(input, output, session) {
     pct_cit=c(NULL,NULL),
     transfer_done=list(ads=NULL,arxiv=NULL,pumed=NULL),
     cal_temp=NULL,
+    show_pumed_box=TRUE,# when lens is selected pubmed desapear 
     show_arxiv_abilities=FALSE #temps que arxiv n'a pas un moyen de fonctionner cela restera a faux 
     
   )  
@@ -530,6 +533,9 @@ server <- function(input, output, session) {
   })
   output$show_token_ads<- reactive({
     reactive_values$show_token_ads
+  })
+  output$show_token_lens<- reactive({
+    reactive_values$show_token_lens
   })
   output$show_id_arxiv<- reactive({
     reactive_values$show_id_arxiv
@@ -557,11 +563,17 @@ server <- function(input, output, session) {
     reactive_values$show_arxiv_abilities
   })
   
+  output$show_pumed_box<- reactive({
+    reactive_values$show_pumed_box
+  })
+  
+  
   # on rand invisible les variable de conditionnemetn ainsi tous ce qui leurs et lie ne sera pas montrees 
   outputOptions(output, "show_arxiv_abilities", suspendWhenHidden = FALSE)
   outputOptions(output, "show_header", suspendWhenHidden = FALSE)
   outputOptions(output, "show_pdf_valid", suspendWhenHidden = FALSE)
   outputOptions(output, "show_token_ads", suspendWhenHidden = FALSE)
+  outputOptions(output, "show_token_lens", suspendWhenHidden = FALSE)
   outputOptions(output, "show_wos_valid", suspendWhenHidden = FALSE)
   outputOptions(output, "show_ref", suspendWhenHidden = FALSE)
   outputOptions(output, "show_cit", suspendWhenHidden = FALSE)
@@ -570,6 +582,8 @@ server <- function(input, output, session) {
   outputOptions(output, "show_arxiv_res_window", suspendWhenHidden = FALSE)
   outputOptions(output, "show_id_arxiv", suspendWhenHidden = FALSE)
   outputOptions(output, "show_wos_res_window", suspendWhenHidden = FALSE)
+  outputOptions(output, "show_pumed_box", suspendWhenHidden = FALSE)
+  
   
   
   
@@ -602,7 +616,7 @@ server <- function(input, output, session) {
             "This blog is describing the problem, the methodes and the steps of the project",h3("Thanks"),"
            
 All the DOPABAT team would like to thank ADS, PUMED and LENS for their disposal and support during all the development phase. We personally thank all the databases that allow the platform to work. 
-We ask all the users to   cite the different souces they use to make the graphs.
+We ask all the users to   cite the different souces they use to make the graphics.
 "
             
     )
@@ -875,7 +889,7 @@ We ask all the users to   cite the different souces they use to make the graphs.
       print("inthe if graphic")
       showModal(modalDialog(
         title = "Graphics are build up",
-        "you can go to the wordcloud and netwoork page to see results",
+        "Results are ready on Word cloud graphics and Network graphics pages",
         easyClose = TRUE,
         footer = NULL
       ))
@@ -1498,13 +1512,29 @@ We ask all the users to   cite the different souces they use to make the graphs.
   
   
   # tavaillle sur les donnée citation reference ? _______________________________________________________________
-  observeEvent(input$ads,{
+  observeEvent(c(input$ads, input$lens,input$pubmed),{ # observe event permettant de gerrer les token et les particularité d'admission des base 
+    reactive_values$pubmed<-input$pubmed #initialise se value but modifier after with lens value 
     if(input$ads==TRUE){
       reactive_values$show_token_ads <- TRUE
     }else {
       reactive_values$show_token_ads <- FALSE
     }
-    
+    if(input$lens==TRUE){
+      if(reactive_values$pubmed==TRUE){
+        showModal(modalDialog(
+          title = "Lens containe pubmed ",
+          "Lens contain pubmed, no need to select it if lens is selected.",
+          easyClose = TRUE,
+          footer = NULL
+        ))
+      }
+      reactive_values$show_pumed_box=FALSE
+      reactive_values$pubmed<-FALSE# if lens =no pubmed 
+      print(reactive_values$pubmed)
+    }else{
+      print(reactive_values$pubmed)
+      reactive_values$show_pumed_box=TRUE
+    }
   })
   observeEvent(input$arxiv,{
     if(input$arxiv==TRUE &&  length( reactive_values$privious_datapath_csv>0)){
@@ -1517,7 +1547,7 @@ We ask all the users to   cite the different souces they use to make the graphs.
   
   
   observeEvent(input$valid_DB, {
-    if(input$ads==FALSE && input$pubmed==FALSE && input$arxiv==FALSE ){
+    if(input$ads==FALSE && reactive_values$pubmed==FALSE && input$arxiv==FALSE ){
       showModal(modalDialog(
         title = "Invalid entry",
         "No database selected",
@@ -1553,7 +1583,7 @@ We ask all the users to   cite the different souces they use to make the graphs.
       if(input$type=="ref" ||input$type=="all" ) reactive_values$show_ref=TRUE
       if(input$type=="cit" ||input$type=="all" ) reactive_values$show_cit=TRUE
       if(input$ads==TRUE){
-        if(input$token==""){
+        if(input$token_ads==""){
           showModal(modalDialog(
             title = "Invalid token",
             "token empty",
@@ -1562,7 +1592,7 @@ We ask all the users to   cite the different souces they use to make the graphs.
           ))
         }else {
           reactive_values$show_ads_res_window=TRUE
-          reactive_values$res_ads=extraction_data_api_nasa_ads(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",token=input$token,pas=8,value_same_min_accept=reactive_values$value_same_min_accept,value_same_min_ask = reactive_values$value_same_min_ask,type =input$type,source_name = "source",sep_vector_in_data ="sep",position_vector_in_data = "position_name")
+          reactive_values$res_ads=extraction_data_api_nasa_ads(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",token=input$token_ads,pas=8,value_same_min_accept=reactive_values$value_same_min_accept,value_same_min_ask = reactive_values$value_same_min_ask,type =input$type,source_name = "source",sep_vector_in_data ="sep",position_vector_in_data = "position_name")
         }
       }
       if(input$arxiv==TRUE){
@@ -1574,11 +1604,19 @@ We ask all the users to   cite the different souces they use to make the graphs.
         #   reactive_values$res_arxiv=extraction_data_api_arxiv(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",pas=8,value_same_min_accept=reactive_values$value_same_min_accept,value_same_min_ask = reactive_values$value_same_min_ask,type = input$type,sep_vector_in_data ="sep",position_vector_in_data = "position_name",id_name = "id_arxiv")
         # }
       }
-      if(input$pubmed==TRUE){
+      if(reactive_values$pubmed==TRUE){
         reactive_values$show_pumed_res_window=TRUE
         reactive_values$res_pumed=extract_data_api_pumed(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",pas=8,value_same_min_accept=reactive_values$value_same_min_accept, value_same_min_ask=reactive_values$value_same_min_ask,type = input$type,source_name = "source",sep_vector_in_data ="sep",position_vector_in_data = "position_name")
         
       }
+      if(input$lens==TRUE){
+        
+        print("passe")
+        #reactive_values$show_lens_res_window=TRUE
+        #reactive_values$res_pumed=extraction_data_api_lens(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",pas=8,value_same_min_accept=reactive_values$value_same_min_accept, value_same_min_ask=reactive_values$value_same_min_ask,type = input$type,source_name = "source",sep_vector_in_data ="sep",position_vector_in_data = "position_name")
+        
+      }
+      
       #mark3
       reactive_values$cal_temp=length(reactive_values$res_ads$dataframe_citation_accept$`cited identifier`)+
         length(reactive_values$res_ads$dataframe_ref_accept$`refering identifier`)+
