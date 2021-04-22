@@ -208,11 +208,11 @@ value_same_min_accept=0.95
 test_global=extraction_data_api_lens(ths,ti_name,au_name,token,pas=10,value_same_min_accept, value_same_min_ask,type="all",source_name,sep_vector_in_data,position_vector_in_data)
 
 dim(test_global$dataframe_publi_found)
-dim(test_global$dataframe_citation_accept)
+names(test_global$dataframe_citation_accept)
 
 dim(test_global$dataframe_ref_accept)
 
-
+head(test_global$dataframe_citation_accept$`cited journal`)
 
 
 test_global_ref=extraction_data_api_lens(ths,ti_name,au_name,token,pas=10,value_same_min_accept, value_same_min_ask,type="ref",source_name="source",position_vector_in_data = "position_name")

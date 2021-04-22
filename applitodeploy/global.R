@@ -2955,6 +2955,8 @@ interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd
       names(matrice_contribution)=list_categ
       precedent=""# initialisation , a chaque nouvelle article(id diff?rent) on ce?e une nouvelle ligne.
       for(i in 1:dim(data_gl)[1]){
+        print(i)
+        
         if(!is.na(data_gl[[journal_domaine]][[i]])){
           if(precedent!=data_gl[[identifier]][[i]]){
             line=rep(0,length(list_categ))
@@ -2964,7 +2966,7 @@ interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd
             col_identifier=c(col_identifier,data_gl[[identifier]][[i]])
             col_title=c(col_title,paste0(str_sub(string = data_gl[[title]][[i]],start = 1,end = 20),"..."))
           }
-          
+        
           col_ind=match(unique(data_gl[[journal_domaine]][[i]]),names(matrice_prop))#donne les bon indice de colonne 
           
           col_ind=col_ind[!is.na(col_ind)]
@@ -2976,7 +2978,7 @@ interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd
           #if(length(col_ind)>1) browser()
         }
       }
-      
+      print("sortie du for" )
       
       matrice_prop<-matrice_prop[-1,]# on enl?ve la prermi?re ligne consitituer uniquement de 0
       
@@ -2998,8 +3000,10 @@ interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd
         lien<-list()
         
         for(i in 1:dim(matrice_prop)[2]){# il faut adittionner les couple donc parcourir les colonne deux fois 
-          
+          print("nouvel boucle")
+          print(i)
           for(j in 1:dim(matrice_prop)[2]){
+            #print(j)
             if(matrice_prop[x,i]!=0 && matrice_prop[x,j]!=0){
               
               n1=names(matrice_prop)[i]
@@ -3018,6 +3022,7 @@ interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd
         
         #return(list(proportion=matrice_prop,distance=table_dist))
       })
+      print("dia done ")
       (DD=unlist(dia["valeur",][length(dia["valeur",])]))
       
       (ID=mean(unlist(dia["valeur",][-length(dia["valeur",])])))
@@ -3042,7 +3047,10 @@ interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd
       names(new_matrice_contribution)=new_col
       
       for(i in 1:dim(matrice_prop)[1]){
+        print("voici i dernier for")
+        print(i)
         for(j in 1:dim(matrice_prop)[2]){
+          print(j)
           if(matrice_prop[i,j]!=0){
             
             ind=grep(names(matrice_prop)[j],table_conversion[,2])
@@ -3053,7 +3061,7 @@ interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd
           }
         }
       }
-      
+      print("soooooortiiie")
       #  View(new_matrice_contribution)
       #View(new_matrice_prop)
       col_identifier=c(col_identifier,"TOTAL")
@@ -3068,7 +3076,7 @@ interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd
       
       #matrice_prop[["CONTRIBUTION"]]=col_list_line
       #print(dim(matrice_prop))
-      resultat<-list(dia=dia["valeur",],md=MD,id=ID,dd=DD,prop=matrice_prop,prop_grande_discipline=new_matrice_prop,contribution=new_matrice_contribution)
+      resultat<-list(dia=dia$valeur,md=MD,id=ID,dd=DD,prop=matrice_prop,prop_grande_discipline=new_matrice_prop,contribution=new_matrice_contribution)
     }else{
       resultat=NULL
     }
@@ -3077,12 +3085,13 @@ interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd
   return(resultat)
 }
 
-merge_result_data_base<-function(ads,arxiv,pumed,wos,col_journal=c(NULL,NULL,NULL,NULL),type){
+merge_result_data_base<-function(ads,arxiv,pumed,wos,lens,col_journal=c(NULL,NULL,NULL,NULL,NULL),type){
   
   #' @param ads matrice cit/ref venant d'ads 
   #' @param arxiv matrice cit/ref venant d'arxiv
   #' @param pumed matrice cit/ref venant d'pumed
   #' @param wos matrice cit/ref venant d'un fichier bibtext
+  #' @param lens matrice of lens result 
   #' @param col_journal vecteur de 4, les colone de journal a utiliser pour les 4 matrice(1 par matrice). apr?viation ou nom plein
   #' @param type type de traitement cit/ref/all (les deux)
   #' @return dataframe fusionner 
@@ -3092,11 +3101,13 @@ merge_result_data_base<-function(ads,arxiv,pumed,wos,col_journal=c(NULL,NULL,NUL
     ads_data=ads$dataframe_ref_accept
     arxi_data=arxiv$res_reference_accept
     pumed_data=pumed$dataframe_ref_accept
+    lens_data=lens$dataframe_ref_accept
     if(!is.null(wos)) wos$source=col_journal[4]
   }else {
     ads_data=ads$dataframe_citation_accept
     arxi_data=arxiv$res_citation_accept
     pumed_data=pumed$dataframe_citation_accept
+    lens_data=lens$dataframe_citation_accept
     
   }
   
@@ -3104,11 +3115,12 @@ merge_result_data_base<-function(ads,arxiv,pumed,wos,col_journal=c(NULL,NULL,NUL
   if(!is.null(ads_data)) ads_data$source=col_journal[1]
   if(!is.null(arxi_data)) arxi_data$source=col_journal[2]
   if(!is.null(pumed_data)) pumed_data$source=col_journal[3]
-  
+  if(!is.null(lens_data)) lens_data$source=col_journal[4]
   
   data_merge=as.data.frame(rbind.fill(ads_data,arxi_data),stringsAsFactors = FALSE)
   
   data_merge=as.data.frame(rbind.fill(data_merge,pumed_data),stringsAsFactors = FALSE)
+  data_merge=as.data.frame(rbind.fill(data_merge,lens_data),stringsAsFactors = FALSE)
   if(type=="ref")   data_merge=as.data.frame(rbind.fill(data_merge,wos),stringsAsFactors = FALSE)
   
   return(data_merge) 
@@ -3150,7 +3162,7 @@ combine_analyse_data<-function(df_global,journal_table_ref,type){
 
 
 
-global_merge_and_cal_interdis<-function(ads=NULL,arxiv=NULL,pumed=NULL,wos=NULL,journal_table_ref,table_dist,table_categ_gd,col_journal=c(NULL,NULL,NULL,NULL),type){
+global_merge_and_cal_interdis<-function(ads=NULL,arxiv=NULL,pumed=NULL,wos=NULL,lens=NULL,journal_table_ref,table_dist,table_categ_gd,col_journal=c(NULL,NULL,NULL,NULL,NULL),type){
   #' Title fct de rassemblement qui permet de caluler l'interdiciplinarit?  
   #'avec les citations et reference des differente base. cette fonction est une fonction interne n'ayant pas pour but d'?tre appel? en dehor de l'appli
   #' @param ads matrice cit/ref venant d'ads 
@@ -3167,7 +3179,7 @@ global_merge_and_cal_interdis<-function(ads=NULL,arxiv=NULL,pumed=NULL,wos=NULL,
   
   #wos pumed arxiv et ads sont les matrice de citation ou reference 
   if(type=="all"){# qi on veux les reference et les citation 
-    merge_data_ref<-merge_result_data_base(ads,arxiv,pumed,wos,type="ref",col_journal = col_journal)# on merge les dif?rente matrice 
+    merge_data_ref<-merge_result_data_base(ads,arxiv,pumed,wos,lens,type="ref",col_journal = col_journal)# on merge les dif?rente matrice 
     if(dim(merge_data_ref)[1]>0) {
       merge_data_ref<-combine_analyse_data(merge_data_ref,journal_table_ref,type="ref")# on recup?re leurs nom de journal pour les associ? au cat?gorie wos 
       res_matrice_ref=interdis_matrice_creation_and_calcul(data_gl = merge_data_ref,table_dist,table_categ_gd,type = "ref" ) # on  calcule l'interdiciplinarit? et les diff?rent indicateurs 
@@ -3176,7 +3188,7 @@ global_merge_and_cal_interdis<-function(ads=NULL,arxiv=NULL,pumed=NULL,wos=NULL,
       merge_data_ref=NULL
     }
     
-    merge_data_cit<-merge_result_data_base(ads,arxiv,pumed,wos,type="cit",col_journal = col_journal)
+    merge_data_cit<-merge_result_data_base(ads,arxiv,pumed,wos,lens,type="cit",col_journal = col_journal)
     if(dim(merge_data_cit)[1]>0) {
       merge_data_cit<-combine_analyse_data(merge_data_cit,journal_table_ref,type="cit" )
       res_matrice_cit=interdis_matrice_creation_and_calcul(data_gl = merge_data_cit,table_dist,table_categ_gd,type = "cit" )
@@ -3188,7 +3200,7 @@ global_merge_and_cal_interdis<-function(ads=NULL,arxiv=NULL,pumed=NULL,wos=NULL,
     result=list(data_ref=merge_data_ref,data_cit=merge_data_cit,res_ref=res_matrice_ref,res_cit=res_matrice_cit)
   }else{
     
-    merge_data<-merge_result_data_base(ads,arxiv,pumed,wos,type,col_journal = col_journal)
+    merge_data<-merge_result_data_base(ads,arxiv,pumed,wos,lens,type,col_journal = col_journal)
     if(dim(merge_data)[1]>0) {
       merge_data<-combine_analyse_data(merge_data,journal_table_ref,type)
       res_matrice=interdis_matrice_creation_and_calcul(data_gl = merge_data,table_dist,table_categ_gd,type=type )
@@ -3263,16 +3275,16 @@ lens_get_cit_or_ref<-function(resdt,type="cit",token){# on r?cup?re les infodes 
     test=c()
     start_RQ=0
     res_cit=c()
-    # withProgress(
-    #   message='Please wait',
-    #   detail=paste0("doing ",type, ' search in lens ...'),
-    #   value=0, {
-    #     
+    withProgress(
+      message='Please wait',
+      detail=paste0("doing ",type, ' search in lens ...'),
+      value=0, {
+
     for(j in 1:count){# on parcour tout les ref/cit
       Sys.sleep(3)#3 sec between qurries lens terme of use 
       first<-(j-1)*pas_cit+1
       last<-j*pas_cit
-      #   incProgress(1/count)
+      incProgress(1/count)
       
       
       if(last>length(res_temp)[1]) last<-length(res_temp)[1]
@@ -3297,7 +3309,6 @@ lens_get_cit_or_ref<-function(resdt,type="cit",token){# on r?cup?re les infodes 
       },
       
       warning=function(cond){# mise en place de la table erreur
-        print("aie")
         #print(message_error(r))
         #print(paste0("https://api.adsabs.harvard.edu/v1/search/query?q=", adress))
         titre_error=data.frame(titre=NA)
@@ -3377,7 +3388,7 @@ lens_get_cit_or_ref<-function(resdt,type="cit",token){# on r?cup?re les infodes 
     print("dernier if" )
     if(length(dim(error_querry_cit)) && (j==count)) print("il y a des erreurs lors de l'agregation des info des citations") 
     
-    #})
+    })
     
   } else result=NULL
   
@@ -3387,7 +3398,7 @@ lens_get_cit_or_ref<-function(resdt,type="cit",token){# on r?cup?re les infodes 
 
 lens_get_publi<-function(au_data,ti_data,position_reel,pas,value_same_min_ask,value_same_min_accept,token,sep){
 
-  
+error_querry=c()  
 position_togo=rep(1,length(au_data))
   
   
@@ -3403,16 +3414,16 @@ au_data=sapply(1:length(au_data),FUN = function(x) paste(au_data[[x]],collapse =
   
     
   inter=ceiling(length(au_data)[1]/pas)# nombre d'iteration
-  # withProgress(
-  #    message='Please wait',
-  #    detail='Doing reasearche of publication in ads...',
-  #    value=0, {
+  withProgress(
+     message='Please wait',
+     detail='Doing reasearche of publication in lens...',
+     value=0, {
   res=c()
   for(h in 1:inter){# on parcoure les auteur et les titre par pas et on fait les roquette correspondante 
     print(h)
     first<-(h-1)*pas+1
     last<-h*pas
-    # incProgress(1/inter)
+    incProgress(1/inter)
     if(last>length(au_data)) last<-length(au_data)
     
     
@@ -3477,8 +3488,9 @@ au_data=sapply(1:length(au_data),FUN = function(x) paste(au_data[[x]],collapse =
       # #ask est pas accepte car on le garde dans la dataframe pour que ceux ou on a un doute soit quand même treter 
       
       
+      }
     }
-  }
+  })
   resdt=as.data.frame(res,stringsAsFactors = FALSE)
   indic_compaire_title<-compaire_title(Unaccent(resdt$title),Unaccent(ti_data))
   
@@ -3674,4 +3686,48 @@ extraction_data_api_lens<-function(data_pub,ti_name,au_name,token,pas=10,value_s
               reject_analyse=reject,dataframe_publi_found=resdt,dataframe_ref_accept=total_res_ref,dataframe_ref_ask=total_res_ref_ask))
   
   
+}
+
+
+getScholarlyData <- function(token, query){
+  url <- 'https://api.lens.org/scholarly/search'
+  headers <- c('Authorization' = token, 'Content-Type' = 'application/json')
+  httr::POST(url = url, add_headers(.headers=headers), body = query)
+}
+
+
+
+lens_make_main_request=function(au_data,ti_data){
+  part_quest=list()
+  
+  for(i in 1:length(ti_data)){
+    
+    part_courant=paste0('
+    { 
+    "bool": {
+      "must": [
+        {"match_phrase": {"title":"', gsub("\\","",ti_data[[i]],fixed=TRUE),'"}},
+        {"match_phrase": {"author.display_name":"',au_data[[i]],'"}}
+                ]
+              }
+          }')
+    
+    part_quest=append(part_quest,part_courant)
+  }
+  
+  part_quest=paste0(part_quest,collapse = ",")
+  
+  request<- paste0('{
+      "query": {
+          "bool": {
+              "should": [',part_quest,'
+                  
+              ]
+          }
+      }, 
+      "include": ["title","scholarly_citations","references","lens_id","source","authors","date_published"]
+  }')
+  
+  
+  return(request)
 }

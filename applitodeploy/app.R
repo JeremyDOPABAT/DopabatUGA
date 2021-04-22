@@ -348,6 +348,23 @@ ui <-dashboardPage(skin = "red",
                                                                                    actionButton("pubmed_error", "Show error(s)"),
                                                                                    actionButton("pubmed_ask","Show publication with doute"),
                                                                                    dataTableOutput("table_data_ref3"))),
+                                               tabPanel("LENS", conditionalPanel('output.show_lens_res_window',
+                                                                                #un onglet par base, chaque base possede defferent boutons  
+                                                                                radioButtons("col_journal_lens", "How is the journal names?",
+                                                                                             choices = c("Complet journal name" = "Full.Journal.Title",
+                                                                                                         "Abreviation journal name" = "JCR.Abbreviated.Title"
+                                                                                             ),
+                                                                                             selected = "Full.Journal.Title",inline = TRUE),
+                                                                                conditionalPanel('output.show_ref',
+                                                                                                 actionButton("lens_ref_accept", "Show references")),
+                                                                                
+                                                                                conditionalPanel('output.show_cit',
+                                                                                                 actionButton("lens_cit_accept", "Show citations")
+                                                                                ),
+                                                                                actionButton("lens_error", "Show error(s)"),
+                                                                                actionButton("lens_ask","Show publication with doute"),
+                                                                                dataTableOutput("table_data_ref5"))),
+                                               
                                                
                                                tabPanel("Bibtext",conditionalPanel('output.show_wos_res_window',radioButtons("col_journal_wos", "How is the journal names?",inline = TRUE,
                                                                                                                              choices = c("Complet journal name" = "Full.Journal.Title",
@@ -490,11 +507,13 @@ server <- function(input, output, session) {
     show_cit=FALSE,
     show_ads_res_window=FALSE,
     show_pumed_res_window=FALSE,
+    show_lens_res_window=FALSE,
     show_arxiv_res_window=FALSE,
     show_wos_res_window=FALSE,
     res_ads=NULL,#res_data_nasa_ads,#temporaire 
     res_arxiv=NULL,#res_arxiv, #temporaire
     res_pumed=NULL,##res_pumed, #temporaire 
+    res_lens=NULL,
     ref_wos=c(),
     table_to_show_ref=NULL,
     journal_table_ref=NULL,
@@ -514,7 +533,7 @@ server <- function(input, output, session) {
     states_cit=list(source = c("plot_article_cit", "plot_total_cit"), value = c(-99,-99), changed = c(FALSE,FALSE),key=NULL),
     pct_ref=c(NULL,NULL),
     pct_cit=c(NULL,NULL),
-    transfer_done=list(ads=NULL,arxiv=NULL,pumed=NULL),
+    transfer_done=list(ads=NULL,arxiv=NULL,pumed=NULL,lense=NULL),
     cal_temp=NULL,
     show_pumed_box=TRUE,# when lens is selected pubmed desapear 
     show_arxiv_abilities=FALSE #temps que arxiv n'a pas un moyen de fonctionner cela restera a faux 
@@ -549,6 +568,9 @@ server <- function(input, output, session) {
   output$show_ads_res_window<- reactive({
     reactive_values$show_ads_res_window
   })
+  output$show_lens_res_window<- reactive({
+    reactive_values$show_lens_res_window
+  })
   output$show_pumed_res_window<- reactive({
     reactive_values$show_pumed_res_window
   })
@@ -578,6 +600,7 @@ server <- function(input, output, session) {
   outputOptions(output, "show_ref", suspendWhenHidden = FALSE)
   outputOptions(output, "show_cit", suspendWhenHidden = FALSE)
   outputOptions(output, "show_ads_res_window", suspendWhenHidden = FALSE)
+  outputOptions(output, "show_lens_res_window", suspendWhenHidden = FALSE)
   outputOptions(output, "show_pumed_res_window", suspendWhenHidden = FALSE)
   outputOptions(output, "show_arxiv_res_window", suspendWhenHidden = FALSE)
   outputOptions(output, "show_id_arxiv", suspendWhenHidden = FALSE)
@@ -1520,9 +1543,10 @@ We ask all the users to   cite the different souces they use to make the graphic
       reactive_values$show_token_ads <- FALSE
     }
     if(input$lens==TRUE){
+      reactive_values$show_token_lens <- TRUE
       if(reactive_values$pubmed==TRUE){
         showModal(modalDialog(
-          title = "Lens containe pubmed ",
+          title = "Lens database contain pubmed database",
           "Lens contain pubmed, no need to select it if lens is selected.",
           easyClose = TRUE,
           footer = NULL
@@ -1532,6 +1556,7 @@ We ask all the users to   cite the different souces they use to make the graphic
       reactive_values$pubmed<-FALSE# if lens =no pubmed 
       print(reactive_values$pubmed)
     }else{
+      reactive_values$show_token_lens <- FALSE
       print(reactive_values$pubmed)
       reactive_values$show_pumed_box=TRUE
     }
@@ -1546,8 +1571,8 @@ We ask all the users to   cite the different souces they use to make the graphic
   })
   
   
-  observeEvent(input$valid_DB, {
-    if(input$ads==FALSE && reactive_values$pubmed==FALSE && input$arxiv==FALSE ){
+  observeEvent(input$valid_DB, { 
+    if(input$ads==FALSE && reactive_values$pubmed==FALSE && input$arxiv==FALSE && input$lens==FALSE ){
       showModal(modalDialog(
         title = "Invalid entry",
         "No database selected",
@@ -1610,13 +1635,20 @@ We ask all the users to   cite the different souces they use to make the graphic
         
       }
       if(input$lens==TRUE){
-        
+        if(input$token_lens==""){
+          showModal(modalDialog(
+            title = "Invalid token",
+            "token empty on lens",
+            easyClose = TRUE,
+            footer = NULL
+          ))
+        }else { 
         print("passe")
-        #reactive_values$show_lens_res_window=TRUE
-        #reactive_values$res_pumed=extraction_data_api_lens(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",pas=8,value_same_min_accept=reactive_values$value_same_min_accept, value_same_min_ask=reactive_values$value_same_min_ask,type = input$type,source_name = "source",sep_vector_in_data ="sep",position_vector_in_data = "position_name")
+        reactive_values$show_lens_res_window=TRUE
+        reactive_values$res_lens=extraction_data_api_lens(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",pas=8,value_same_min_accept=reactive_values$value_same_min_accept, value_same_min_ask=reactive_values$value_same_min_ask,type = input$type,source_name = "source",sep_vector_in_data ="sep",position_vector_in_data = "position_name",token = input$token_lens)
         
       }
-      
+    }  
       #mark3
       reactive_values$cal_temp=length(reactive_values$res_ads$dataframe_citation_accept$`cited identifier`)+
         length(reactive_values$res_ads$dataframe_ref_accept$`refering identifier`)+
@@ -1624,6 +1656,8 @@ We ask all the users to   cite the different souces they use to make the graphic
         length(reactive_values$res_arxiv$res_reference_accept$`refering identifier`)+
         length(reactive_values$res_pumed$dataframe_citation_accept$`cited identifier`)+
         length(reactive_values$res_pumed$dataframe_ref_accept$`refering identifier`)
+        length(reactive_values$res_lens$dataframe_citation_accept$`cited identifier`)+
+        length(reactive_values$res_lens$dataframe_ref_accept$`refering identifier`)
       if(reactive_values$cal_temp>=1){
         showModal(modalDialog(
           title = "research ended",
@@ -1648,7 +1682,7 @@ We ask all the users to   cite the different souces they use to make the graphic
     # actionButton("valid_DB", "Process")
     #  reactive_values$df_global
     
-  })
+  }) 
   
   
   
@@ -1805,6 +1839,19 @@ We ask all the users to   cite the different souces they use to make the graphic
       reactive_values$transfer_done$pumed=c(reactive_values$transfer_done$pumed,reactive_values$table_to_show_ref$id[[selectedRow]])   
     }
     
+    if(reactive_values$active_source=="LENS"){
+      if(input$type=="cit"||input$type=="all"){
+        ind=which(reactive_values$table_to_show_ref$id[[selectedRow]]==unlist(reactive_values$res_pumed$dataframe_citation_ask$`cited identifier`))
+        ind2=which(reactive_values$table_to_show_ref$id[[selectedRow]]==unlist(reactive_values$res_pumed$dataframe_citation_accept$`cited identifier`))# il  dej  été ajouter
+        if(length(ind_2)==0)  if(dim(reactive_values$res_lens$dataframe_citation_ask[ind,])[1]) if(dim(reactive_values$res_lens$dataframe_citation_ask[ind,])[1]>0)reactive_values$res_lens$dataframe_citation_accept=rbind(reactive_values$res_lens$dataframe_citation_accep,reactive_values$res_ads$dataframe_citation_ask[ind,])      
+      }
+      if(input$type=="ref"||input$type=="all"){
+        ind_ref_1=which(reactive_values$table_to_show_ref$id[[selectedRow]]==unlist(reactive_values$res_lens$dataframe_ref_ask$`refering identifier`))# ligne a ajouter
+        ind_ref_2=which(reactive_values$table_to_show_ref$id[[selectedRow]]==unlist(reactive_values$res_lens$dataframe_ref_accept$`refering identifier`))# ligne déja ajouter
+        if(length(ind_ref_2)==0) if(dim(reactive_values$res_lens$dataframe_ref_ask[ind_ref_1,])[1])  if(dim(reactive_values$res_lens$dataframe_ref_ask[ind_ref_1,])[1]>0) reactive_values$res_lens$dataframe_ref_accept=rbind(reactive_values$res_lens$dataframe_ref_accept,reactive_values$res_ads$dataframe_ref_ask[ind_ref_1,])
+      }
+      reactive_values$transfer_done$pumed=c(reactive_values$transfer_done$pumed,reactive_values$table_to_show_ref$id[[selectedRow]])   
+    }  
   })
   
   
@@ -1995,6 +2042,102 @@ We ask all the users to   cite the different souces they use to make the graphic
       reactive_values$active_source="PUBMED"
     }
   },ignoreInit = TRUE,ignoreNULL = TRUE)
+  
+  
+  
+  observeEvent(input$lens_ref_accept,{
+    output$table_data_ref5 <- renderDataTable({
+      # validate(
+      #   need(reactive_values$data_wos, "No bibtext data"),
+      #   need(!is.null(reactive_values$data_wos), "")
+      # )
+      #test=df_flatten(res_arxiv$res_citation_accept)
+      table_data=datatable(df_flatten(reactive_values$res_lens$dataframe_ref_accept), options = list(scrollX = TRUE, columnDefs = list(list(
+        targets = "_all" ,render = JS(
+          "function(data, type, row, meta) {",
+          "return type === 'display' && data.length > 70 ?",
+          "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
+          "}")
+      ))))
+      
+      
+    })
+  })
+  
+  observeEvent(input$lens_cit_accept,{
+    output$table_data_ref5 <- renderDataTable({
+      
+      table_data=datatable(df_flatten(reactive_values$res_lens$dataframe_citation_accept), options = list(scrollX = TRUE, columnDefs = list(list(
+        targets = "_all" ,render = JS(
+          "function(data, type, row, meta) {",
+          "return type === 'display' && data.length > 70 ?",
+          "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
+          "}")
+      ))))
+      
+      
+    })
+  })
+  
+  
+  observeEvent(input$lens_error,{
+    output$table_data_ref5 <- renderDataTable({
+      
+      # validate(
+      #   need(reactive_values$data_wos, "No bibtext data"),
+      #   need(!is.null(reactive_values$data_wos), "")
+      # )
+      
+      table_data=datatable(df_flatten(reactive_values$res_lens$error_querry_publi), options = list(scrollX = TRUE, columnDefs = list(list(
+        targets = "_all" ,render = JS(
+          "function(data, type, row, meta) {",
+          "return type === 'display' && data.length > 70 ?",
+          "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
+          "}")
+      ))))
+      
+      
+    })
+  })
+  observeEvent({
+    c(input$lens_ask,
+      reactive_values$transfer_done$lens)
+  },{
+    if(input$lens_ask!=0){ 
+      print("je passe sur lens ask")
+      reactive_values$table_to_show_ref=df_flatten(reactive_values$res_lens$dataframe_publi_found[(reactive_values$res_lens$dataframe_publi_found$check_title_pct<reactive_values$value_same_min_accept),])
+      
+      if(dim(reactive_values$table_to_show_ref)[1]>0) rownames(reactive_values$table_to_show_ref)<-1:nrow(reactive_values$table_to_show_ref)
+      
+      if(!is.null(reactive_values$transfer_done$lens)){ 
+        
+        ind_temp=reactive_values$table_to_show_ref$id%in%reactive_values$transfer_done$lens
+        reactive_values$table_to_show_ref=reactive_values$table_to_show_ref[!ind_temp,]  
+      }
+      
+      
+      df <- reactiveValues(data =cbind(Actions = shinyInput( FUN = actionButton, n=nrow(reactive_values$table_to_show_ref), id='button_', label = "Transfer",  onclick = 'Shiny.setInputValue(\"select_button\", this.id, {priority: \"event\"})' ),reactive_values$table_to_show_ref    ) )
+      
+      output$table_data_ref5<- DT::renderDataTable(
+        df_flatten(as.data.frame(df$data,stringsAsFactors = FALSE)), escape = FALSE, options = list( lengthMenu = c(5, 25, 50), pageLength = 25,
+                                                                                                     
+                                                                                                     scrollX = TRUE, columnDefs = list(list(
+                                                                                                       targets = "_all" ,render = JS(
+                                                                                                         "function(data, type, row, meta) {",
+                                                                                                         "return type === 'display' && data.length > 200 ?",
+                                                                                                         "'<span title=\"' + data + '\">' + data.substr(0, 200) + '...</span>' : data;",
+                                                                                                         "}")
+                                                                                                     )))
+      )
+      
+      
+      reactive_values$active_source="LENS"
+    }
+  },ignoreInit = TRUE,ignoreNULL = TRUE)
+  
+  
+  
+  
   #partie interdiciplinarité ----
   
   
@@ -2025,13 +2168,13 @@ We ask all the users to   cite the different souces they use to make the graphic
     }else{
       #browser()
       
-      
+      res_temp<-global_merge_and_cal_interdis(ads=reactive_values$res_ads,arxiv=reactive_values$res_arxiv,pumed=reactive_values$res_pumed,wos=reactive_values$ref_wos,reactive_values$res_lens,journal_table_ref = reactive_values$journal_table_ref,table_categ_gd = reactive_values$table_categ_gd,type = input$type,table_dist =reactive_values$table_dist,col_journal=c(input$col_journal_ads,input$col_journal_arxiv,input$col_journal_pumed,input$col_journal_wos,input$col_journal_lens))  
       error=tryCatch({
-        res_temp<-global_merge_and_cal_interdis(ads=reactive_values$res_ads,arxiv=reactive_values$res_arxiv,pumed=reactive_values$res_pumed,wos=reactive_values$ref_wos,journal_table_ref = reactive_values$journal_table_ref,table_categ_gd = reactive_values$table_categ_gd,type = input$type,table_dist =reactive_values$table_dist,col_journal=c(input$col_journal_ads,input$col_journal_arxiv,input$col_journal_pumed,input$col_journal_wos))  
+        print("impro")
         
       },
       error=function(cond){ 
-        print("aiie")  #reactive_values$ok_analyse=FALSE
+        print("error in global")  #reactive_values$ok_analyse=FALSE
         showModal(modalDialog(
           title = paste("ERROR : in",input$type, "analyse"),
           paste0("Could be an error on the parameters choice, or else there is no",input$type,"in your data"),
