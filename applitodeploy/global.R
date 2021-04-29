@@ -2946,7 +2946,7 @@ interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd
   # browser()
   nb_categ=unlist(data_gl[[journal_domaine]]) #on pr?parer les colonne de la table de containgence 
   remouve=which(is.na(nb_categ)) 
-  if(length(remouve)>0 && length(nb_categ[-remouve])>0) 
+  if(length(remouve)>0 && length(nb_categ[-remouve])>0){ 
     if(length(nb_categ)>0){
       list_categ<-Unaccent(names(table(nb_categ)))
       matrice_prop=as.data.frame(matrix(0,ncol=length(list_categ)))# initialisation de la matrice 
@@ -2966,7 +2966,7 @@ interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd
             col_identifier=c(col_identifier,data_gl[[identifier]][[i]])
             col_title=c(col_title,paste0(str_sub(string = data_gl[[title]][[i]],start = 1,end = 20),"..."))
           }
-        
+          
           col_ind=match(unique(data_gl[[journal_domaine]][[i]]),names(matrice_prop))#donne les bon indice de colonne 
           
           col_ind=col_ind[!is.na(col_ind)]
@@ -3080,8 +3080,10 @@ interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd
     }else{
       resultat=NULL
     }
-  
-  
+    
+  }else{
+    resultat=NULL
+  }
   return(resultat)
 }
 
@@ -3197,6 +3199,7 @@ global_merge_and_cal_interdis<-function(ads=NULL,arxiv=NULL,pumed=NULL,wos=NULL,
       merge_data_cit=NULL
       
     }
+    #browser()
     result=list(data_ref=merge_data_ref,data_cit=merge_data_cit,res_ref=res_matrice_ref,res_cit=res_matrice_cit)
   }else{
     
@@ -3397,7 +3400,7 @@ lens_get_cit_or_ref<-function(resdt,type="cit",token){# on r?cup?re les infodes 
 }
 
 lens_get_publi<-function(au_data,ti_data,position_reel,pas,value_same_min_ask,value_same_min_accept,token,sep){
-
+#pour traiter doi on sort par doi et ensuite on traite les réquest par doi puis ensuite non
 error_querry=c()  
 position_togo=rep(1,length(au_data))
   

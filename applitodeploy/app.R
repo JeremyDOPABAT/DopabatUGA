@@ -134,6 +134,7 @@ ui <-dashboardPage(skin = "red",
                                                                                                                                                    column(3,offset = 1,selectInput("keyword_selection", "Keywords column", choices = "", width = "300px"),
                                                                                                                                                           selectInput("domain_selection", "Domain column", choices = "", width = "300px")),
                                                                                                                                                    column(3,offset = 1,selectInput("date_selection", "Date publication column", choices = "", width = "300px"),
+                                                                                                                                                          selectInput("doi_selection", "DOI column", choices = "", width = "300px"),
                                                                                                                                                           conditionalPanel('output.show_arxiv_abilities',selectInput("id_arxiv_selection", "arxiv id column", choices = "", width = "300px"))),
                                                                                                                                                    #,conditionalPanel('output.show_ref',
                                                                                                                                                    #column(3,offset = 1,selectInput("ref_selection", "Reference column", choices = "", width = "300px"))
@@ -732,6 +733,7 @@ We ask all the users to   cite the different souces they use to make the graphic
         updateSelectInput(session, inputId = "author_selection", choices = names(df))
         updateSelectInput(session, inputId = "domain_selection", choices = c("none",names(df)))
         updateSelectInput(session, inputId = "date_selection", choices = names(df))
+        updateSelectInput(session, inputId = "doi_selection", choices = c("none",names(df)))
         conditionalPanel('output.show_arxiv_abilities',updateSelectInput(session, inputId = "id_arxiv_selection", choices = c("none",names(df))))
         # affichage de la table 
         output$contents <- renderDataTable({
@@ -777,7 +779,7 @@ We ask all the users to   cite the different souces they use to make the graphic
         
         if(input$keyword_selection!="none") col_key<-reactive_values$df_csv[[input$keyword_selection]] else col_key=NA 
         if(input$domain_selection!="none") col_dom<-reactive_values$df_csv[[input$domain_selection]] else col_dom=NA
-        
+        if(input$doi_selection!="none") col_doi<-reactive_values$df_csv[[input$doi_selection]] else col_doi=NA
         
         # mise en forme de la date
         col_date<-parse_date_time(x = reactive_values$df_csv[[input$date_selection]],
@@ -792,8 +794,8 @@ We ask all the users to   cite the different souces they use to make the graphic
         
         if(is.null(reactive_values$df_global)==TRUE) {# si la table est vide (pas d'autre ficher valider avant, il faut la cree)
           
-          reactive_values$df_global=as.data.frame(cbind(col_title,col_auth,col_key,col_dom,col_date),stringsAsFactors = FALSE)
-          names(reactive_values$df_global)<-c('titre','auteur','keywords','domain','date')
+          reactive_values$df_global=as.data.frame(cbind(col_title,col_auth,col_key,col_dom,col_date,col_doi),stringsAsFactors = FALSE)
+          names(reactive_values$df_global)<-c('titre','auteur','keywords','domain','date','doi')
           reactive_values$df_global["date"]=col_date
           reactive_values$df_global["source"]="CSV"
           reactive_values$df_global["position_name"]=input$position_name_CSV#♦ dans les deux car traitement de pusieur fichier qui peuvent avoir des odre différent
@@ -802,8 +804,8 @@ We ask all the users to   cite the different souces they use to make the graphic
           
         }else {# si elle est deja cree (autre fichier csv ou bib ou pdf valider avant  ) on cree un dataframe temporere et on la fusionne 
           #print("je passe dans le else")
-          temp=as.data.frame(cbind(col_title,col_auth,col_key,col_dom,col_date),stringsAsFactors = FALSE)
-          names(temp)<-c('titre','auteur','keywords','domain','date')
+          temp=as.data.frame(cbind(col_title,col_auth,col_key,col_dom,col_date,col_doi),stringsAsFactors = FALSE)
+          names(temp)<-c('titre','auteur','keywords','domain','date','doi')
           temp["date"]=col_date
           temp["source"]="CSV"
           temp["position_name"]=input$position_name_CSV
@@ -1342,7 +1344,7 @@ We ask all the users to   cite the different souces they use to make the graphic
     }
   })
   
-  #________________importation wos___________________________________________________________
+  ####________________importation wos ou bib ___________________________________________________________
   observeEvent(c(input$file2),{
     error=NULL
     observeEvent(input$is_wos,{
@@ -1350,14 +1352,14 @@ We ask all the users to   cite the different souces they use to make the graphic
       error=tryCatch({
         if(input$is_wos==TRUE){
           
-          suppressWarnings(reactive_values$data_wos <-convert2df(input$file2$datapath,dbsource = "wos",format = "bibtex"))
-          reactive_values$data_wos <-df_flatten(conforme_bibtext(reactive_values$data_wos,data_base = "WOS"))
+          suppressWarnings(reactive_values$data_wos <-convert2df(input$file2$datapath,dbsource = "wos",format = "bibtex"))# nouvel données wos(ou bib)
+          reactive_values$data_wos <-df_flatten(conforme_bibtext(reactive_values$data_wos,data_base = "WOS"))# methode de mise en form wos 
           
           
           
         }else{
           suppressWarnings(reactive_values$data_wos <-(bib2df::bib2df(input$file2$datapath, separate_names = FALSE)))
-          reactive_values$data_wos <-df_flatten(conforme_bibtext(reactive_values$data_wos,data_base = "BIB"))
+          reactive_values$data_wos <-df_flatten(conforme_bibtext(reactive_values$data_wos,data_base = "BIB"))#mthode de mise en forme bib 
           
         }
         
@@ -1435,11 +1437,11 @@ We ask all the users to   cite the different souces they use to make the graphic
     }
     if( reactive_values$ok_analyse==TRUE){
       print("validation du wos")
-      if(input$is_wos==TRUE){
-        reactive_values$data_wos=reactive_values$data_wos[,c("TI","AU","DE","SC","PY","CR")]
-        if(input$sup_wos_for_ref==TRUE){
+      if(input$is_wos==TRUE){#si le fichier bib est un fichier wos 
+        reactive_values$data_wos=reactive_values$data_wos[,c("TI","AU","DE","SC","PY","CR","DI")]
+        if(input$sup_wos_for_ref==TRUE){# si on veut les reference
           
-          reactive_values$wos_data=rbind(reactive_values$wos_data,reactive_values$data_wos)
+          reactive_values$wos_data=rbind(reactive_values$wos_data,reactive_values$data_wos)# agregation des données wos 
           reactive_values$ref_wos=extract_ref_wos(reactive_values$wos_data)
           
           reactive_values$show_wos_res_window=TRUE
@@ -1465,8 +1467,8 @@ We ask all the users to   cite the different souces they use to make the graphic
         reactive_values$data_wos<-reactive_values$data_wos[,-which(names(reactive_values$data_wos)=="CR")]
         #on enleve la colonne cr pour ne pas quel gene la suite des opération 
       }else{
-        reactive_values$data_wos=reactive_values$data_wos[,c("TITLE","AUTHOR","KEYWORDS","RESARCH.AREAS","YEAR")]
-        names(reactive_values$data_wos)<-c('titre','auteur','keywords','domain','date')  
+        reactive_values$data_wos=reactive_values$data_wos[,c("TITLE","AUTHOR","KEYWORDS","RESARCH.AREAS","YEAR","DOI")]
+        #names(reactive_values$data_wos)<-c('titre','auteur','keywords','domain','date')  
         
       }
       
@@ -1474,7 +1476,7 @@ We ask all the users to   cite the different souces they use to make the graphic
         
         
         reactive_values$df_global=reactive_values$data_wos
-        names(reactive_values$df_global)<-c('titre','auteur','keywords','domain','date')
+        names(reactive_values$df_global)<-c('titre','auteur','keywords','domain','date',"doi")
         
         if(input$sup_wos_for_ref==TRUE){#doublons avex temps car chaque fichier est indépendant et pas forcément de même source 
           reactive_values$df_global["source"]="WOS"# la source n'est importante que si on enl?ve les r?f?rences du wos 
@@ -1501,7 +1503,7 @@ We ask all the users to   cite the different souces they use to make the graphic
       }else{
         
         temp=reactive_values$data_wos
-        names(temp)<-c('titre','auteur','keywords','domain','date')
+        names(temp)<-c('titre','auteur','keywords','domain','date',"doi")
         temp["year"]<-NA
         temp["position_name"]=input$position_name_wos
         temp["sep"]=";"

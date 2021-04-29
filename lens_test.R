@@ -59,7 +59,7 @@ result$data$references[2]
 #result$data$
 
 #__________________________________________________  
-    
+#exemple requet complet     
 request_vrai<- paste0('{
     "query": {
         "bool": {
@@ -89,6 +89,19 @@ request_vrai<- paste0('{
 }')
 
 
+#exemple avec doi 
+request_vrai<- paste0('{
+  "query": {
+    "match":{
+      "doi": "10.1109/ee.1934.6540358"
+    }
+  },
+  "include":["title","patent_citations"]
+}, 
+    "include": ["title","scholarly_citations","references","lens_id","source","authors","date_published"]
+}')
+
+
 data <- getScholarlyData(token, request_vrai)
 data$status_code
 result <-jsonlite::fromJSON(txt = httr::content(data, 'text'), simplifyDataFrame = TRUE,simplifyVector = TRUE)
@@ -113,9 +126,9 @@ result$data$references[2]
 lens_make_main_request=function(au_data,ti_data){
   part_quest=list()
   
-for(i in 1:length(ti_data)){
-
-  part_courant=paste0('
+  for(i in 1:length(ti_data)){
+    
+    part_courant=paste0('
     { 
     "bool": {
       "must": [
@@ -124,13 +137,13 @@ for(i in 1:length(ti_data)){
                 ]
               }
           }')
+    
+    part_quest=append(part_quest,part_courant)
+  }
   
-  part_quest=append(part_quest,part_courant)
-}
-
-part_quest=paste0(part_quest,collapse = ",")
-
-request<- paste0('{
+  part_quest=paste0(part_quest,collapse = ",")
+  
+  request<- paste0('{
       "query": {
           "bool": {
               "should": [',part_quest,'
@@ -140,14 +153,13 @@ request<- paste0('{
       }, 
       "include": ["title","scholarly_citations","references","lens_id","source","authors","date_published"]
   }')
-
-
-return(request)
+  
+  
+  return(request)
 }
 
-
-ti_data=list("An ADMM Algorithm for Constrained Material Decomposition in Spectral CT")
-au_data=list("Tom,Hohweiller")
+ti_data=list("Simulation and Experimental Demonstration of the Importance of IR-Drops During Laser Fault-Injection")
+au_data=list("Bastos")
 
 
 
@@ -174,7 +186,7 @@ result$total
 
 
 
-
+result$data$title
 path_data=choose.files(caption = "chosse your data file")# choisir le fichier concerner 
 au_name <- readline(prompt="Nom de Variable 'Nom_auteur': ")#authFullName_s
 ti_name <- readline(prompt="Nom de Variable 'Titre_publication': ")#en_title_s
