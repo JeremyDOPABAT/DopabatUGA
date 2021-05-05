@@ -118,7 +118,7 @@ View(test_F)
 
 path=choose.files(caption = "chosse your data file")
 
-data_wos<-convert2df(path,dbsource = "wos",format = "bibtex")
+data_wos <-convert2df(path,dbsource = "wos",format = "bibtex")
 View(data_wos)
 
 

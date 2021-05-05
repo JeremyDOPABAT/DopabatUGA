@@ -475,53 +475,54 @@ ui <-dashboardPage(skin = "red",
 )
 
 
-# Define server logic to read selected file ----
+#server ----
 server <- function(input, output, session) {
   #Sys.setlocale( Sys.getlocale(category = "LC_TIME"), "C")
   
-  options(shiny.maxRequestSize=32*1024^2)
+  options(shiny.maxRequestSize=32*1024^2) # permet l'importation de "gros" fichier de donner jusqua 32mo 
   
-  #variable reactive permetant l'interation utilisateur marchine 
+  #variable reactive permetant l'interation utilisateur chaque variable utiliser dans un obsverve doit etre interactive a moins quel soit ephemere 
   reactive_values <- reactiveValues(
-    show_header = FALSE,
-    df_csv = NULL,
-    df_pdf = NULL,
-    df_global=NULL,
-    data_wos=NULL,
-    show_pdf_valid=FALSE,
+    show_header = FALSE,# booleen qui permet l'aparition de la selection de coloenne des csv 
+    df_csv = NULL, # dataframe pour stocker les csv 
+    df_pdf = NULL,#  "          "     "       " PDF
+    data_wos=NULL,# "            "    "        " wos et bibtext 
+    df_global=NULL,# dataframe permetant le rassemblement des données 
+    
+    show_pdf_valid=FALSE,# boutons permettant l'appartion des bouton validation de pdf (actuellement enlever de l'interface )
     valide_csv=FALSE,
     valide_pdf=FALSE,
     valide_wos=FALSE,
-    privious_datapath_csv=NULL,
-    privious_datapath_pdf=NULL,
-    privious_datapath_wos=NULL,
-    path_folder=NULL,
-    ok_analyse=FALSE,
-    graph=NULL,
-    plots=NULL,
-    numberwordcloud=1,
-    show_token_ads=FALSE,
+    privious_datapath_csv=NULL,# vecteur d'histoirque csv
+    privious_datapath_pdf=NULL,# "            "      pdf 
+    privious_datapath_wos=NULL,#  "            "    wo et bib 
+    path_folder=NULL, # path dossier pour pdf 
+    ok_analyse=FALSE, # boulen de validation marquand le debut de l'analyse 
+    graph=NULL,# netwoork 
+    plots=NULL,# wordcloud 
+    numberwordcloud=1,#nombre de graphique wordcloud par defaut 
+    show_token_ads=FALSE, # bouton du token  ads 
     show_token_lens=FALSE,
-    show_id_arxiv=FALSE,
-    show_wos_valid=FALSE,
-    show_ref=FALSE,
-    show_cit=FALSE,
-    show_ads_res_window=FALSE,
-    show_pumed_res_window=FALSE,
-    show_lens_res_window=FALSE,
-    show_arxiv_res_window=FALSE,
-    show_wos_res_window=FALSE,
+    show_id_arxiv=FALSE,# bouton idi arxiv 
+    show_wos_valid=FALSE, # bouton valid wos 
+    show_ref=FALSE,# boutons d'apartion des resultat de reference 
+    show_cit=FALSE,# "        "          "    "          "
+    show_ads_res_window=FALSE,# les boutons et dataframe pour les reultat ads 
+    show_pumed_res_window=FALSE,# "  "          "         "         "     pubmed 
+    show_lens_res_window=FALSE,#  "   "          "        "          "   lens 
+    show_arxiv_res_window=FALSE,# "   "           "      "          "    arxiv 
+    show_wos_res_window=FALSE, #  "   "            "     "          "   bib et lens 
     res_ads=NULL,#res_data_nasa_ads,#temporaire 
     res_arxiv=NULL,#res_arxiv, #temporaire
     res_pumed=NULL,##res_pumed, #temporaire 
     res_lens=NULL,
     ref_wos=c(),
-    table_to_show_ref=NULL,
-    journal_table_ref=NULL,
-    table_dist=NULL,
-    fmts=c("%d/%m/%y","%Y", "%Y-%m", "%m/%d/%y","%d-%m-%Y","%B %d, %Y","%Y-%m-%d"),
-    active_source=NULL,
-    value_same_min_accept=0.95,
+    table_to_show_ref=NULL,#table de ref(et cit) resultat
+    journal_table_ref=NULL,# table d'importation des journaux 
+    table_dist=NULL,# table de calcule des distance 
+    fmts=c("%d/%m/%y","%Y", "%Y-%m", "%m/%d/%y","%d-%m-%Y","%B %d, %Y","%Y-%m-%d"),# type de dat pour importation de fichier 
+    active_source=NULL,#permet de savoir sur quel onglet clic
+    value_same_min_accept=0.95,# valeur minimal de l'interval de la verification de ttitre 
     value_same_min_ask=0.85,
     matrice_res_ref=NULL,
     matrice_res_cit=NULL,
@@ -530,11 +531,11 @@ server <- function(input, output, session) {
     plots_article_ref=NULL,
     data_merge=NULL,
     secteur_is_finish=FALSE,
-    states=list(source = c("plot_article_ref", "plot_total_ref"), value = c(-99,-99), changed = c(FALSE,FALSE),key=NULL),
+    states=list(source = c("plot_article_ref", "plot_total_ref"), value = c(-99,-99), changed = c(FALSE,FALSE),key=NULL),#permet de savoir sur quel graphic clic l'utilisteur
     states_cit=list(source = c("plot_article_cit", "plot_total_cit"), value = c(-99,-99), changed = c(FALSE,FALSE),key=NULL),
-    pct_ref=c(NULL,NULL),
+    pct_ref=c(NULL,NULL),#caclule pourcentage exactitude sur les citation 
     pct_cit=c(NULL,NULL),
-    transfer_done=list(ads=NULL,arxiv=NULL,pumed=NULL,lense=NULL),
+    transfer_done=list(ads=NULL,arxiv=NULL,pumed=NULL,lense=NULL), #liste de boulllean pour l'état  
     cal_temp=NULL,
     show_pumed_box=TRUE,# when lens is selected pubmed desapear 
     show_arxiv_abilities=FALSE #temps que arxiv n'a pas un moyen de fonctionner cela restera a faux 
@@ -610,7 +611,7 @@ server <- function(input, output, session) {
   
   
   
-  
+  #texte help----
   
   
   #ce qui suit est le texte present dans la partie about 
@@ -682,13 +683,15 @@ We ask all the users to   cite the different souces they use to make the graphic
   
   
   
-  
+  #reset----
   observeEvent(input$reset_button, {js$reset()})# permet la fonction reset dans history 
   observeEvent(input$file1, {
     # input$file1 will be NULL initially. After the user selects
     # and uploads a file, head of that data file by default,
     # or all rows if selected, will be shown.
     
+    
+    #import csv----
     # on refait l'importation chaque fois qu'un parametre est changer 
     observeEvent({c(
       input$header,
@@ -696,6 +699,7 @@ We ask all the users to   cite the different souces they use to make the graphic
       input$quote,
       input$encoding)
     },{
+      
       test_error=tryCatch({
         df <- as.data.frame(data.table::fread(input$file1$datapath,
                                               header = input$header,
@@ -720,7 +724,7 @@ We ask all the users to   cite the different souces they use to make the graphic
         reactive_values$df_csv <- df
         #mise en forme de la table afficher 
         table_data=datatable(df_flatten(reactive_values$df_csv), options = list(scrollX = TRUE, columnDefs = list(list(
-          targets = "_all" ,render = JS(
+          targets = "[0,7]" ,render = JS(
             "function(data, type, row, meta) {",
             "return type === 'display' && data.length > 70 ?",
             "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
@@ -739,7 +743,7 @@ We ask all the users to   cite the different souces they use to make the graphic
         output$contents <- renderDataTable({
           if(input$disp == "head") {# si head on affiche que les deux premiere ligne 
             return(datatable(df_flatten(df[c(1,2),]), options = list(scrollX = TRUE, columnDefs = list(list(
-              targets = "_all",render = JS(
+              targets = "[0,7]",render = JS(
                 "function(data, type, row, meta) {",
                 "return type === 'display' && data.length > 70 ?",
                 "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
@@ -821,13 +825,12 @@ We ask all the users to   cite the different souces they use to make the graphic
       }
     })
   
-  
+  #traitment keyword----
   observe({ if(reactive_values$valide_csv==TRUE || reactive_values$valide_pdf==TRUE || reactive_values$valide_wos==TRUE){
     # a chaque ajout de donnes on refais l'etude 
-    print("in the observe")
-    print(names(reactive_values$df_global))
-    if(sum(duplicated(reactive_values$df_global[c("titre","auteur")]))>0) reactive_values$df_global<-reactive_values$df_global[-(which(duplicated(reactive_values$df_global[c("titre","auteur")])==TRUE)),]
-    
+  
+    if(sum(duplicated(reactive_values$df_global[c("titre","auteur")]))>0) reactive_values$df_global<-reactive_values$df_global[-(which(duplicated(reactive_values$df_global[c("titre","auteur")])==TRUE)),]#supprésion des doublons 
+    reactive_values$df_global=reactive_values$df_global[order(reactive_values$df_global[["doi"]],na.last = TRUE,decreasing = TRUE),]#on tri par le doi, utile pour l'utilisation des api 
     
     reactive_values$df_global[["keywords"]]=gsub(";",",",gsub(" and ",",",reactive_values$df_global[["keywords"]]))
     reactive_values$df_global[["domain"]]=gsub(";",",",reactive_values$df_global[["domain"]])
@@ -1022,7 +1025,7 @@ We ask all the users to   cite the different souces they use to make the graphic
               }
               
               table_data=datatable(df_flatten(reactive_values$df_global[ind,]),filter = 'top', options = list(scrollX = TRUE, columnDefs = list(list(
-                targets = "_all" ,render = JS(
+                targets = "[0,4]" ,render = JS(
                   "function(data, type, row, meta) {",
                   "return type === 'display' && data.length > 70 ?",
                   "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
@@ -1647,8 +1650,8 @@ We ask all the users to   cite the different souces they use to make the graphic
         }else { 
         print("passe")
         reactive_values$show_lens_res_window=TRUE
-        reactive_values$res_lens=extraction_data_api_lens(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",pas=8,value_same_min_accept=reactive_values$value_same_min_accept, value_same_min_ask=reactive_values$value_same_min_ask,type = input$type,source_name = "source",sep_vector_in_data ="sep",position_vector_in_data = "position_name",token = input$token_lens)
-        
+        reactive_values$res_lens=extraction_data_api_lens(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",doi_name = "doi",pas=8,value_same_min_accept=reactive_values$value_same_min_accept, value_same_min_ask=reactive_values$value_same_min_ask,type = input$type,source_name = "source",sep_vector_in_data ="sep",position_vector_in_data = "position_name",token = input$token_lens)
+        #browser("arret pour verifier ce qui a dans lens ")
       }
     }  
       #mark3
@@ -1657,7 +1660,7 @@ We ask all the users to   cite the different souces they use to make the graphic
         length(reactive_values$res_arxiv$res_citation_accept$`cited identifier`)+
         length(reactive_values$res_arxiv$res_reference_accept$`refering identifier`)+
         length(reactive_values$res_pumed$dataframe_citation_accept$`cited identifier`)+
-        length(reactive_values$res_pumed$dataframe_ref_accept$`refering identifier`)
+        length(reactive_values$res_pumed$dataframe_ref_accept$`refering identifier`)+
         length(reactive_values$res_lens$dataframe_citation_accept$`cited identifier`)+
         length(reactive_values$res_lens$dataframe_ref_accept$`refering identifier`)
       if(reactive_values$cal_temp>=1){
@@ -2070,7 +2073,7 @@ We ask all the users to   cite the different souces they use to make the graphic
     output$table_data_ref5 <- renderDataTable({
       
       table_data=datatable(df_flatten(reactive_values$res_lens$dataframe_citation_accept), options = list(scrollX = TRUE, columnDefs = list(list(
-        targets = "_all" ,render = JS(
+        targets = "[0,4]" ,render = JS(
           "function(data, type, row, meta) {",
           "return type === 'display' && data.length > 70 ?",
           "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",

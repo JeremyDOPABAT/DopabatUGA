@@ -572,11 +572,12 @@ pdf_extract_data<-function(path_folder){
   
 }
 
-supress_unfit_entry<-function(title_vector,author_vector,sep="",max_aut=8){
+supress_unfit_entry<-function(title_vector,author_vector,doi_vector="",sep="",max_aut=8){
   #' Title
   #'
   #' @param title_vector vector de titre 
   #' @param author_vector  vector de auteur 
+  #' @param doi_vector 
   #' @param sep sep between author 
   #' @param max_aut max auteur autoris
   #'
@@ -589,7 +590,8 @@ supress_unfit_entry<-function(title_vector,author_vector,sep="",max_aut=8){
   #output   une dataframe avec les m?tadonner qui nous interesse 
   
   
-  ind=which(title_vector=="")
+  
+  ind=which(title_vector=="" && doi_vector=="" )
   if(length(ind)>0){
     title_vector=title_vector[-ind]
     author_vector=author_vector[-ind]
@@ -660,15 +662,18 @@ duplicated2 <- function(x){
 }
 
 
-compaire_title<-function(ti_trouver,ti_data){
+compaire_title<-function(ti_trouver,ti_data,doi_data=""){
+  #browser()
   #Cette fonction compare les titre de ti trouver avec l'autre vecteur, renvoi le score maximal  , elle indique aussi l'indexe du premier titre qui a le score correspondant 
   ##ti_trouver vecteur comparer 
   #ti_data : vecteur comparant 
+  
   res<-sapply(1:length(ti_trouver),FUN=function(x){
     
-    courant=ti_trouver[x]
-    print(x/length(ti_trouver)*100)
-    max_apply<-sapply(1:length(ti_data),FUN=function(y){
+    
+      courant=ti_trouver[x]
+      print(x/length(ti_trouver)*100)
+      max_apply<-sapply(1:length(ti_data),FUN=function(y){
       
       
       return(max(nchar(courant),max(nchar(ti_data[y]))))
@@ -2808,7 +2813,8 @@ extract_ref_wos<-function(data_wos){
 
 conforme_bibtext<-function(data_wos,data_base){
   #' Title
-  #' mise en place des keyword  et des source si elle y son ou pas 
+  #' mise en place des keyword  et des source si elle y son ou pas dasn le bibtest
+  #' permet de détécter les mauvaise importation 
   #' @param data_wos data bitext   
   #'
   #' @return
@@ -2853,6 +2859,18 @@ conforme_bibtext<-function(data_wos,data_base){
     })
     
     if(is.null(dim(error)[1])) if(is.na(error)) data_wos["AU"]="NULL"
+  
+    
+    
+    error=tryCatch({#reperage des erreur 
+      data_wos["DI"]
+    },
+    
+    error=function(cond){
+      return(NA)
+    })
+    
+    if(is.null(dim(error)[1])) if(is.na(error)) data_wos["DI"]="NULL"
     
   } else{
     error=tryCatch({#reperage des erreur 
@@ -2908,14 +2926,23 @@ conforme_bibtext<-function(data_wos,data_base){
     
     if(is.null(dim(error)[1])) if(is.na(error)) data_wos["AUTHOR"]="NULL"
     
+    error=tryCatch({#reperage des erreur 
+      data_wos["DOI"]
+    },
+    
+    error=function(cond){
+      return(NA)
+    })
+    
+    if(is.null(dim(error)[1])) if(is.na(error)) data_wos["DOI"]="NULL"
   }
   
   (test1=grep(pattern = "^TITLE*",names(data_wos)))
   (test2=grep(pattern = "^KEYWORDS*",names(data_wos)))
   (test3=grep(pattern = "^AUTHOR*",names(data_wos)))
-  
-  if(length(test1)>1|length(test1)>1|length(test1)>1){
-    stop("hep hep hep tu vas ou ?")
+  (test4=grep(pattern = "^DOI*",names(data_wos)))
+  if(length(test1)>1|length(test2)>1|length(test3)>1|length(test4)>1){
+    stop("hep hep hep tu vas ou ? mauvaise importation colone dédoubler")
   }
   return(data_wos) 
 }
@@ -3399,13 +3426,13 @@ lens_get_cit_or_ref<-function(resdt,type="cit",token){# on r?cup?re les infodes 
   
 }
 
-lens_get_publi<-function(au_data,ti_data,position_reel,pas,value_same_min_ask,value_same_min_accept,token,sep){
+lens_get_publi<-function(au_data,ti_data,doi_data="",position_reel,pas,value_same_min_ask,value_same_min_accept,token,sep){
 #pour traiter doi on sort par doi et ensuite on traite les réquest par doi puis ensuite non
 error_querry=c()  
 position_togo=rep(1,length(au_data))
+#if(doi_data=="none") doi_data=""  
   
-  
-res_temp=supress_unfit_entry(ti_data,au_data,sep=sep,max_aut = 1)#permet d'aclimater les do,n?es a la bd (possiblement sortable de la fonction )  
+res_temp=supress_unfit_entry(ti_data,au_data,doi_vector =doi_data ,sep=sep,max_aut = 1)#permet d'aclimater les do,n?es a la bd (possiblement sortable de la fonction )  
   
 
 ti_data=res_temp[[1]]
@@ -3431,15 +3458,14 @@ au_data=sapply(1:length(au_data),FUN = function(x) paste(au_data[[x]],collapse =
     
     
     
+    #browser("arret pour verifier les requet en cit ")
+    request=lens_make_main_request(gsub(","," ",Unaccent(au_data[first:last])),Unaccent(ti_data[first:last]),doi_data[first:last])
     
-    request=lens_make_main_request(gsub(","," ",Unaccent(au_data[first:last])),Unaccent(ti_data[first:last]))
-    
-    print("titre")
     Sys.sleep(3)  
     data <- getScholarlyData(token, request)
     data$status_code
     result <-jsonlite::fromJSON(txt = httr::content(data, 'text'), simplifyDataFrame = TRUE,simplifyVector = TRUE)
-    result$total
+    
     
     error=tryCatch({#rep?rage des erreur 
       querry_warning_message(data)
@@ -3495,7 +3521,7 @@ au_data=sapply(1:length(au_data),FUN = function(x) paste(au_data[[x]],collapse =
     }
   })
   resdt=as.data.frame(res,stringsAsFactors = FALSE)
-  indic_compaire_title<-compaire_title(Unaccent(resdt$title),Unaccent(ti_data))
+  indic_compaire_title<-compaire_title(Unaccent(resdt$title),Unaccent(ti_data),doi_data = doi_data)
   
   
   
@@ -3511,7 +3537,7 @@ au_data=sapply(1:length(au_data),FUN = function(x) paste(au_data[[x]],collapse =
 
 
 
-extraction_data_api_lens<-function(data_pub,ti_name,au_name,token,pas=10,value_same_min_accept=0, value_same_min_ask=1,type="all",source_name="",sep_vector_in_data="",position_vector_in_data=""){
+extraction_data_api_lens<-function(data_pub,ti_name,au_name,doi_name,token,pas=10,value_same_min_accept=0, value_same_min_ask=1,type="all",source_name="",sep_vector_in_data="",position_vector_in_data=""){
   # fonction permetant d'interroger ads sur les reference et les citation d'un corpus de publication placer en entr?e 
   
   
@@ -3558,7 +3584,7 @@ extraction_data_api_lens<-function(data_pub,ti_name,au_name,token,pas=10,value_s
   
   au_data<-data_pub[au_name][[1]]#auteur nom colonne 
   ti_data<-data_pub[ti_name][[1]]#titre 
-  
+  doi_data<-data_pub[doi_name][[1]]#doi 
   
   res_rest=c() #ini partie non wos 
   res_wos=c() #partoe <os
@@ -3575,7 +3601,7 @@ extraction_data_api_lens<-function(data_pub,ti_name,au_name,token,pas=10,value_s
     if(length(sep_vector_in_data)==1) if(sep_vector_in_data=="") sep="" else sep=data_wos[sep_vector_in_data][[1]]
     if(length(position_vector_in_data)==1) if(position_vector_in_data=="") position_name=rep(1,dim(data_wos)[1]) else position_name=data_wos[position_vector_in_data][[1]]
     if(dim(data_wos)[1]!=0) {
-      res_wos_all=lens_get_publi(data_wos[au_name][[1]],data_wos[ti_name][[1]],position_name[data_pub[source_name]=="WOS"],pas,value_same_min_ask,value_same_min_accept,token,sep)
+      res_wos_all=lens_get_publi(data_wos[au_name][[1]],data_wos[ti_name][[1]],data_wos[doi_name][[1]] ,position_name[data_pub[source_name]=="WOS"],pas,value_same_min_ask,value_same_min_accept,token,sep)
       res_wos=res_wos_all$res
       err1=res_wos_all$error
       reject1=res_wos_all$reject
@@ -3594,7 +3620,7 @@ extraction_data_api_lens<-function(data_pub,ti_name,au_name,token,pas=10,value_s
     if(length(position_vector_in_data)==1) if(position_vector_in_data=="") position_name=rep(1,dim(data_rest)[1]) else position_name=data_rest[position_vector_in_data][[1]]
     if(dim(data_rest)[1]!=0) {
       
-      res_rest_all=lens_get_publi(data_rest[au_name][[1]],data_rest[ti_name][[1]],position_name[data_pub[source_name]!="WOS"],pas,value_same_min_ask,value_same_min_accept,token,sep)
+      res_rest_all=lens_get_publi(data_rest[au_name][[1]],data_rest[ti_name][[1]],data_rest[doi_name][[1]],position_name[data_pub[source_name]!="WOS"],pas,value_same_min_ask,value_same_min_accept,token,sep)
       print(dim(res_rest_all$res))
       res_rest=res_rest_all$res
       err2=res_rest_all$error
@@ -3617,7 +3643,7 @@ extraction_data_api_lens<-function(data_pub,ti_name,au_name,token,pas=10,value_s
     if(length(sep_vector_in_data)==1) if(sep_vector_in_data=="") sep="" else sep=data_pub[sep_vector_in_data][[1]]
     if(length(position_vector_in_data)==1) if(position_vector_in_data=="") position_name=rep(1,dim(data_pub)[1]) else position_name=data_pub[position_vector_in_data][[1]]
     if(dim(data_pub)[1]!=0) {
-      resdt_all=lens_get_publi(au_data,ti_data,position_name,pas,value_same_min_ask,value_same_min_accept,token,sep = sep)
+      resdt_all=lens_get_publi(au_data,ti_data,doi_data,position_name,pas,value_same_min_ask,value_same_min_accept,token,sep = sep)
       error_querry=resdt_all$error
       res=resdt_all$res
       reject=resdt_all$reject
@@ -3700,12 +3726,12 @@ getScholarlyData <- function(token, query){
 
 
 
-lens_make_main_request=function(au_data,ti_data){
+lens_make_main_request=function(au_data,ti_data,doi_data=""){
   part_quest=list()
   
-  for(i in 1:length(ti_data)){
-    
-    part_courant=paste0('
+  for(i in 1:length(au_data)){
+    if(doi_data[i]==""|| is.na(doi_data[i])){
+      part_courant=paste0('
     { 
     "bool": {
       "must": [
@@ -3714,7 +3740,17 @@ lens_make_main_request=function(au_data,ti_data){
                 ]
               }
           }')
-    
+    }else {
+      print("!!!! pasage par doi")
+      part_courant=paste0('
+    { 
+    "bool": {
+      "must": [
+        {"match": {"doi":"',doi_data[[i]],'"}}
+                ]
+              }
+          }')
+    }
     part_quest=append(part_quest,part_courant)
   }
   
