@@ -724,7 +724,7 @@ We ask all the users to   cite the different souces they use to make the graphic
         reactive_values$df_csv <- df
         #mise en forme de la table afficher 
         table_data=datatable(df_flatten(reactive_values$df_csv), options = list(scrollX = TRUE, columnDefs = list(list(
-          targets = "[0,7]" ,render = JS(
+          targets = "_all" ,render = JS(
             "function(data, type, row, meta) {",
             "return type === 'display' && data.length > 70 ?",
             "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
@@ -743,7 +743,7 @@ We ask all the users to   cite the different souces they use to make the graphic
         output$contents <- renderDataTable({
           if(input$disp == "head") {# si head on affiche que les deux premiere ligne 
             return(datatable(df_flatten(df[c(1,2),]), options = list(scrollX = TRUE, columnDefs = list(list(
-              targets = "[0,7]",render = JS(
+              targets = "_all",render = JS(
                 "function(data, type, row, meta) {",
                 "return type === 'display' && data.length > 70 ?",
                 "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
@@ -759,7 +759,7 @@ We ask all the users to   cite the different souces they use to make the graphic
       }
       
     })
-    print("end render")
+    
   })
   
   observeEvent(

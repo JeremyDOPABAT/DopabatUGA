@@ -595,6 +595,7 @@ supress_unfit_entry<-function(title_vector,author_vector,doi_vector="",sep="",ma
   if(length(ind)>0){
     title_vector=title_vector[-ind]
     author_vector=author_vector[-ind]
+    doi_vector=doi_vector[-ind]
     print("Publication without title in the select language can't be analysed")
   } 
   
@@ -612,9 +613,10 @@ supress_unfit_entry<-function(title_vector,author_vector,doi_vector="",sep="",ma
   
   
   ind=which(nb_author==0)
-  if(length(ind)>0){
+  if(length(ind)>0 &&  paste0(doi[ind],collapse = "")=="" ){
     title_vector=title_vector[-ind]
     author_vector=author_vector[-ind]
+    doi_vector=doi_vector[-ind]
     sep=sep[-ind]
     print("Publication without author can't be analyse")
   } 
@@ -635,7 +637,7 @@ supress_unfit_entry<-function(title_vector,author_vector,doi_vector="",sep="",ma
   }
   author_vector=sapply(1:length(author_vector),FUN = function(x) gsub("[{}]", "", author_vector[[x]]))
   
-  return(list(title_vector,author_vector))
+  return(list(title_vector,author_vector,doi_vector))
 }
 
 
@@ -663,7 +665,7 @@ duplicated2 <- function(x){
 
 
 compaire_title<-function(ti_trouver,ti_data,doi_data=""){
-  #browser()
+  # 
   #Cette fonction compare les titre de ti trouver avec l'autre vecteur, renvoi le score maximal  , elle indique aussi l'indexe du premier titre qui a le score correspondant 
   ##ti_trouver vecteur comparer 
   #ti_data : vecteur comparant 
@@ -2020,7 +2022,7 @@ pumed_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,v
             #   print(h)
             #   res=as.data.frame(res,stringsAsFactors = FALSE)
             #   View(res[duplicated2(as.data.frame(res,stringsAsFactors = FALSE)[,1])==TRUE,])
-            #   browser()
+            #    
             # }
           }
         }
@@ -2970,7 +2972,7 @@ interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd
     title="cited title"
   }
   #View(data_gl)
-  # browser()
+  #  
   nb_categ=unlist(data_gl[[journal_domaine]]) #on pr?parer les colonne de la table de containgence 
   remouve=which(is.na(nb_categ)) 
   if(length(remouve)>0 && length(nb_categ[-remouve])>0){ 
@@ -3002,7 +3004,7 @@ interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd
           temp= sapply(1:length(col_ind),FUN=function(x) list(toString(c(unlist(matrice_contribution[dim(matrice_contribution)[1],col_ind[x]]),i))))
           matrice_contribution[dim(matrice_contribution)[1],col_ind]=temp
           precedent=data_gl[[identifier]][[i]]#avancement du curseur 
-          #if(length(col_ind)>1) browser()
+          #if(length(col_ind)>1)  
         }
       }
       print("sortie du for" )
@@ -3027,8 +3029,6 @@ interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd
         lien<-list()
         
         for(i in 1:dim(matrice_prop)[2]){# il faut adittionner les couple donc parcourir les colonne deux fois 
-          print("nouvel boucle")
-          print(i)
           for(j in 1:dim(matrice_prop)[2]){
             #print(j)
             if(matrice_prop[x,i]!=0 && matrice_prop[x,j]!=0){
@@ -3081,7 +3081,7 @@ interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd
           if(matrice_prop[i,j]!=0){
             
             ind=grep(names(matrice_prop)[j],table_conversion[,2])
-            #if(length(ind)>0) browser()
+            #if(length(ind)>0)  
             new_matrice_prop[i,table_conversion[ind,1]]=new_matrice_prop[i,table_conversion[ind,1]]+matrice_prop[i,j]
             new_matrice_contribution[i,table_conversion[ind,1]]=paste0(unique(strsplit(gsub(" ","",paste0(unlist(new_matrice_contribution[i,table_conversion[ind,1]]),",",unlist(matrice_contribution[i,j]),collapse = ",")),split = ",")[[1]]),collapse = ",")# certaine ligne une fois merger compte pour plusieurs fois car certain journal multidiciplinaire sont dans plusiur colonne donc le unique peret de ne pas avoir a les afficher plusieurs fois 
             
@@ -3226,7 +3226,7 @@ global_merge_and_cal_interdis<-function(ads=NULL,arxiv=NULL,pumed=NULL,wos=NULL,
       merge_data_cit=NULL
       
     }
-    #browser()
+    # 
     result=list(data_ref=merge_data_ref,data_cit=merge_data_cit,res_ref=res_matrice_ref,res_cit=res_matrice_cit)
   }else{
     
@@ -3427,110 +3427,135 @@ lens_get_cit_or_ref<-function(resdt,type="cit",token){# on r?cup?re les infodes 
 }
 
 lens_get_publi<-function(au_data,ti_data,doi_data="",position_reel,pas,value_same_min_ask,value_same_min_accept,token,sep){
-#pour traiter doi on sort par doi et ensuite on traite les réquest par doi puis ensuite non
-error_querry=c()  
-position_togo=rep(1,length(au_data))
-#if(doi_data=="none") doi_data=""  
+  #pour traiter doi on sort par doi et ensuite on traite les réquest par doi puis ensuite non
   
-res_temp=supress_unfit_entry(ti_data,au_data,doi_vector =doi_data ,sep=sep,max_aut = 1)#permet d'aclimater les do,n?es a la bd (possiblement sortable de la fonction )  
-  
-
-ti_data=res_temp[[1]]
-au_data=res_temp[[2]]
-
-
-au_data=fit_name_position(au_data,position_reel,position_togo =position_togo,sep )
-au_data=sapply(1:length(au_data),FUN = function(x) paste(au_data[[x]],collapse = ";"))
-  
-    
-  inter=ceiling(length(au_data)[1]/pas)# nombre d'iteration
-  withProgress(
-     message='Please wait',
-     detail='Doing reasearche of publication in lens...',
-     value=0, {
+  error_querry=c()  
+  position_togo=rep(1,length(au_data))
   res=c()
-  for(h in 1:inter){# on parcoure les auteur et les titre par pas et on fait les roquette correspondante 
-    print(h)
-    first<-(h-1)*pas+1
-    last<-h*pas
-    incProgress(1/inter)
-    if(last>length(au_data)) last<-length(au_data)
+  res_temp=supress_unfit_entry(ti_data,au_data,doi_vector =doi_data ,sep=sep,max_aut = 1)#permet d'aclimater les do,n?es a la bd (possiblement sortable de la fonction )  
+  
+  ti_data=res_temp[[1]]
+  au_data=res_temp[[2]]
+  doi_data=res_temp[[3]]
+  
+  #if(doi_data=="none") doi_data=""  
+  for(type_requetage in c("TI_AU","DOI" )){
+    #if(type_requetage=="DOI")    
     
-    
-    
-    #browser("arret pour verifier les requet en cit ")
-    request=lens_make_main_request(gsub(","," ",Unaccent(au_data[first:last])),Unaccent(ti_data[first:last]),doi_data[first:last])
-    
-    Sys.sleep(3)  
-    data <- getScholarlyData(token, request)
-    data$status_code
-    result <-jsonlite::fromJSON(txt = httr::content(data, 'text'), simplifyDataFrame = TRUE,simplifyVector = TRUE)
-    
-    
-    error=tryCatch({#rep?rage des erreur 
-      querry_warning_message(data)
-      
-    },
-    
-    warning=function(cond){# mise en forme en cas d'erreur 
-      titre_error=as.data.frame(ti_data[first:last])
-      names(titre_error)=c("Publication title")
-      titre_error["Status error"]=data$status
-      titre_error$Message=message_error(data)
-      titre_error["Data impact"]="ref & cit"
-      titre_error$h=h
-      return(titre_error)
-    })
-    
-    
-    if(length(error)>0){
-      error_querry<-rbind(error_querry,error)
-      error=c()
-      
-    }else {#si il n'y a pas d'erreur 
-      
-      
-      if(result$total>0){
-        print("ouiiiiiii")
-        title=result$data$title
-        id=result$data$lens_id
-        author=sapply(1:length(result$data$authors),FUN = function(x) return(list(result$data$authors[[x]]$last_name)))
-        date=result$data$date_published
-        reference=result$data$references
-        citation=result$data$scholarly_citations
-        journal=result$data$source$title
-        
-        
-        if(is.null(reference)) reference=NA
-        if(is.null(citation)) citation=NA 
-        if(is.null(journal)) journal=NA 
-        
-        if(is.null(date)) date=NA
-        
-        res<-rbind(res,cbind(h,id,author,title, date,journal,citation,reference))
-        
-        
-      }
-      
-      # if(value_same_min_ask<1) reject=resdt[resdt$check_title_pct<value_same_min_ask,]# les rejet? sont ceux qui non pas assez de similitudfe pour aire dans les demande 
-      # resdt=resdt[resdt$check_title_pct>value_same_min_ask,]
-      # #ask est pas accepte car on le garde dans la dataframe pour que ceux ou on a un doute soit quand même treter 
-      
-      
-      }
+    if(type_requetage=="TI_AU"){
+      au_data=fit_name_position(au_data,position_reel,position_togo =position_togo,sep )
+      au_data=sapply(1:length(au_data),FUN = function(x) paste(au_data[[x]],collapse = ";"))
+      # nombre d'iteration
+      data_to_use=no_doi=which(is.na(doi_data)| doi_data=="" )#pas de doi = doi vide 
+    }else{#on peu se permet car les élément perturbateur on été supprimer 
+      data_to_use=doi=which(doi_data!="" & !is.na(doi_data))
     }
-  })
-  resdt=as.data.frame(res,stringsAsFactors = FALSE)
-  indic_compaire_title<-compaire_title(Unaccent(resdt$title),Unaccent(ti_data),doi_data = doi_data)
+    if(length(data_to_use)>0){
+      inter=ceiling(length(data_to_use)[1]/pas)
+      print("interrrr")
+      print(inter)
+      withProgress(
+        message='Please wait',
+        detail='Doing reasearche of publication in lens...',
+        value=0, {
+
+      for(h in 1:inter){# on parcoure les auteur et les titre par pas et on fait les roquette correspondante 
+        print(h)
+        first<-(h-1)*pas+1
+        last<-h*pas
+        incProgress(1/inter)
+        if(last>length(data_to_use)) last<-length(data_to_use)
+        
+        
+        
+        #browser("arret pour verifier les requet en cit ")
+        request=lens_make_main_request(gsub(","," ",Unaccent(au_data[data_to_use][first:last])),Unaccent(ti_data[data_to_use][first:last]),doi_data[data_to_use][first:last])
+        
+        Sys.sleep(3)  
+        data <- getScholarlyData(token, request)
+        data$status_code
+        result <-jsonlite::fromJSON(txt = httr::content(data, 'text'), simplifyDataFrame = TRUE,simplifyVector = TRUE)
+        
+        
+        error=tryCatch({#rep?rage des erreur 
+          querry_warning_message(data)
+          
+        },
+        
+        warning=function(cond){# mise en forme en cas d'erreur 
+          titre_error=as.data.frame(ti_data[first:last])
+          names(titre_error)=c("Publication title")
+          titre_error["Status error"]=data$status
+          titre_error$Message=message_error(data)
+          titre_error["Data impact"]="ref & cit"
+          titre_error$h=h
+          return(titre_error)
+        })
+        
+        
+        if(length(error)>0){
+          error_querry<-rbind(error_querry,error)
+          error=c()
+          
+        }else {#si il n'y a pas d'erreur 
+          
+          
+          if(result$total>0){
+            print("ouiiiiiii")
+            title=result$data$title
+            id=result$data$lens_id
+            author=sapply(1:length(result$data$authors),FUN = function(x) return(list(result$data$authors[[x]]$last_name)))
+            date=result$data$date_published
+            reference=result$data$references
+            citation=result$data$scholarly_citations
+            journal=result$data$source$title
+            
+            
+            if(is.null(reference)) reference=NA
+            if(is.null(citation)) citation=NA 
+            if(is.null(journal)) journal=NA 
+            
+            if(is.null(date)) date=NA
+            
+            res<-rbind(res,cbind(h,id,author,title, date,journal,citation,reference))
+            
+          }
+          
+          # if(value_same_min_ask<1) reject=resdt[resdt$check_title_pct<value_same_min_ask,]# les rejet? sont ceux qui non pas assez de similitudfe pour aire dans les demande 
+          # resdt=resdt[resdt$check_title_pct>value_same_min_ask,]
+          # #ask est pas accepte car on le garde dans la dataframe pour que ceux ou on a un doute soit quand même treter 
+          
+          
+        }
+      }
+      })
+      
+      resdt=as.data.frame(res,stringsAsFactors = FALSE)    
+      
+      if(type_requetage=="TI_AU"){# très imortant que le titre auteur soit fait en premier 
+        indic_compaire_title<-compaire_title(Unaccent(resdt$title),Unaccent(ti_data),doi_data = doi_data)
+        no_doi=data_to_use
+        # on sauvegarde le reusultat du test pour la fin du programme 
+      }else{
+        doi=data_to_use      
+      }    
+      
+    }
+    
+  } 
   
+  if(dim(res)[1]>0){
+    tit_pct<-c(unlist(indic_compaire_title[1,]),rep(1,(dim(resdt)[1]-length(indic_compaire_title[1,]))))
+    tit_ind<-c(unlist(indic_compaire_title[2,]),rep(NA,(dim(resdt)[1]-length(indic_compaire_title[1,]))))
+    resdt["check_title_pct"]<-tit_pct
+    resdt["check_title_ind"]<-tit_ind
+    
+    
+    if(value_same_min_ask<1) reject=resdt[resdt$check_title_pct<value_same_min_ask,]# les rejet? sont ceux qui non pas assez de similitudfe pour aire dans les demande 
+    resdt=resdt[resdt$check_title_pct>value_same_min_ask,]
+    
+  }
   
-  
-  resdt["check_title_pct"]<-unlist(indic_compaire_title[1,])
-  resdt["check_title_ind"]<-unlist(indic_compaire_title[2,])
-  
-  if(value_same_min_ask<1) reject=resdt[resdt$check_title_pct<value_same_min_ask,]# les rejet? sont ceux qui non pas assez de similitudfe pour aire dans les demande 
-  resdt=resdt[resdt$check_title_pct>value_same_min_ask,]
-  dim(resdt)
   return(list(res=resdt, error=error_querry,reject=reject))
 }
 
@@ -3741,7 +3766,6 @@ lens_make_main_request=function(au_data,ti_data,doi_data=""){
               }
           }')
     }else {
-      print("!!!! pasage par doi")
       part_courant=paste0('
     { 
     "bool": {
