@@ -1210,122 +1210,6 @@ shinyInput <- function(FUN, n, id, ...) {
 
 
 
-find_journal_domaine<-function(journal_data,journal_table_ref,issn="",essn="",source=""){
-  #Cette fonction permet de retrouver le domaine avec le nom du journal
-  
-  #input
-  #journal_data : vecteur nom de journaux 
-  #issn vecteur contenant des issn,
-  #essn veteur essn
-  #journal_table_ref table de jounaux 
-  
-  
-  
-  
-  col_journal=source
-  journal_table_ref$Abreviation[journal_table_ref$Abreviation==""]=NA
-  ab=c()
-  cat=c()
-  cat_trouver=c()
-  pas=ceiling(dim(journal_table_ref)[1]/2)
-  inter=ceiling(dim(journal_table_ref)[1]/pas)
-  
-  # time_min=inter*(5+3)/60
-  # print(paste("Le temps d'execution est estime est  environs ",time_min,"minute(s)"))
-  
-  
-  dom=sapply(1:length(journal_data),FUN=function(x){
-    #marker
-    trouver=FALSE
-    
-    withProgress(
-      message='Please wait',
-      detail=paste0("matching journal"),
-      value=0, {
-        for(h in 1:inter){# boucle principale qui parcour les donn?es
-          incProgress(1/inter)
-          
-          first<-(h-1)*pas+1# premier individu a prendre en compte(ligne)
-          last<-h*pas       # dernier ""   "      "       "   "
-          if(last>dim(journal_table_ref)[1]) last<-dim(journal_table_ref)[1]
-          journal_courant=journal_table_ref[first:last,]
-          
-          
-          print(x)
-          if(!(is.na(journal_data[[x]]) ||is.null(journal_data[[x]]))  && trouver==FALSE  ) {
-            if(length(issn)!=0){ if(!is.null(issn[x]) &&issn[x]!="" && !is.na(issn[x]) ){# on trouve l'iissn si il est present 
-              ind=which(issn[[x]]==journal_courant$issn) 
-              if(length(ind)>0){
-                ab=c(ab,journal_courant$Abreviation[ind])
-                cat=c(cat,journal_courant$Discipline.Scientifique.OST[ind])
-                trouver=TRUE
-                cat_trouver=c(cat_trouver,1)
-              } 
-            }}
-            if(length(essn)!=0 && trouver==FALSE){ 
-              if(!is.null(essn[x]) && essn[x]!=""&& !is.na(essn[x])){# pareil pour l'essn
-                ind=which(essn[x]==journal_courant$essn) 
-                if(length(ind)>0) {
-                  ab=c(ab,journal_courant$Abreviation[ind])
-                  cat=c(cat,journal_courant$Discipline.Scientifique.OST[ind])
-                  cat_trouver=c(cat_trouver,1)
-                  trouver=TRUE
-                }
-              }
-            }
-            #on seach le nom exacte du journal dans la liste de reference 
-            if(trouver==FALSE){
-              tp=grep(paste0("^",tolower(trimws(gsub("\\[|\\]", "",gsub("[(#$%*,.:;<=>@^_`{|}~.)]","",gsub("\\s*\\([^\\)]+\\)","",journal_data[[x]]))))),"$"),tolower(trimws(journal_courant[[col_journal[[x]]]])))
-              
-              #}, error = function(e) { return(NA)})
-              
-              if(length(tp)>0){
-                trouver=TRUE
-                ab=c(ab,journal_courant$Abreviation[tp])
-                cat=c(cat,journal_courant$Discipline.Scientifique.OST[tp])
-                cat_trouver=c(cat_trouver,1)
-              } 
-            }
-            #   # on cherche une correspondance de reference qui commence par le debut
-            #   tp=grep(paste0("^",tolower(trimws(gsub("\\[|\\]", "",gsub("[(#$%*,.:;<=>@^_`{|}~.)]","",gsub("\\s*\\([^\\)]+\\)","",journal_data[x])))))),tolower(trimws(journal_courant[[source]])))
-            #   if(length(tp)>0){
-            #     return((journal_courant$Abreviation[tp]))
-            #   } else {
-            #     #on cherche une reference corespondans partout dans le nom
-            #     tp=grep(paste0(tolower(trimws(gsub("\\[|\\]", "",gsub("[(#$%*,.:;<=>@^_`{|}~.)]","",gsub("\\s*\\([^\\)]+\\)","",journal_data[x])))))),tolower(trimws(journal_courant[[source]])))
-            #     if(length(tp)==1){
-            #       return((journal_courant$Abreviation[tp]))
-            #     }
-            #     
-            #   }
-            # }
-            
-          }
-          
-        }
-        if(trouver==FALSE){
-          ab=c(ab,NA)
-          cat=c(cat,NA)
-          cat_trouver=c(cat_trouver,0)
-        }
-      })
-    return(list(ab=ab,cat=cat,trouver=cat_trouver))
-  })
-  # dom_length<-sapply(1:length(dom), FUN=function(x) length(unlist(dom[x])))
-  # ind<-which(dom_length>1)
-  # 
-  # 
-  # 
-  # temp<-sapply(ind, function(x){
-  #   cat<-names(table(dom[x]))
-  #   if(length(cat)==1) return(cat) else return(NA)
-  # })
-  
-  #dom[ind]<-temp
-  return(dom) 
-  
-}
-
 
 
 
@@ -2267,7 +2151,7 @@ interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd
       for(i in 1:dim(data_gl)[1]){
         print(i)
         
-        if(!is.na(data_gl[[journal_domaine]][[i]])){
+        if(length(which(is.na(data_gl[[journal_domaine]][[i]])))==0){
           if(precedent!=data_gl[[identifier]][[i]]){
             line=rep(0,length(list_categ))
             matrice_prop=rbind(matrice_prop,line)
@@ -2355,10 +2239,7 @@ interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd
       names(new_matrice_contribution)=new_col
       
       for(i in 1:dim(matrice_prop)[1]){
-        print("voici i dernier for")
-        print(i)
         for(j in 1:dim(matrice_prop)[2]){
-          print(j)
           if(matrice_prop[i,j]!=0){
             
             ind=grep(names(matrice_prop)[j],table_conversion[,2])
@@ -2369,7 +2250,6 @@ interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd
           }
         }
       }
-      print("soooooortiiie")
       #  View(new_matrice_contribution)
       #View(new_matrice_prop)
       col_identifier=c(col_identifier,"TOTAL")
@@ -2425,7 +2305,7 @@ merge_result_data_base<-function(ads,arxiv,pumed,wos,lens,col_journal=c(NULL,NUL
   if(!is.null(ads_data)) ads_data$source=col_journal[1]
   if(!is.null(arxi_data)) arxi_data$source=col_journal[2]
   if(!is.null(pumed_data)) pumed_data$source=col_journal[3]
-  if(!is.null(lens_data)) lens_data$source=col_journal[4]
+  if(!is.null(lens_data)) lens_data$source=col_journal[5]#lens 5eme position 
   
   data_merge=as.data.frame(rbind.fill(ads_data,arxi_data),stringsAsFactors = FALSE)
   
@@ -2454,19 +2334,24 @@ combine_analyse_data<-function(df_global,journal_table_ref,type){
   
   if(type=="ref"){# si type=ref 
     # si il y a des donnees wos dans la table de donnees on doit passe par les abreviation
+    withProgress(message = "Doing reference  journal matching that could take several minutes",value = 0.90,{
+      dom<-find_journal_domaine(journal_data = df_global$`refered journal`,journal_table_ref = journal_table_ref,issn = df_global$`refered issn`,source =df_global$source )
     
-    dom<-find_journal_domaine(journal_data = df_global$`refered journal`,journal_table_ref = journal_table_ref,issn = df_global$`refered issn`,source =df_global$source )
-    
-    df_global$refered_journal_domaine=dom[1,]
-    df_global$refered_global_dicipline=dom[2,]
-    df_global$refered_indice_pct_found=dom[3,]
+      df_global$refered_journal_domaine=dom[1,]
+      df_global$refered_global_dicipline=dom[2,]
+      df_global$refered_indice_pct_found=dom[3,]
+    })
     
   }else{#pour les citation il n'y a pas de patricularite dans le wos
-    res<-find_journal_domaine(journal_data = df_global$`citing journal`,journal_table_ref = journal_table_ref,issn = df_global$`citing issn`,source =df_global$source )
-    df_global$citing_journal_domaine=res[1,]
-    df_global$citing_global_dicipline=res[2,]
-    df_global$citing_indice_pct_found=res[3,]
+    withProgress(message = "Doing citation  journal matching that could take several minutes",value = 0.90,{
+      
+    dom<-find_journal_domaine(journal_data = df_global$`citing journal`,journal_table_ref = journal_table_ref,issn = df_global$`citing issn`,source =df_global$source )
+    df_global$citing_journal_domaine=dom[1,]
+    df_global$citing_global_dicipline=dom[2,]
+    df_global$citing_indice_pct_found=dom[3,]
+    })
   }
+  
   return(df_global)  
 }
 
@@ -3140,9 +3025,7 @@ ads_get_publi<-function(au_data,ti_data,doi_data="",position_name,pas,value_same
     }
     if(length(data_to_use)>0){
       inter=ceiling(length(data_to_use)[1]/pas)
-      print("interrrr")
-      print(inter)
-      
+    
       
       
       
@@ -3903,4 +3786,202 @@ pumed_get_publi<-function(au_data,ti_data,doi_data="",position_name,pas,value_sa
   
   }#resdt_ask=resdt[res_new$check_title_pct>value_same_min_ask &res_new$check_title_pct<value_same_min_accept,]
   
+find_journal_domaine<-function(journal_data,journal_table_ref,issn="",essn="",source=""){
+  #Cette fonction permet de retrouver le domaine avec le nom du journal
+  
+  #input
+  #journal_data : vecteur nom de journaux 
+  #issn vecteur contenant des issn,
+  #essn veteur essn
+  #journal_table_ref table de jounaux 
+  
+  
+  
+  
+  col_journal=source
+  journal_table_ref$Abreviation[journal_table_ref$Abreviation==""]=NA
+  ab=c()
+  cat=c()
+  cat_trouver=c()
+  
+  # time_min=inter*(5+3)/60
+  # print(paste("Le temps d'execution est estime est  environs ",time_min,"minute(s)"))
+  # else {
+  #   message("CPU NOT ENNOF")
+  #   res=NULL
+  # }
+  library(microbenchmark)
+  library(parallel)
+  library(foreach)
+  library(doParallel)
+  library(shiny)
+  
+  # if(Ncpus>1){
+  #   print(Ncpus)
+  #   
+  #     
+  # }
+  # 
+  Ncpus <- (parallel::detectCores() - 1)/2
+  
+  if(Ncpus>1){
+    print("passage in para")
+    cl <- parallel::makeCluster(Ncpus)
+    doParallel::registerDoParallel(cl)
+    
+    
+    dom=foreach(x=1:length(journal_data),.combine="cbind") %dopar% {
+      #marker
+      trouver=FALSE
+      
+      # withProgress(
+      #   message='Please wait',
+      #   detail=paste0("matching journal"),
+      #   value=0, {
+      #     
+          journal_courant=journal_table_ref
+          
+          
+          
+          if(!(is.na(journal_data[[x]]) ||is.null(journal_data[[x]]))  && trouver==FALSE  ) {
+            if(length(issn)!=0){ if(!is.null(issn[x]) &&issn[x]!="" && !is.na(issn[x]) ){# on trouve l'iissn si il est present 
+              ind=which(issn[[x]]==journal_courant$issn) 
+              if(length(ind)>0){
+                ab=c(journal_courant$Abreviation[ind])
+                cat=c(journal_courant$Discipline.Scientifique.OST[ind])
+                trouver=TRUE
+                cat_trouver=c(1)
+              } 
+            }}
+            if(length(essn)!=0 && trouver==FALSE){ 
+              if(!is.null(essn[x]) && essn[x]!=""&& !is.na(essn[x])){# pareil pour l'essn
+                ind=which(essn[x]==journal_courant$essn) 
+                if(length(ind)>0) {
+                  ab=c(journal_courant$Abreviation[ind])
+                  cat=c(journal_courant$Discipline.Scientifique.OST[ind])
+                  cat_trouver=1
+                  trouver=TRUE
+                }
+              }
+            }
+            #on seach le nom exacte du journal dans la liste de reference 
+            if(trouver==FALSE){
+              tp=grep(paste0("^",tolower(trimws(gsub("\\[|\\]", "",gsub("[(#$%*,.:;<=>@^_`{|}~.)]","",gsub("\\s*\\([^\\)]+\\)","",journal_data[[x]]))))),"$"),tolower(trimws(journal_courant[[col_journal[[x]]]])))
+              
+              #}, error = function(e) { return(NA)})
+              
+              if(length(tp)>0){
+                trouver=TRUE
+                ab=journal_courant$Abreviation[tp]
+                cat=journal_courant$Discipline.Scientifique.OST[tp]
+                cat_trouver=1
+              } 
+            }
+            
+          }
+         # incProgress(1/inter)
+          
+          
+          if(trouver==FALSE){
+            ab=NA
+            cat=NA
+            cat_trouver=0
+          }
+          return(list(ab=ab,cat=cat,trouver=cat_trouver))
+        #})
+    }
+    parallel::stopCluster(cl)
+    
+  }else{
+    print("non para")
+    pas=ceiling(dim(journal_table_ref)[1]/2)
+    inter=ceiling(dim(journal_table_ref)[1]/pas)
+    
+    # time_min=inter*(5+3)/60
+    # print(paste("Le temps d'execution est estime est  environs ",time_min,"minute(s)"))
+    
+    
+    dom=sapply(1:length(journal_data),FUN=function(x){
+      #marker
+      trouver=FALSE
+      
+      withProgress(
+        message='Please wait',
+        detail=paste0("matching journal"),
+        value=0, {
+          for(h in 1:inter){# boucle principale qui parcour les donn?es
+            incProgress(1/inter)
+            
+            first<-(h-1)*pas+1# premier individu a prendre en compte(ligne)
+            last<-h*pas       # dernier ""   "      "       "   "
+            if(last>dim(journal_table_ref)[1]) last<-dim(journal_table_ref)[1]
+            journal_courant=journal_table_ref[first:last,]
+            
+            
+            #print(x)
+            if(!(is.na(journal_data[[x]]) ||is.null(journal_data[[x]]))  && trouver==FALSE  ) {
+              if(length(issn)!=0){ if(!is.null(issn[x]) &&issn[x]!="" && !is.na(issn[x]) ){# on trouve l'iissn si il est present 
+                ind=which(issn[[x]]==journal_courant$issn) 
+                if(length(ind)>0){
+                  ab=c(ab,journal_courant$Abreviation[ind])
+                  cat=c(cat,journal_courant$Discipline.Scientifique.OST[ind])
+                  trouver=TRUE
+                  cat_trouver=c(cat_trouver,1)
+                } 
+              }}
+              if(length(essn)!=0 && trouver==FALSE){ 
+                if(!is.null(essn[x]) && essn[x]!=""&& !is.na(essn[x])){# pareil pour l'essn
+                  ind=which(essn[x]==journal_courant$essn) 
+                  if(length(ind)>0) {
+                    ab=c(ab,journal_courant$Abreviation[ind])
+                    cat=c(cat,journal_courant$Discipline.Scientifique.OST[ind])
+                    cat_trouver=c(cat_trouver,1)
+                    trouver=TRUE
+                  }
+                }
+              }
+              #on seach le nom exacte du journal dans la liste de reference 
+              if(trouver==FALSE){
+                tp=grep(paste0("^",tolower(trimws(gsub("\\[|\\]", "",gsub("[(#$%*,.:;<=>@^_`{|}~.)]","",gsub("\\s*\\([^\\)]+\\)","",journal_data[[x]]))))),"$"),tolower(trimws(journal_courant[[col_journal[[x]]]])))
+                
+                #}, error = function(e) { return(NA)})
+                
+                if(length(tp)>0){
+                  trouver=TRUE
+                  ab=c(ab,journal_courant$Abreviation[tp])
+                  cat=c(cat,journal_courant$Discipline.Scientifique.OST[tp])
+                  cat_trouver=c(cat_trouver,1)
+                } 
+              }
+              #   # on cherche une correspondance de reference qui commence par le debut
+              #   tp=grep(paste0("^",tolower(trimws(gsub("\\[|\\]", "",gsub("[(#$%*,.:;<=>@^_`{|}~.)]","",gsub("\\s*\\([^\\)]+\\)","",journal_data[x])))))),tolower(trimws(journal_courant[[source]])))
+              #   if(length(tp)>0){
+              #     return((journal_courant$Abreviation[tp]))
+              #   } else {
+              #     #on cherche une reference corespondans partout dans le nom
+              #     tp=grep(paste0(tolower(trimws(gsub("\\[|\\]", "",gsub("[(#$%*,.:;<=>@^_`{|}~.)]","",gsub("\\s*\\([^\\)]+\\)","",journal_data[x])))))),tolower(trimws(journal_courant[[source]])))
+              #     if(length(tp)==1){
+              #       return((journal_courant$Abreviation[tp]))
+              #     }
+              #     
+              #   }
+              # }
+              
+            }
+            
+          }
+          if(trouver==FALSE){
+            ab=c(ab,NA)
+            cat=c(cat,NA)
+            cat_trouver=c(cat_trouver,0)
+          }
+        })
+      return(list(ab=ab,cat=cat,trouver=cat_trouver))
+    })
+    
+  }
+  
+  return(dom) 
+  
+}
 

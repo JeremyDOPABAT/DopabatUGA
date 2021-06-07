@@ -75,7 +75,7 @@ ui <-dashboardPage(skin = "red",
                                             checkboxInput("header", "Header", TRUE),
                                             
                                             # Input: Select separator
-                                            radioButtons("sep", "Separator",
+                                            radioButtons("sep_csv", "Separator",
                                                          choices = c(Semicolon = ";",
                                                                      Comma = ",",
                                                                      Tab = "\t"),
@@ -105,8 +105,8 @@ ui <-dashboardPage(skin = "red",
                                                                                                                                                                              selected = "1")),
                                             tags$div(title="The character which sep each author in the column ",radioButtons("sep_author_csv", "Separator of author names",
                                                                                                                              choices = c("," = ",",
-                                                                                                                                         #----------------------------------------------                                                                                              ";" = ";",
-                                                                                                                                         "saut de ligne"="\n"),
+                                                                                                                                         ";"=";",
+                                                                                                                                 "saut de ligne"="\n"),
                                                                                                                              selected = ",")),
                                             
                                             
@@ -400,7 +400,7 @@ ui <-dashboardPage(skin = "red",
                                       fluidPage(
                                         selectInput("select_article", "Select the number of the article for the graph",NULL),
                                         tabBox(width = 12,height = 600, title = "result interdisciplinarity",
-                                               tabPanel("ref",
+                                               tabPanel("references",
                                                         column(width = 6,
                                                                textOutput("stat_journ_ref_article"),
                                                                plotlyOutput("plot_article_ref"),#article ref 
@@ -415,7 +415,7 @@ ui <-dashboardPage(skin = "red",
                                                         textOutput("text_ref"),
                                                         dataTableOutput("table_data_ref_interdi")
                                                ),
-                                               tabPanel("cit",
+                                               tabPanel("citations",
                                                         column(width = 6,
                                                                textOutput("stat_journ_cit_article"),
                                                                plotlyOutput("plot_article_cit"),
@@ -616,7 +616,8 @@ server <- function(input, output, session) {
   
   #ce qui suit est le texte present dans la partie about 
   output$text <- renderText({
-    paste(  h3("DOPABAT, what is it ?"),"\n","DOPABAT (Développement d'outils d'analyse bibliométrique et d'audience des thèses) is a project funded by Collex-Persée.
+    ncp<-parallel::detectCores() - 1
+    paste(  ncp ,h3("DOPABAT, what is it ?"),"\n","DOPABAT (Développement d'outils d'analyse bibliométrique et d'audience des thèses) is a project funded by Collex-Persée.
            A national infrastructure of technique and sciences which supports French researchers. The objectives are, on the one hand, to know the importance of theses in the scientific production and, on the other hand, to know the importance of the cooperation between laboratories on the themes of Physics and Astronomy. 
            At first this project was a researcheress request that consisted in the analysis of PHDs coming from two universities. DOPABAT aims to analyse all the bibliometric data, keywords, domains of study, citations, references",
             h3("DOPABAT,who is it?"),"
@@ -695,7 +696,7 @@ We ask all the users to   cite the different souces they use to make the graphic
     # on refait l'importation chaque fois qu'un parametre est changer 
     observeEvent({c(
       input$header,
-      input$sep,
+      input$sep_csv,
       input$quote,
       input$encoding)
     },{
@@ -703,7 +704,7 @@ We ask all the users to   cite the different souces they use to make the graphic
       test_error=tryCatch({
         df <- as.data.frame(data.table::fread(input$file1$datapath,
                                               header = input$header,
-                                              sep = input$sep,
+                                              sep = input$sep_csv,
                                               quote = input$quote,encoding = input$encoding),stringsAsFactors = FALSE)
         
       },
@@ -1622,7 +1623,7 @@ We ask all the users to   cite the different souces they use to make the graphic
           ))
         }else {
           reactive_values$show_ads_res_window=TRUE
-          reactive_values$res_ads=extraction_data_api_nasa_ads(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",token=input$token_ads,pas=8,value_same_min_accept=reactive_values$value_same_min_accept,value_same_min_ask = reactive_values$value_same_min_ask,type =input$type,source_name = "source",sep_vector_in_data ="sep",position_vector_in_data = "position_name")
+          reactive_values$res_ads=extraction_data_api_nasa_ads(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",doi_name = "doi",token=input$token_ads,pas=8,value_same_min_accept=reactive_values$value_same_min_accept,value_same_min_ask = reactive_values$value_same_min_ask,type =input$type,source_name = "source",sep_vector_in_data ="sep",position_vector_in_data = "position_name")
         }
       }
       if(input$arxiv==TRUE){
@@ -1636,7 +1637,7 @@ We ask all the users to   cite the different souces they use to make the graphic
       }
       if(reactive_values$pubmed==TRUE){
         reactive_values$show_pumed_res_window=TRUE
-        reactive_values$res_pumed=extract_data_api_pumed(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",pas=8,value_same_min_accept=reactive_values$value_same_min_accept, value_same_min_ask=reactive_values$value_same_min_ask,type = input$type,source_name = "source",sep_vector_in_data ="sep",position_vector_in_data = "position_name")
+        reactive_values$res_pumed=extract_data_api_pumed(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",doi_name="doi",pas=8,value_same_min_accept=reactive_values$value_same_min_accept, value_same_min_ask=reactive_values$value_same_min_ask,type = input$type,source_name = "source",sep_vector_in_data ="sep",position_vector_in_data = "position_name")
         
       }
       if(input$lens==TRUE){
@@ -1712,7 +1713,7 @@ We ask all the users to   cite the different souces they use to make the graphic
   })
   
   observeEvent(input$ads_cit_accept,{
-    print("cit")
+    
     output$table_data_ref1 <- renderDataTable({
       # validate(
       #   need(reactive_values$data_wos, "No bibtext data"),
@@ -1810,7 +1811,7 @@ We ask all the users to   cite the different souces they use to make the graphic
         if(length(ind_ref_2)==0)if(!is.null(dim(reactive_values$res_ads$dataframe_ref_ask[ind_ref_1,])[1]))  if(dim(reactive_values$res_ads$dataframe_ref_ask[ind_ref_1,])[1]>0)reactive_values$res_ads$dataframe_ref_accept=rbind(reactive_values$res_ads$dataframe_ref_accept,reactive_values$res_ads$dataframe_ref_ask[ind_ref_1,])
       }
       reactive_values$transfer_done$ads=c(reactive_values$transfer_done$ads,reactive_values$table_to_show_ref$bibcode[[selectedRow]])  
-      print("sortie ads select row")    
+          
     }
     
     if(reactive_values$active_source=="ARXIV"){
@@ -2156,11 +2157,13 @@ We ask all the users to   cite the different souces they use to make the graphic
     
     
     
-    print("yesssssssssssss")
+    
     reactive_values$journal_table_ref=read.csv("data/table_categ_wos.csv", sep = ";",header = TRUE,encoding = "Latin-1",stringsAsFactors = FALSE)
+    reactive_values$journal_table_ref=reactive_values$journal_table_ref[order(reactive_values$journal_table_ref[["JCR.Abbreviated.Title"]],reactive_values$journal_table_ref[["Full.Journal.Title"]],na.last = TRUE,decreasing = TRUE),]#on tri par le doi, utile pour l'utilisation des api 
+    
     reactive_values$table_dist<-read.table(file="data/category_similarity_matrix.txt",header = TRUE,sep = " ",dec ="." )
     reactive_values$table_categ_gd=read.csv(file="data/categ_wos.csv",header = TRUE,stringsAsFactors = FALSE,encoding = "Latin-1",sep = ";")
-    print(input$type)
+    
     if(length(reactive_values$privious_datapath_csv)==0 && length(reactive_values$privious_datapath_wos)==0){
       showModal(modalDialog(
         title = "no file in analyse",
@@ -2175,8 +2178,7 @@ We ask all the users to   cite the different souces they use to make the graphic
       
       res_temp<-global_merge_and_cal_interdis(ads=reactive_values$res_ads,arxiv=reactive_values$res_arxiv,pumed=reactive_values$res_pumed,wos=reactive_values$ref_wos,reactive_values$res_lens,journal_table_ref = reactive_values$journal_table_ref,table_categ_gd = reactive_values$table_categ_gd,type = input$type,table_dist =reactive_values$table_dist,col_journal=c(input$col_journal_ads,input$col_journal_arxiv,input$col_journal_pumed,input$col_journal_wos,input$col_journal_lens))  
       error=tryCatch({
-        print("impro")
-        
+        print("error")  
       },
       error=function(cond){ 
         print("error in global")  #reactive_values$ok_analyse=FALSE
@@ -2206,7 +2208,6 @@ We ask all the users to   cite the different souces they use to make the graphic
           
           
           if(!is.null(reactive_values$matrice_res_ref$res)){
-            print("nnnnnnnnnnnnnnnnnooooooooooooon nul")
             reactive_values$secteur_is_finish<-FALSE
             updateSelectInput(session, inputId = "select_article", choices = unique(c(reactive_values$matrice_res_ref$res$prop[["IDENTIFIANT"]],reactive_values$matrice_res_cit$res$prop[["IDENTIFIANT"]])))
             #     View(reactive_values$matrice_res_ref$res$prop_grande_discipline)   
