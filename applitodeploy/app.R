@@ -62,42 +62,43 @@ ui <-dashboardPage(skin = "red",
                                         box(width = 4, title = "Uploading files", solidHeader = TRUE,status = "danger", #danger=rouge 
                                             
                                             # Input: Select a file
-                                            fileInput("file1", "Choose CSV File",
+                                            tags$div(title="select à file, after validation re select a file and validate it will add the data to the curent data not replace them", fileInput("file1", "Choose CSV File",
                                                       multiple = TRUE,
                                                       accept = c("text/csv",
                                                                  "text/comma-separated-values,text/plain",
-                                                                 ".csv")),
+                                                                 ".csv"))),
                                             #parame du fichier ---------------------
                                             # Horizontal line
                                             tags$hr(),
                                             
                                             # Input: Checkbox if file has header
-                                            checkboxInput("header", "Header", TRUE),
+                                            tags$div(title="the first line of file is the title colum?",checkboxInput("header", "Header", TRUE)),
                                             
                                             # Input: Select separator
-                                            radioButtons("sep_csv", "Separator",
+                                            tags$div(title="choose the type of separator of the file ",radioButtons("sep_csv", "Separator",
                                                          choices = c(Semicolon = ";",
                                                                      Comma = ",",
                                                                      Tab = "\t"),
-                                                         selected = ";"),
-                                            
-                                            # Input: Select quotes
-                                            radioButtons("quote", "Quote",
+                                                         selected = ";")),
+                                                    # Input: Select quotes
+                                            tags$div(title="is in the file quote ?",radioButtons("quote", "Quote",
                                                          choices = c("Double Quote" = '"',
                                                                      "Single Quote" = "'"),
-                                                         selected = '"'),
+                                                         selected = '"')),
                                             
                                             #selected encoding 
-                                            radioButtons("encoding", "Encoding",
+                                            tags$div(title="enoding of the file",radioButtons("encoding", "Encoding",
                                                          choices = c("UTF-8" = "UTF-8",
                                                                      "Latin-1" = "Latin-1"
                                                          ),
-                                                         selected = "Latin-1"),
+                                                         selected = "Latin-1")),
+                                            #display viewer 
                                             tags$hr(),
-                                            radioButtons("disp", "Display",
+                                            tags$div(title="display of the viewed table on side",radioButtons("disp", "Display",
                                                          choices = c("Few lines" = "head",
                                                                      All = "all"),
-                                                         selected = "head"),
+                                                         selected = "head")),
+                                            #order of name author 
                                             tags$hr(),
                                             tags$div(title="the order of the author need to be told, the firstname don't need to be complete abreviation works",radioButtons("position_name_CSV", "disposition of name and firstname for author",
                                                                                                                                                                              choices = c("Lastname Firstname" = "2",
@@ -108,9 +109,10 @@ ui <-dashboardPage(skin = "red",
                                                                                                                                          ";"=";",
                                                                                                                                  "saut de ligne"="\n"),
                                                                                                                              selected = ",")),
+                                            textInput("other_sep_author_csv", "other sparateur of csv"), 
                                             
-                                            
-                                            conditionalPanel('output.show_header',actionButton("valid_table", "validate"))# boutton de validation du fichier 
+                                            # permet d'afficher la selection de header après l'import 
+                                            conditionalPanel('output.show_header',tags$div(title="Validation of the table start the analysis",actionButton("valid_table", "validate")))# boutton de validation du fichier 
                                             
                                             
                                         ),
@@ -196,7 +198,8 @@ ui <-dashboardPage(skin = "red",
                                             tags$div(title="Choose bibtex file, bibtext only",fileInput("file2", "Choose bibtext File",
                                                                                                         multiple = TRUE,
                                                                                                         accept = c(".bib"))),
-                                            checkboxInput("is_wos", "this file is comming from WOS(wos importation methode) ",value = FALSE),
+                                            tags$div(title="If the file is coming from wos database OR if the regular importation dont work ,check this case",
+                                                     checkboxInput("is_wos", "this file is comming from WOS(wos importation methode) ",value = FALSE)),
                                             
                                             htmlOutput("text_wos"),
                                             tags$hr(),
@@ -616,7 +619,6 @@ server <- function(input, output, session) {
   
   #ce qui suit est le texte present dans la partie about 
   output$text <- renderText({
-    ncp<-parallel::detectCores() - 1
     paste(  ncp ,h3("DOPABAT, what is it ?"),"\n","DOPABAT (Développement d'outils d'analyse bibliométrique et d'audience des thèses) is a project funded by Collex-Persée.
            A national infrastructure of technique and sciences which supports French researchers. The objectives are, on the one hand, to know the importance of theses in the scientific production and, on the other hand, to know the importance of the cooperation between laboratories on the themes of Physics and Astronomy. 
            At first this project was a researcheress request that consisted in the analysis of PHDs coming from two universities. DOPABAT aims to analyse all the bibliometric data, keywords, domains of study, citations, references",
@@ -731,6 +733,7 @@ We ask all the users to   cite the different souces they use to make the graphic
             "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
             "}")
         ))))
+        
         reactive_values$show_header <- TRUE# affichage du tableau des entete 
         # on met a jour les input en fct de se qui a ete charger pour pouvoir les selectionner les entete 
         updateSelectInput(session, inputId = "title_selection", choices = names(df))
@@ -739,6 +742,8 @@ We ask all the users to   cite the different souces they use to make the graphic
         updateSelectInput(session, inputId = "domain_selection", choices = c("none",names(df)))
         updateSelectInput(session, inputId = "date_selection", choices = names(df))
         updateSelectInput(session, inputId = "doi_selection", choices = c("none",names(df)))
+        
+        
         conditionalPanel('output.show_arxiv_abilities',updateSelectInput(session, inputId = "id_arxiv_selection", choices = c("none",names(df))))
         # affichage de la table 
         output$contents <- renderDataTable({
@@ -763,6 +768,12 @@ We ask all the users to   cite the different souces they use to make the graphic
     
   })
   
+  observeEvent(input$other_sep_author_csv, {
+    if(!is.null(input$other_sep_author_csv) && input$other_sep_author_csv != "")
+      updateRadioButtons(session, "sep_author_csv", choices = c(c("," = ",",
+                                                                  ";"=";",
+                                                                  "saut de ligne"="\n"), input$other_sep_author_csv), 
+                         selected = input$other_sep_author_csv)})
   observeEvent(
     input$valid_table, {#une fois que la table est valide l'analyse se met en marche 
       if(input$file1$name %in% reactive_values$privious_datapath_csv){ # detection de doublon de fichier 
@@ -963,7 +974,6 @@ We ask all the users to   cite the different souces they use to make the graphic
         ))
         
       }else {
-        print("in domain")
         
         output$plots <- renderUI({
           plot_output_list <- lapply(1:length(reactive_values$graph), function(i) {
@@ -1094,7 +1104,6 @@ We ask all the users to   cite the different souces they use to make the graphic
       #???print(is.na(as.numeric(input$intervalyear)))
       #suppressWarnings(if(!is.na(as.numeric(input$intervalyear))) input$intervalyear<-as.numeric(input$intervalyear))
       if( suppressWarnings(!is.na(as.numeric(input$intervalyear))) ){
-        print("je passe dans le if wordcloud")
         
         for (i in 1:iter) {
           local({
@@ -1701,7 +1710,7 @@ We ask all the users to   cite the different souces they use to make the graphic
       # )
       
       table_data=datatable(df_flatten(reactive_values$res_ads$dataframe_ref_accept), options = list(scrollX = TRUE, columnDefs = list(list(
-        targets = "_all" ,render = JS(
+        targets = "[1,2,5,6,7]" ,render = JS(
           "function(data, type, row, meta) {",
           "return type === 'display' && data.length > 70 ?",
           "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
@@ -1721,7 +1730,7 @@ We ask all the users to   cite the different souces they use to make the graphic
       # )
       
       table_data=datatable(df_flatten(reactive_values$res_ads$dataframe_citation_accept), options = list(scrollX = TRUE, columnDefs = list(list(
-        targets = "_all" ,render = JS(
+        targets = "[1,2,5,6,7]" ,render = JS(
           "function(data, type, row, meta) {",
           "return type === 'display' && data.length > 70 ?",
           "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
@@ -1757,7 +1766,7 @@ We ask all the users to   cite the different souces they use to make the graphic
       reactive_values$transfer_done$ads)}
     ,{
       if(input$ads_ask!=0){
-        print("je passe sur ads ask")
+        
         reactive_values$table_to_show_ref=reactive_values$res_ads$dataframe_publi_found[(reactive_values$res_ads$dataframe_publi_found$check_title_pct<reactive_values$value_same_min_accept) &(reactive_values$res_ads$dataframe_publi_found$check_title_pct>=reactive_values$value_same_min_ask),]
         if(dim(reactive_values$table_to_show_ref)[1]>0) rownames(reactive_values$table_to_show_ref)<-1:nrow(reactive_values$table_to_show_ref)
         
@@ -1793,11 +1802,7 @@ We ask all the users to   cite the different souces they use to make the graphic
   observeEvent(input$select_button, {
     
     selectedRow <- as.numeric(strsplit(input$select_button, "_")[[1]][2])
-    #df$data <- df$data[rownames(df$data) != selectedRow, ]
-    #¶reactive_values$res_ads$dataframe_publi_found[(res_data_nasa_ads$dataframe_publi_found$check_title_pct<value_same_min_accept) &(res_data_nasa_ads$dataframe_publi_found$check_title_pct>=value_same_min_ask),]<- df$data
-    print("voici le select row ")
-    print(selectedRow)
-    print(dim(reactive_values$res_ads$dataframe_citation_ask))
+    
     if(reactive_values$active_source=="ADS"){
       if(input$type=="cit"||input$type=="all"){
         ind=which(reactive_values$table_to_show_ref$bibcode[[selectedRow]]==unlist(reactive_values$res_ads$dataframe_citation_ask$`cited identifier`))
@@ -1926,7 +1931,6 @@ We ask all the users to   cite the different souces they use to make the graphic
       reactive_values$transfer_done$arxiv
     )},{
       if(input$arxiv_ask!=0){
-        print("je passe sur arxiv ask")
         reactive_values$table_to_show_ref=reactive_values$res_arxiv$res_publi_foundt[(reactive_values$res_arxiv$res_publi_foundt$check_pct<reactive_values$value_same_min_accept),]
         
         
@@ -1967,7 +1971,7 @@ We ask all the users to   cite the different souces they use to make the graphic
       # )
       #test=df_flatten(res_arxiv$res_citation_accept)
       table_data=datatable(df_flatten(reactive_values$res_pumed$dataframe_ref_accept), options = list(scrollX = TRUE, columnDefs = list(list(
-        targets = "_all" ,render = JS(
+        targets = "[1,2,4,5,6]" ,render = JS(
           "function(data, type, row, meta) {",
           "return type === 'display' && data.length > 70 ?",
           "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
@@ -1982,7 +1986,7 @@ We ask all the users to   cite the different souces they use to make the graphic
     output$table_data_ref3 <- renderDataTable({
       
       table_data=datatable(df_flatten(reactive_values$res_pumed$dataframe_citation_accept), options = list(scrollX = TRUE, columnDefs = list(list(
-        targets = "_all" ,render = JS(
+        targets = "[1,2,4,5,6]" ,render = JS(
           "function(data, type, row, meta) {",
           "return type === 'display' && data.length > 70 ?",
           "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
@@ -2018,7 +2022,6 @@ We ask all the users to   cite the different souces they use to make the graphic
       reactive_values$transfer_done$pumed)
   },{
     if(input$pubmed_ask!=0){ 
-      print("je passe sur pumed ask")
       reactive_values$table_to_show_ref=reactive_values$res_pumed$dataframe_publi_found[(reactive_values$res_pumed$dataframe_publi_found$check_title_pct<reactive_values$value_same_min_accept),]
       
       if(dim(reactive_values$table_to_show_ref)[1]>0) rownames(reactive_values$table_to_show_ref)<-1:nrow(reactive_values$table_to_show_ref)
@@ -2059,7 +2062,7 @@ We ask all the users to   cite the different souces they use to make the graphic
       # )
       #test=df_flatten(res_arxiv$res_citation_accept)
       table_data=datatable(df_flatten(reactive_values$res_lens$dataframe_ref_accept), options = list(scrollX = TRUE, columnDefs = list(list(
-        targets = "_all" ,render = JS(
+        targets = "[1,2,4,5,6]" ,render = JS(
           "function(data, type, row, meta) {",
           "return type === 'display' && data.length > 70 ?",
           "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
@@ -2074,7 +2077,7 @@ We ask all the users to   cite the different souces they use to make the graphic
     output$table_data_ref5 <- renderDataTable({
       
       table_data=datatable(df_flatten(reactive_values$res_lens$dataframe_citation_accept), options = list(scrollX = TRUE, columnDefs = list(list(
-        targets = "[0,4]" ,render = JS(
+        targets = "[1,2,4,5,6]" ,render = JS(
           "function(data, type, row, meta) {",
           "return type === 'display' && data.length > 70 ?",
           "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
@@ -2110,7 +2113,7 @@ We ask all the users to   cite the different souces they use to make the graphic
       reactive_values$transfer_done$lens)
   },{
     if(input$lens_ask!=0){ 
-      print("je passe sur lens ask")
+      
       reactive_values$table_to_show_ref=df_flatten(reactive_values$res_lens$dataframe_publi_found[(reactive_values$res_lens$dataframe_publi_found$check_title_pct<reactive_values$value_same_min_accept),])
       
       if(dim(reactive_values$table_to_show_ref)[1]>0) rownames(reactive_values$table_to_show_ref)<-1:nrow(reactive_values$table_to_show_ref)
@@ -2176,9 +2179,9 @@ We ask all the users to   cite the different souces they use to make the graphic
     }else{
       #browser()
       
-      res_temp<-global_merge_and_cal_interdis(ads=reactive_values$res_ads,arxiv=reactive_values$res_arxiv,pumed=reactive_values$res_pumed,wos=reactive_values$ref_wos,reactive_values$res_lens,journal_table_ref = reactive_values$journal_table_ref,table_categ_gd = reactive_values$table_categ_gd,type = input$type,table_dist =reactive_values$table_dist,col_journal=c(input$col_journal_ads,input$col_journal_arxiv,input$col_journal_pumed,input$col_journal_wos,input$col_journal_lens))  
       error=tryCatch({
-        print("error")  
+        res_temp<-global_merge_and_cal_interdis(ads=reactive_values$res_ads,arxiv=reactive_values$res_arxiv,pumed=reactive_values$res_pumed,wos=reactive_values$ref_wos,reactive_values$res_lens,journal_table_ref = reactive_values$journal_table_ref,table_categ_gd = reactive_values$table_categ_gd,type = input$type,table_dist =reactive_values$table_dist,col_journal=c(input$col_journal_ads,input$col_journal_arxiv,input$col_journal_pumed,input$col_journal_wos,input$col_journal_lens))  
+        
       },
       error=function(cond){ 
         print("error in global")  #reactive_values$ok_analyse=FALSE
@@ -2219,8 +2222,8 @@ We ask all the users to   cite the different souces they use to make the graphic
                 # print(paste0("_",input$select_article,"_")%in%unlist(reactive_values$matrice_res_ref$res$prop[["IDENTIFIANT"]]))
                 
                 ind=which(reactive_values$matrice_res_ref$res$prop_grande_discipline[line,]!=0)# secteur selectionner 
-                print("after line")
                 title_graph=paste0("Main subjects  \n of article ",reactive_values$matrice_res_ref$res$prop[["TITLE"]][[line]])
+                print(title_graph)
                 df <- data.frame(
                   group = Unaccent(names(reactive_values$matrice_res_ref$res$prop_grande_discipline[line,])[ind]),
                   value = unlist(reactive_values$matrice_res_ref$res$prop_grande_discipline[line,ind])/sum(reactive_values$matrice_res_ref$res$prop_grande_discipline[line,ind])
@@ -2235,7 +2238,6 @@ We ask all the users to   cite the different souces they use to make the graphic
               })
               if(length(error)==1){ 
                 if(is.na(error)){
-                  print("is the if ")
                   title_graph="no data"
                   df <- data.frame(
                     group = "no data",
@@ -2245,7 +2247,7 @@ We ask all the users to   cite the different souces they use to make the graphic
               }
               
               plot_article_ref <- plot_ly(df, labels = ~group, values = ~value,key=~group, type = 'pie',source = "plot_article_ref")
-              plot_article_ref <- plot_article_ref %>% layout(title = title_graph,
+              plot_article_ref <- plot_article_ref %>% layout(title = title_graph,font=list(size=8),
                                                               legend = list(font = list(size = 9)),
                                                               xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
                                                               yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
@@ -2284,6 +2286,7 @@ We ask all the users to   cite the different souces they use to make the graphic
               
               plot_total_ref <- plot_ly(df, labels = ~group, values = ~value,key=~group, type = 'pie',source = "plot_total_ref")
               plot_total_ref <- plot_total_ref %>% layout(title = paste0("Main subjects  \n of the whole corpus"),
+                                                          font=list(size=8),
                                                           legend = list(font = list(size = 9)),
                                                           xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
                                                           yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
@@ -2301,10 +2304,6 @@ We ask all the users to   cite the different souces they use to make the graphic
             output$stat_journ_ref_total<-renderText({paste("pourcentage accuracy of graphique total",round(reactive_values$pct_ref[2],digits = 2))})  
             states_2 <- reactiveValues(source =reactive_values$states$source, value = c(-1,-1), changed = c(FALSE,FALSE),key=NULL)
             observeEvent({c(event_data("plotly_click", source =states_2$source[[2]],priority = "event"),event_data("plotly_click", source =states_2$source[[1]],priority = "event") ) },{
-              #kk<<-kk+1
-              print("voiciiiiii le point cliquer ")
-              print(event_data("plotly_click", source =states_2$source[[2]],priority = "event"))
-              # if(kk==2) browser() 
               if(reactive_values$secteur_is_finish==TRUE){
                 for(src in states_2$source){
                   clicked<-event_data("plotly_click", source = src)
@@ -2320,7 +2319,6 @@ We ask all the users to   cite the different souces they use to make the graphic
                   }
                 }
                 if(sum(states_2$changed)>0){
-                  print("passe")
                   # pour eviter la réactualisation 2 fois de l'event quand une des variable change on passe a une autre variable non vu 
                   reactive_values$states$changed=states_2$changed
                   reactive_values$states$source=states_2$source
@@ -2328,8 +2326,6 @@ We ask all the users to   cite the different souces they use to make the graphic
                   
                   output$table_data_ref_interdi <- renderDataTable({
                     ind_global=NULL
-                    print(paste(reactive_values$states$source[reactive_values$states$changed], 'has changed'))
-                    print(reactive_values$states$key)
                     col=which(reactive_values$states$key[[1]]==Unaccent(names(reactive_values$matrice_res_ref$res$prop_grande_discipline)))
                     
                     if(reactive_values$states$source[reactive_values$states$changed]=="plot_total_ref"){
@@ -2405,11 +2401,7 @@ We ask all the users to   cite the different souces they use to make the graphic
             reactive_values$matrice_res_cit$data=res_temp$data_cit
           }
           
-          print("ahhhhhhhhhhhhhhhhhhhhhhhh")
-          print(dim(reactive_values$matrice_res_cit$data))
-          print(dim(reactive_values$matrice_res_ref$data))
           if(!is.null(reactive_values$matrice_res_cit$res)){
-            print("nooooooooooooooon nul cit")
             
             reactive_values$secteur_is_finish<-FALSE
             updateSelectInput(session, inputId = "select_article", choices = unique(c(reactive_values$matrice_res_ref$res$prop[["IDENTIFIANT"]],reactive_values$matrice_res_cit$res$prop[["IDENTIFIANT"]])))
@@ -2432,7 +2424,6 @@ We ask all the users to   cite the different souces they use to make the graphic
               })
               if(length(error)==1){ 
                 if(is.na(error)){
-                  print("is the if ")
                   title_graph="no data"
                   df <- data.frame(
                     group = "no data",
@@ -2443,8 +2434,9 @@ We ask all the users to   cite the different souces they use to make the graphic
               
               
               
-              plot_article_cit <- plot_ly(df, labels = ~group, values = ~value, type = 'pie',key=~group,source ="plot_article_cit" )
+              plot_article_cit <- plot_ly(df, labels = ~group, values = ~value, type = 'pie',key=~group,source ="plot_article_cit")
               plot_article_cit <- plot_article_cit %>% layout(title = title_graph,
+                                                              font=list(size=8),
                                                               legend = list(font = list(size = 9)),
                                                               xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
                                                               yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
@@ -2477,6 +2469,7 @@ We ask all the users to   cite the different souces they use to make the graphic
               
               plot_total_cit <- plot_ly(df, labels = ~group,key=~group, values = ~value, type = 'pie',source = "plot_total_cit")
               plot_total_cit <- plot_total_cit %>% layout(title = paste0("Main subjects  \n of the whole corpus"),
+                                                          font=list(size=8),
                                                           legend = list(font = list(size = 9)),
                                                           xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
                                                           yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
@@ -2494,7 +2487,6 @@ We ask all the users to   cite the different souces they use to make the graphic
             states_cit_2 <- reactiveValues(source =reactive_values$states_cit$source, value = c(-1,-1), changed = c(FALSE,FALSE),key=NULL)
             observeEvent({c(event_data("plotly_click", source =states_cit_2$source[[2]],priority = "event"),event_data("plotly_click", source =states_cit_2$source[[1]],priority = "event") ) },{
               #kk<<-kk+1
-              print(event_data("plotly_click", source =states_cit_2$source[[2]],priority = "event"))
               # if(kk==2) browser() 
               if(reactive_values$secteur_is_finish==TRUE){
                 for(src in states_cit_2$source){
@@ -2511,7 +2503,6 @@ We ask all the users to   cite the different souces they use to make the graphic
                   }
                 }
                 if(sum(states_cit_2$changed)>0){
-                  print("passe")
                   # pour eviter la réactualisation 2 fois de l'event quand une des variable change on passe a une autre variable non vu 
                   reactive_values$states_cit$changed=states_cit_2$changed
                   reactive_values$states_cit$source=states_cit_2$source
@@ -2519,32 +2510,16 @@ We ask all the users to   cite the different souces they use to make the graphic
                   
                   output$table_data_cit_interdi <- renderDataTable({
                     ind_global=NULL
-                    print(paste(reactive_values$states_cit$source[reactive_values$states_cit$changed], 'has changed'))
-                    print(reactive_values$states_cit$key)
                     col=which(reactive_values$states_cit$key[[1]]==Unaccent(names(reactive_values$matrice_res_cit$res$prop_grande_discipline)))
                     
                     if(reactive_values$states_cit$source[reactive_values$states_cit$changed]=="plot_total_cit"){
                       ind=dim(reactive_values$matrice_res_cit$res$prop_grande_discipline)[1]
-                      
-                      # id=reactive_values$matrice_res_ref$res$contribution[ind,col]
-                      #browser()
                       
                     }else{
                       
                       ind=which(reactive_values$matrice_res_cit$res$prop[["IDENTIFIANT"]]==input$select_article)
                       
                     }
-                    print("ind")
-                    print(ind)
-                    
-                    print("col")
-                    print(col)
-                    id=reactive_values$matrice_res_cit$res$contribution[ind,col]
-                    print("id")
-                    print(id)
-                    ind_global=as.numeric(unique(strsplit(gsub(" ","",(id)),split = ",")[[1]]))
-                    print("ind_global")
-                    print(ind_global)
                     
                     
                     #
