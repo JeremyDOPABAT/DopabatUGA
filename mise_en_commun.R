@@ -6,16 +6,19 @@ ths<-read.csv(path_data, sep = ";",header = TRUE,stringsAsFactors = FALSE)
 
 
 
-test=data.table::fread(path_data,
-                  header = TRUE,
-                  sep = ";",
-                  quote = '"')
-
-dim(test)
 
 dim(ths)
 if(sum(duplicated(ths[c(au_name,ti_name)]))>0) ths<-ths[-(which(duplicated(ths[c(au_name,ti_name)])==TRUE)),]
 dim(ths)
+
+
+
+test=data.table::fread(path_data,
+                       header = TRUE,
+                       sep = ";",
+                       quote = '"')
+
+dim(test)
 
 token="SYZW1C1o9mDDfOWXUSh7Jrq0MMqvleL2is0pnTNQ"
 

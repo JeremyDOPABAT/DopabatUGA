@@ -116,15 +116,11 @@ warning=function(cond){
 
 View(test_F)
 
-path=choose.files(caption = "chosse your data file")
 
-data_wos<-convert2df(path,dbsource = "wos",format = "bibtex")
 View(data_wos)
 
 
 test_F=bib2df::bib2df(path, separate_names = FALSE)
-
-test=conforme_bibtext(test_F,data_base = "BIB")
 View(test)
 
 test3=df_flatten(test)
@@ -151,8 +147,12 @@ View(test3)
 
   # ind=which(is.null(res_f[[i]]))
   # if(length(ind)>0 ) res_f[ind,i]=NA
+#----------------------------------------------paralel
+path=choose.files(caption = "chosse your data file")
+data_wos <-convert2df(path,dbsource = "wos",format = "bibtex")
 
-  
+test=conforme_bibtext(test_F,data_base = "BIB")
+
 voici_un_test<-extract_ref_wos(data_wos)
 
 test=as.data.frame(voici_un_test,stringsAsFactors = FALSE)
