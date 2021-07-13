@@ -7,6 +7,16 @@ ths<-read.csv(path_data, sep = ";",header = TRUE,stringsAsFactors = FALSE)
 
 
 
+
+
+names(ths)
+
+test=ths[,-which(names(ths)=="en_title_s"|names(ths)=="authFullName_s")]
+
+dim(test)
+
+
+
 dim(ths)
 if(sum(duplicated(ths[c(au_name,ti_name)]))>0) ths<-ths[-(which(duplicated(ths[c(au_name,ti_name)])==TRUE)),]
 dim(ths)

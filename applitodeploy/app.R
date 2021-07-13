@@ -1,6 +1,6 @@
 # This is a Shiny web application. You can run the application by clicking
 # the 'Run App' button above.
-#
+# token git hub : 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
 #Bonjour a toi succeceur, ici tu es au coeur de l'application  DOPABAT ET BIEN QUE CHAQUE FONCTION SOIT DOCUMENTER, JE VAIS TE FAIRE UN PETIT TOPO
 # l'appli permet d'analyse un corpus de métadonne de publication envoyer par bibtext ou csv. une partie du code est cacher de l'appli, il sagit de la pmartie qui traites des fichier pdf en teste brut 
 # car il n'était pas possible de le mettre sur l'application. 
@@ -55,7 +55,7 @@ ui <-dashboardPage(skin = "red",
                    dashboardBody(
                      tabItems(
                        tabItem(tabName = "home",
-                         titlePanel("DOPABAT"),
+                         titlePanel("Welcome to the DOPABAT app!"),
                          htmlOutput("text_home"),
                          
                          
@@ -479,7 +479,7 @@ ui <-dashboardPage(skin = "red",
                               tabItem(tabName = "about",
                                       #onglet about----
                                       
-                                      titlePanel("DOPABAT Project"),
+                                      titlePanel("DOPABAT Project, what about us ?"),
                                       fluidPage(
                                         # Application title
                                         
@@ -547,7 +547,7 @@ server <- function(input, output, session) {
     show_cit=FALSE,# "        "          "    "          "
     show_ads_res_window=FALSE,# les boutons et dataframe pour les reultat ads 
     show_pumed_res_window=FALSE,# "  "          "         "         "     pubmed 
-    show_lens_res_window=FALSE,#  "   "          "        "          "   lens 
+    show_lens_res_window=TRUE,#  "   "          "        "          "   lens 
     show_arxiv_res_window=FALSE,# "   "           "      "          "    arxiv 
     show_wos_res_window=FALSE, #  "   "            "     "          "   bib et lens 
     res_ads=NULL,#res_data_nasa_ads,#temporaire 
@@ -1753,13 +1753,12 @@ We ask all the users to   cite the different souces they use to make the graphic
   observeEvent(input$ads_ref_accept,{
     print("ref")
     output$table_data_ref1 <- renderDataTable({
-      # validate(
-      #   need(reactive_values$data_wos, "No bibtext data"),
-      #   need(!is.null(reactive_values$data_wos), "")
-      # )
+       validate(
+         need(dim(reactive_values$res_ads$dataframe_ref_accept)[1]>0, "no reference founded, check error(s)")
+       )
       
-      table_data=datatable(df_flatten(reactive_values$res_ads$dataframe_ref_accept), options = list(scrollX = TRUE, columnDefs = list(list(
-        targets = "[1,2,5,6,7]" ,render = JS(
+      table_data=datatable((reactive_values$res_ads$dataframe_ref_accept), options = list(scrollX = TRUE, columnDefs = list(list(
+        targets = c(1,2,5,6) ,render = JS(
           "function(data, type, row, meta) {",
           "return type === 'display' && data.length > 70 ?",
           "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
@@ -1773,13 +1772,12 @@ We ask all the users to   cite the different souces they use to make the graphic
   observeEvent(input$ads_cit_accept,{
     
     output$table_data_ref1 <- renderDataTable({
-      # validate(
-      #   need(reactive_values$data_wos, "No bibtext data"),
-      #   need(!is.null(reactive_values$data_wos), "")
-      # )
+      validate(
+        need(dim(reactive_values$res_ads$dataframe_citation_accept)[1]>0, "No citation founded sorry, check errors")
+      )
       
-      table_data=datatable(df_flatten(reactive_values$res_ads$dataframe_citation_accept), options = list(scrollX = TRUE, columnDefs = list(list(
-        targets = "[1,2,5,6,7]" ,render = JS(
+      table_data=datatable((reactive_values$res_ads$dataframe_citation_accept), options = list(scrollX = TRUE, columnDefs = list(list(
+        targets = c(1,2,5,6,7) ,render = JS(
           "function(data, type, row, meta) {",
           "return type === 'display' && data.length > 70 ?",
           "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
@@ -1799,8 +1797,8 @@ We ask all the users to   cite the different souces they use to make the graphic
       #   need(!is.null(reactive_values$data_wos), "")
        )
       
-      table_data=datatable(df_flatten(reactive_values$res_ads$dataframe_publi_found), options = list(scrollX = TRUE, columnDefs = list(list(
-        targets = "_all" ,render = JS(
+      table_data=datatable((reactive_values$res_ads$dataframe_publi_found[,-which(names(reactive_values$res_ads$dataframe_publi_found)=="reference"|names(reactive_values$res_ads$dataframe_publi_found)=="citation"|names(reactive_values$res_ads$dataframe_publi_found)=="h")]), options = list(scrollX = TRUE, columnDefs = list(list(
+        targets = c(1,2,3) ,render = JS(
           "function(data, type, row, meta) {",
           "return type === 'display' && data.length > 70 ?",
           "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
@@ -1835,41 +1833,57 @@ We ask all the users to   cite the different souces they use to make the graphic
     c(input$ads_ask,
       reactive_values$transfer_done$ads)}
     ,{
+      
+     if(input$ads_ask!=0){ # le boutons na pas été apuillez cela previen du notre bd 
+      print("on rentre ads")
         reactive_values$table_to_show_ref=reactive_values$res_ads$dataframe_publi_found[(reactive_values$res_ads$dataframe_publi_found$check_title_pct<reactive_values$value_same_min_accept) &(reactive_values$res_ads$dataframe_publi_found$check_title_pct>=reactive_values$value_same_min_ask),]
         if(dim(reactive_values$table_to_show_ref)[1]>0) rownames(reactive_values$table_to_show_ref)<-1:nrow(reactive_values$table_to_show_ref)
-        
+      print(dim(reactive_values$table_to_show_ref))  
         if(!is.null(reactive_values$transfer_done$ads)){ 
           
           ind_temp=reactive_values$table_to_show_ref$bibcode%in%reactive_values$transfer_done$ads
           reactive_values$table_to_show_ref=reactive_values$table_to_show_ref[!ind_temp,]  
         }
+      print(dim(reactive_values$table_to_show_ref))   
+       
+      df <-reactiveValues(data =cbind(
+        Actions = shinyInput( FUN = 
+                                actionButton, 
+                              n=nrow(reactive_values$table_to_show_ref), 
+                              id='button_', 
+                              label = "Transfer",  
+                              onclick = 'Shiny.onInputChange(\"select_button\", this.id)' ),reactive_values$table_to_show_ref) )
+     # df <- reactiveValues(data =cbind(shinyInput(actionButton, nrow(reactive_values$table_to_show_ref), 'button_', label = "Transfer", onclick = 'Shiny.onInputChange(\"select_button\",  this.id)' ),reactive_values$table_to_show_ref)))
+  #df <-reactiveValues(data =cbind(Actions = shinyInput( FUN = actionButton, n=nrow(reactive_values$table_to_show_ref), id='button_', label = "Transfer",  onclick = 'Shiny.onInputChange(\"select_button\", this.id, {priority: \"event\"})' ),reactive_values$table_to_show_ref) )
+  
+        df$data<- as.data.frame(df$data,stringsAsFactors = FALSE)
         
-        df <-reactiveValues(data =cbind(Actions = shinyInput( FUN = actionButton, n=nrow(reactive_values$table_to_show_ref), id='button_', label = "Transfer",  onclick = 'Shiny.setInputValue(\"select_button\", this.id, {priority: \"event\"})' ),reactive_values$table_to_show_ref
-        ) )
-        
-        output$table_data_ref1<- DT::renderDataTable(
+        output$table_data_ref1<- DT::renderDataTable({
           validate(
-            need(dim(as.data.frame(df$data,stringsAsFactors = FALSE))[1]>0, "No publication with doute")
-          #   need(!is.null(reactive_values$data_wos), "")
-          ), 
-         df_flatten(as.data.frame(df$data,stringsAsFactors = FALSE)), escape = FALSE, options = list( lengthMenu = c(5, 25, 50), pageLength = 25,
-                                                                                                       
-                                                                                                       scrollX = TRUE, columnDefs = list(list(
-                                                                                                         targets = "_all" ,render = JS(
-                                                                                                           "function(data, type, row, meta) {",
-                                                                                                           "return type === 'display' && data.length > 200 ?",
-                                                                                                           "'<span title=\"' + data + '\">' + data.substr(0, 200) + '...</span>' : data;",
-                                                                                         "}")
-                                                                                                       )))
-        )
+            need(dim(df$data)[1]>0, "No publication with doute")
+            #   #   need(!is.null(reactive_values$data_wos), "")
+          )
+          
+          table_data=datatable(df$data, escape = FALSE, options = list( lengthMenu = c(5, 25, 50), pageLength = 25,
+                                                                        
+                                                                        scrollX = TRUE, columnDefs = list(list(
+                                                                          targets = c(2,3) ,render = JS(
+                                                                            "function(data, type, row, meta) {",
+                                                                            "return type === 'display' && data.length > 50 ?",
+                                                                            "'<span title=\"' + data + '\">' + data.substr(0, 50) + '...</span>' : data;",
+                                                                            "}")
+                                                                        ))))
+        })  
         reactive_values$active_source="ADS"
-      
+      }
     },ignoreInit = TRUE)
   
   observeEvent(input$select_button, {
-    
+    print("clique")
+    #browser()
     selectedRow <- as.numeric(strsplit(input$select_button, "_")[[1]][2])
-    
+    #browser()
+    print(input$select_button)
     if(reactive_values$active_source=="ADS"){
       if(input$type=="cit"||input$type=="all"){
         ind=which(reactive_values$table_to_show_ref$bibcode[[selectedRow]]==unlist(reactive_values$res_ads$dataframe_citation_ask$`cited identifier`))
@@ -1907,7 +1921,7 @@ We ask all the users to   cite the different souces they use to make the graphic
       if(input$type=="cit"||input$type=="all"){
         ind=which(reactive_values$table_to_show_ref$id[[selectedRow]]==unlist(reactive_values$res_pumed$dataframe_citation_ask$`cited identifier`))
         ind2=which(reactive_values$table_to_show_ref$id[[selectedRow]]==unlist(reactive_values$res_pumed$dataframe_citation_accept$`cited identifier`))# il  dej  été ajouter
-        if(length(ind_2)==0)  if(dim(reactive_values$res_pumed$dataframe_citation_ask[ind,])[1]) if(dim(reactive_values$res_pumed$dataframe_citation_ask[ind,])[1]>0)reactive_values$res_pumed$dataframe_citation_accept=rbind(reactive_values$res_pumed$dataframe_citation_accep,reactive_values$res_ads$dataframe_citation_ask[ind,])      
+        if(length(ind2)==0)  if(dim(reactive_values$res_pumed$dataframe_citation_ask[ind,])[1]) if(dim(reactive_values$res_pumed$dataframe_citation_ask[ind,])[1]>0)reactive_values$res_pumed$dataframe_citation_accept=rbind(reactive_values$res_pumed$dataframe_citation_accep,reactive_values$res_ads$dataframe_citation_ask[ind,])      
       }
       if(input$type=="ref"||input$type=="all"){
         ind_ref_1=which(reactive_values$table_to_show_ref$id[[selectedRow]]==unlist(reactive_values$res_pumed$dataframe_ref_ask$`refering identifier`))# ligne a ajouter
@@ -1921,7 +1935,7 @@ We ask all the users to   cite the different souces they use to make the graphic
       if(input$type=="cit"||input$type=="all"){
         ind=which(reactive_values$table_to_show_ref$id[[selectedRow]]==unlist(reactive_values$res_pumed$dataframe_citation_ask$`cited identifier`))
         ind2=which(reactive_values$table_to_show_ref$id[[selectedRow]]==unlist(reactive_values$res_pumed$dataframe_citation_accept$`cited identifier`))# il  dej  été ajouter
-        if(length(ind_2)==0)  if(dim(reactive_values$res_lens$dataframe_citation_ask[ind,])[1]) if(dim(reactive_values$res_lens$dataframe_citation_ask[ind,])[1]>0)reactive_values$res_lens$dataframe_citation_accept=rbind(reactive_values$res_lens$dataframe_citation_accep,reactive_values$res_ads$dataframe_citation_ask[ind,])      
+        if(length(ind2)==0)  if(dim(reactive_values$res_lens$dataframe_citation_ask[ind,])[1]) if(dim(reactive_values$res_lens$dataframe_citation_ask[ind,])[1]>0)reactive_values$res_lens$dataframe_citation_accept=rbind(reactive_values$res_lens$dataframe_citation_accep,reactive_values$res_ads$dataframe_citation_ask[ind,])      
       }
       if(input$type=="ref"||input$type=="all"){
         ind_ref_1=which(reactive_values$table_to_show_ref$id[[selectedRow]]==unlist(reactive_values$res_lens$dataframe_ref_ask$`refering identifier`))# ligne a ajouter
@@ -2011,14 +2025,21 @@ We ask all the users to   cite the different souces they use to make the graphic
         }
         
         
-        df <- reactiveValues(data =cbind(Actions = shinyInput( FUN = actionButton, n=nrow(reactive_values$table_to_show_ref), id='button_', label = "Transfer",  onclick = 'Shiny.setInputValue(\"select_button\", this.id, {priority: \"event\"})' ),reactive_values$table_to_show_ref
+        df <- reactiveValues(data =cbind(Actions = 
+                                           shinyInput( FUN = actionButton, 
+                                                       n=nrow(reactive_values$table_to_show_ref), 
+                                                      id='button_', 
+                                                      label = "Transfer",  
+                                                      onclick = 'Shiny.setInputValue(\"select_button\", this.id)' ),reactive_values$table_to_show_ref
+        
+                                                                          
         ) )
         
         output$table_data_ref2<- DT::renderDataTable(
-          df_flatten(as.data.frame(df$data,stringsAsFactors = FALSE)), escape = FALSE, options = list( lengthMenu = c(5, 25, 50), pageLength = 25,
+          as.data.frame(df$data,stringsAsFactors = FALSE), escape = FALSE, options = list( lengthMenu = c(5, 25, 50), pageLength = 25,
                                                                                                        
                                                                                                        scrollX = TRUE, columnDefs = list(list(
-                                                                                                         targets = "_all" ,render = JS(
+                                                                                                         targets = c(2,3) ,render = JS(
                                                                                                            "function(data, type, row, meta) {",
                                                                                                            "return type === 'display' && data.length > 200 ?",
                                                                                                            "'<span title=\"' + data + '\">' + data.substr(0, 200) + '...</span>' : data;",
@@ -2038,7 +2059,7 @@ We ask all the users to   cite the different souces they use to make the graphic
       # )
       #test=df_flatten(res_arxiv$res_citation_accept)
       table_data=datatable(df_flatten(reactive_values$res_pumed$dataframe_ref_accept), options = list(scrollX = TRUE, columnDefs = list(list(
-        targets = "[1,2,4,5,6]" ,render = JS(
+        targets = c(1,2,4,5,6) ,render = JS(
           "function(data, type, row, meta) {",
           "return type === 'display' && data.length > 70 ?",
           "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
@@ -2053,7 +2074,7 @@ We ask all the users to   cite the different souces they use to make the graphic
     output$table_data_ref3 <- renderDataTable({
       
       table_data=datatable(df_flatten(reactive_values$res_pumed$dataframe_citation_accept), options = list(scrollX = TRUE, columnDefs = list(list(
-        targets = "[1,2,4,5,6]" ,render = JS(
+        targets = c(1,2,4,5,6) ,render = JS(
           "function(data, type, row, meta) {",
           "return type === 'display' && data.length > 70 ?",
           "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
@@ -2074,7 +2095,7 @@ We ask all the users to   cite the different souces they use to make the graphic
       )
   #
       table_data=datatable(df_flatten(reactive_values$res_pumed$dataframe_publi_found), options = list(scrollX = TRUE, columnDefs = list(list(
-        targets = "[1,2,3]" ,render = JS(
+        targets = c(1,2,3) ,render = JS(
           "function(data, type, row, meta) {",
           "return type === 'display' && data.length > 70 ?",
           "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
@@ -2108,8 +2129,8 @@ We ask all the users to   cite the different souces they use to make the graphic
   observeEvent({
     c(input$pubmed_ask,
       reactive_values$transfer_done$pumed)
-  },{
-      print("on rentre")
+  },{if(input$pubmed_ask!=0){ # le boutons na pas été apuillez cela previen du notre bd 
+      print("on rentre pubmed")
       reactive_values$table_to_show_ref=reactive_values$res_pumed$dataframe_publi_found[(reactive_values$res_pumed$dataframe_publi_found$check_title_pct<reactive_values$value_same_min_accept),]
       
       if(dim(reactive_values$table_to_show_ref)[1]>0) rownames(reactive_values$table_to_show_ref)<-1:nrow(reactive_values$table_to_show_ref)
@@ -2121,8 +2142,14 @@ We ask all the users to   cite the different souces they use to make the graphic
       }
       
       
-      df <- reactiveValues(data =cbind(Actions = shinyInput( FUN = actionButton, n=nrow(reactive_values$table_to_show_ref), id='button_', label = "Transfer",  onclick = 'Shiny.setInputValue(\"select_button\", this.id, {priority: \"event\"})' ),reactive_values$table_to_show_ref    ) )
-      
+      df <- reactiveValues(data =cbind(Actions = 
+                                         shinyInput( 
+                                           FUN = actionButton, 
+                                           n=nrow(reactive_values$table_to_show_ref), 
+                                           id='button_', 
+                                           label = "Transfer",  
+                                           onclick = 'Shiny.setInputValue(\"select_button\", this.id)' ),reactive_values$table_to_show_ref    ) )
+  
       output$table_data_ref3<- DT::renderDataTable(
         validate(
           need(dim(as.data.frame(df$data,stringsAsFactors = FALSE))[1]>0, "No publication with doute")
@@ -2132,7 +2159,7 @@ We ask all the users to   cite the different souces they use to make the graphic
           df_flatten(as.data.frame(df$data,stringsAsFactors = FALSE)), escape = FALSE, options = list( lengthMenu = c(5, 25, 50), pageLength = 25,
                                                                                                      
                                                                                                      scrollX = TRUE, columnDefs = list(list(
-                                                                                                       targets = "_all" ,render = JS(
+                                                                                                       targets = c(2,3) ,render = JS(
                                                                                                          "function(data, type, row, meta) {",
                                                                                                          "return type === 'display' && data.length > 200 ?",
                                                                                                          "'<span title=\"' + data + '\">' + data.substr(0, 200) + '...</span>' : data;",
@@ -2142,7 +2169,7 @@ We ask all the users to   cite the different souces they use to make the graphic
       
       
       reactive_values$active_source="PUBMED"
-    
+    }  
   },ignoreInit = TRUE,ignoreNULL = TRUE)
   
   
@@ -2154,7 +2181,7 @@ We ask all the users to   cite the different souces they use to make the graphic
        )
       #test=df_flatten(res_arxiv$res_citation_accept)
       table_data=datatable(df_flatten(reactive_values$res_lens$dataframe_ref_accept), options = list(scrollX = TRUE, columnDefs = list(list(
-        targets = "[1,2,4,5,6]" ,render = JS(
+        targets = c(1,2,4,5,6) ,render = JS(
           "function(data, type, row, meta) {",
           "return type === 'display' && data.length > 70 ?",
           "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
@@ -2171,7 +2198,7 @@ We ask all the users to   cite the different souces they use to make the graphic
         need(dim(reactive_values$res_lens$dataframe_citation_accept)[1]>0, "No citations founded sorry, check errors")
       )
       table_data=datatable(df_flatten(reactive_values$res_lens$dataframe_citation_accept), options = list(scrollX = TRUE, columnDefs = list(list(
-        targets = "[1,2,4,5,6]" ,render = JS(
+        targets = c(1,2,4,5,6) ,render = JS(
           "function(data, type, row, meta) {",
           "return type === 'display' && data.length > 70 ?",
           "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
@@ -2202,15 +2229,16 @@ We ask all the users to   cite the different souces they use to make the graphic
   })
   
   observeEvent({c(input$lens_res_publi)},{
-    
+     #temp
     output$table_data_ref5 <- renderDataTable({
       
        validate(
          need(dim(reactive_values$res_lens$dataframe_publi_found)[1]>1, "No publication fouded, sorry check erros")
        )
       
-      table_data=datatable(df_flatten(reactive_values$res_lens$dataframe_publi_found), options = list(scrollX = TRUE, columnDefs = list(list(
-        targets = "_all" ,render = JS(
+      table_data=datatable((reactive_values$res_lens$dataframe_publi_found[,-which(names(reactive_values$res_lens$dataframe_publi_found)=="reference"|names(reactive_values$res_lens$dataframe_publi_found)=="citation")]), 
+                           options = list(scrollX = TRUE, columnDefs = list(list(
+        targets = c(0,1,2) ,render = JS(
           "function(data, type, row, meta) {",
           "return type === 'display' && data.length > 70 ?",
           "'<span title=\"' + data + '\">' + data.substr(0, 70) + '...</span>' : data;",
@@ -2225,8 +2253,10 @@ We ask all the users to   cite the different souces they use to make the graphic
     c(input$lens_ask,
       reactive_values$transfer_done$lens)
   },{
-    
-      reactive_values$table_to_show_ref=df_flatten(reactive_values$res_lens$dataframe_publi_found[(reactive_values$res_lens$dataframe_publi_found$check_title_pct<reactive_values$value_same_min_accept),])
+    if(input$lens_ask!=0){ # le boutons na pas été apuillez cela previen du notre bd   
+    print("on rentre lens")
+      reactive_values$table_to_show_ref=df_flatten(reactive_values$res_lens$dataframe_publi_found[(reactive_values$res_lens$dataframe_publi_found$check_title_pct<reactive_values$value_same_min_accept) & (reactive_values$res_lens$dataframe_publi_found$check_title_pct>=reactive_values$value_same_min_ask),])
+      
       
       if(dim(reactive_values$table_to_show_ref)[1]>0) rownames(reactive_values$table_to_show_ref)<-1:nrow(reactive_values$table_to_show_ref)
       
@@ -2235,31 +2265,39 @@ We ask all the users to   cite the different souces they use to make the graphic
         ind_temp=reactive_values$table_to_show_ref$id%in%reactive_values$transfer_done$lens
         reactive_values$table_to_show_ref=reactive_values$table_to_show_ref[!ind_temp,]  
       }
+      df <- reactiveValues()  
+    
+      df$data<-cbind(Actions = 
+                       shinyInput( 
+                               FUN = actionButton, 
+                               n=nrow(reactive_values$table_to_show_ref),
+                               id='button_', 
+                               label = "Transfer",  
+                               onclick = 'Shiny.setInputValue(\"select_button\", this.id)' ),reactive_values$table_to_show_ref    )
+      #browser()
+     #df$data<- as.data.frame(df$data,stringsAsFactors = FALSE)
       
-      
-      df <- reactiveValues(data =cbind(Actions = shinyInput( FUN = actionButton, n=nrow(reactive_values$table_to_show_ref), id='button_', label = "Transfer",  onclick = 'Shiny.setInputValue(\"select_button\", this.id, {priority: \"event\"})' ),reactive_values$table_to_show_ref    ) )
-      
-      output$table_data_ref5<- DT::renderDataTable(
+     output$table_data_ref5<- DT::renderDataTable({
         validate(
-          need(dim(as.data.frame(df$data,stringsAsFactors = FALSE))[1]>0, "No publication with doute")
-          #   need(!is.null(reactive_values$data_wos), "")
-        ), 
-        
-        df_flatten(as.data.frame(df$data,stringsAsFactors = FALSE)), escape = FALSE, options = list( lengthMenu = c(5, 25, 50), pageLength = 25,
+           need(dim(df$data)[1]>0, "No publication with doute")
+        #   #   need(!is.null(reactive_values$data_wos), "")
+         )
+
+       table_data=datatable(df$data, escape = FALSE, options = list( lengthMenu = c(5, 25, 50), pageLength = 25,
                                                                                                      
                                                                                                      scrollX = TRUE, columnDefs = list(list(
-                                                                                                       targets = "_all" ,render = JS(
+                                                                                                       targets = c(2,3) ,render = JS(
                                                                                                          "function(data, type, row, meta) {",
-                                                                                                         "return type === 'display' && data.length > 200 ?",
-                                                                                                         "'<span title=\"' + data + '\">' + data.substr(0, 200) + '...</span>' : data;",
-                                                                                                         "}")
-                                                                                                     )))
-      )
+                                                                                                         "return type === 'display' && data.length > 100 ?",
+                                                                                                         "'<span title=\"' + data + '\">' + data.substr(0, 100) + '...</span>' : data;",
+                                                                                                            "}")
+                                                                                                     ))))
+      })
       
       
       reactive_values$active_source="LENS"
-    
-  },ignoreInit = TRUE,ignoreNULL = TRUE)
+    }
+   },ignoreInit = TRUE,ignoreNULL = TRUE)
   
   
   

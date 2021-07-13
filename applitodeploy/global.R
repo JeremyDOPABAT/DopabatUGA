@@ -1839,8 +1839,8 @@ arxiv_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,v
           
           
           #querry<-paste0('http://export.arxiv.org/api/queryesearch_query=(au:( "',(au_querry),'"))&start=0&max_results=2000')#paste0('http://export.arxiv.org/api/queryesearch_query=(au:( "',au_querry,'"))AND (ti: ("',ti_querry,'"))&start=0&max_results=2000')
-          (au_querry<-paste0('%28',gsub("[e]","",gsub(",","%2C",trimws(Unaccent(au_data[first:last])))),'%29', collapse = '+OR+'))
-          ti_querry<-paste0('%28',gsub("[e]","",gsub(",",'2C',gsub(":",'%3A',gsub(';','%3B',gsub("+","%2B",trimws(Unaccent(ti_data[first:last])),fixed = TRUE))))),'%29', collapse = '+OR+')
+          (au_querry<-paste0('%28',gsub("[?]","",gsub(",","%2C",trimws(Unaccent(au_data[first:last])))),'%29', collapse = '+OR+'))
+          ti_querry<-paste0('%28',gsub("[?]","",gsub(",",'2C',gsub(":",'%3A',gsub(';','%3B',gsub("+","%2B",trimws(Unaccent(ti_data[first:last])),fixed = TRUE))))),'%29', collapse = '+OR+')
           
           #querry<-paste0('http://export.arxiv.org/api/queryesearch_query=(au:%20"',au_querry,'")&start=0&max_results=2000')
           querry<-paste0('http://export.arxiv.org/api/queryesearch_query=%28au:',au_querry,'%29+AND+%28ti:',ti_querry,'%29&start=0&max_results=2000')   #%20AND%20ti:%28"',ti_querry,'"%29
@@ -2802,7 +2802,7 @@ lens_get_publi<-function(au_data,ti_data,doi_data="",position_reel,pas,value_sam
           
           
         }
-        incProgress(amount = 1/inter,detail =paste0('Doing reasearche of publication in lens',dim(res)[1],"publication founded already" ))
+        incProgress(amount = 1/inter,detail =paste0('Doing reasearche of publication in lens ',dim(res)[1]," publication(s) founded already" ))
         
       }
     })
@@ -2811,7 +2811,7 @@ lens_get_publi<-function(au_data,ti_data,doi_data="",position_reel,pas,value_sam
       
       if(type_requetage=="TI_AU"){# très imortant que le titre auteur soit fait en premier 
         title_to_analyse=resdt$title
-        withProgress(message = "Verifing the publication founded ",value = 0.90,{
+        withProgress(message = "Verifing the publication(s) founded ",value = 0.90,{
           
           indic_compaire_title<-compaire_title(Unaccent(title_to_analyse),Unaccent(ti_data))
         })  # permet l'affichage d'une progresse bar même si celle i n'avancera pas afin que l'utilisateur ne ferme pas
@@ -3159,8 +3159,7 @@ ads_get_publi<-function(au_data,ti_data,doi_data="",position_name,pas,value_same
         #adaptation des caractere speciaux au requette pour les titre et les auteur
             
         if(type_requetage=="TI_AU"){
-          
-          (au_querry=paste0("%22",gsub("&","%26",gsub("[(]","",gsub("[)]","",gsub(";",'%22AND%22',gsub("[e]","",gsub(",","%2C",gsub(", ",",",gsub(" ,",",",gsub('[}{]',"",gsub("\\", "", gsub(":","%3A",gsub("/","%2F",
+          (au_querry=paste0("%22",gsub("&","%26",gsub("[(]","",gsub("[)]","",gsub(";",'%22AND%22',gsub("[?]","",gsub(",","%2C",gsub(", ",",",gsub(" ,",",",gsub('[}{]',"",gsub("\\", "", gsub(":","%3A",gsub("/","%2F",
                                                                                                                                                                                                              gsub(" ","%20",Unaccent((au_data[first:last])))))
                                                                                                                                                                                , fixed =TRUE)))))))))), collapse = 'OR','%22'))
           
@@ -3168,7 +3167,7 @@ ads_get_publi<-function(au_data,ti_data,doi_data="",position_name,pas,value_same
           
           
           (ti_querry=paste0("%22",gsub("[]]","%5D",gsub("`",'%60',gsub("[[]","%5B",gsub("[(]","%28",gsub("[)]","%29",gsub("<","%3C",gsub(">","%3E",gsub("=","%3D",gsub('[}{]',"",gsub("&","%26",gsub('"','%22',gsub("\\", "",gsub(":","%3A",gsub("/","%2F",gsub("'","%27",gsub(" ","%20",
-                                                                                                                                                                                                                                                                               gsub(",","%2c",gsub("ee","e",gsub("-"," ",gsub("[e$]","",gsub("%","%25",(tolower(Unaccent(ti_data[first:last]))))),fixed=TRUE),fixed = TRUE)))))), 
+                                                                                                                                                                                                                                                                               gsub(",","%2c",gsub("e?","e",gsub("-"," ",gsub("[?$]","",gsub("%","%25",(tolower(Unaccent(ti_data[first:last]))))),fixed=TRUE),fixed = TRUE)))))), 
                                                                                                                                                                                                                     fixed=TRUE)))))))))))), collapse = 'OR','%22'))
           
           
@@ -3185,7 +3184,7 @@ ads_get_publi<-function(au_data,ti_data,doi_data="",position_name,pas,value_same
         r <- httr::GET(paste0("https://api.adsabs.harvard.edu/v1/search/query?q=", adress),
                        httr::add_headers( Authorization = paste0('Bearer ', token))
         )
-        r$status_code
+        #if(r$status_code!=200) browser()
         rquerry_list=append(querry_list,paste0("https://api.adsabs.harvard.edu/v1/search/query?q=", adress))
         error=tryCatch({#reperage des erreur 
           querry_warning_message(r)
@@ -3252,7 +3251,7 @@ ads_get_publi<-function(au_data,ti_data,doi_data="",position_name,pas,value_same
           }
         }
         if(length(dim(error_querry)) &(h==inter)>0){print("il y a des erreurs")}
-        incProgress(amount = 1/inter,detail =paste("Doing research of publication in ads ",dim(res)[1], " publication founded") )
+        incProgress(amount = 1/inter,detail =paste("Doing research of publication in ads ",dim(res)[1], " publication(s) founded") )
         }
       })
       
@@ -3739,7 +3738,7 @@ pumed_get_publi<-function(au_data,ti_data,doi_data="",position_name,pas,value_sa
           
           
           (ti_querry=paste0(gsub("`",'%60',gsub("[(]","%28",gsub("[)]","%29",gsub("<","%3",gsub(">","%3E",gsub("=","%3D",gsub('[}{$]',"",gsub("&","%26",gsub('"','%22',gsub("\\", "",gsub(":","%3A",gsub("/","%2F",gsub("'","%27",gsub(" ","+",
-                                                                                                                                                                                                                                       gsub(",","%2c",gsub("ee","e",gsub("e","%3F",Unaccent(phrase_cut),fixed=TRUE),fixed = TRUE)))))), 
+                                                                                                                                                                                                                                       gsub(",","%2c",gsub("e?","e",gsub("e","%3F",Unaccent(phrase_cut),fixed=TRUE),fixed = TRUE)))))), 
                                                                                                                                                                             fixed=TRUE)))))))))), collapse = '+OR+',"[Title]"))
           
           
@@ -3850,8 +3849,9 @@ pumed_get_publi<-function(au_data,ti_data,doi_data="",position_name,pas,value_sa
       }
     }
     })
-      
-      
+    
+    
+   
       if(!is.null(res)){
         resdt=as.data.frame(res,stringsAsFactors = FALSE)
         names(resdt)<-c("id", "auteur","titre","date", "journal","ref_pmid","h_ref","issn","essn")
@@ -4109,3 +4109,12 @@ find_journal_domaine<-function(journal_data,journal_table_ref,issn="",essn="",so
   
 }
 
+
+
+buttonInput <- function(FUN, len, id, ...) {
+  inputs <- character(len)
+  for (i in seq_len(len)) {
+    inputs[i] <- as.character(FUN(paste0(id, i), ...))
+  }
+  inputs
+}
