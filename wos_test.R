@@ -16,7 +16,8 @@
 #library(wosr)
 library(bibliometrix)
 library(plyr)
-
+library(bibtex)
+library(bib2df)
 
 #------------------------------------------importation d'un fichier wos _________________
 
@@ -150,6 +151,9 @@ View(test3)
 #----------------------------------------------paralel
 path=choose.files(caption = "chosse your data file")
 data_wos <-convert2df(path,dbsource = "wos",format = "bibtex")
+readbib=do_read_bib(path)
+df <- bib2df(path)
+dim(df)
 
 test=conforme_bibtext(test_F,data_base = "BIB")
 
@@ -157,28 +161,56 @@ voici_un_test<-extract_ref_wos(data_wos)
 
 test=as.data.frame(voici_un_test,stringsAsFactors = FALSE)
 
+data_bib <-(bib2df::bib2df(path, separate_names = FALSE))
+
+data_wos <-convert2df(path,format = "bibtex")
+dim(data_wos)
 
 
-test$AUTHOR
-
-test$AUTHOR[[1]]
-  
-test$AUTHOR[[3]]$full_name
-test$EDITION[[3]]
-
-class(test)
+data_bib$TITLE[dim(data_bib)[1]]
 
 
+View(data_bib$TITLE)
+duplicated(data_bib$TITLE)
 
+try_table=table(data_bib$TITLE)
+max(try_table)
+not_corret=which(try_table!=1)
+length(not_corret)
+not_corret[1]
 
-names(test)
-dim(test)
-View(test)
-typeof(test2)
+sum(try_table[not_corret])
 
-
+View(not_corret)
 dim(test2)
 View(test2)
+which(is.null(data_bib$AUTHOR))
+
+(dim(data_bib)[1]-length(which(duplicated(data_bib$DOI)==TRUE )))
+
+data_bib_new<-data_bib[-which(duplicated(data_bib$DOI)==TRUE ),]
+
+dim(data_bib_new)[1]-length(which(duplicated(data_bib_new$AUTHOR)==TRUE))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 test=(bib2df::bib2df(path, separate_names = TRUE))

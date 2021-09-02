@@ -144,8 +144,92 @@ dom_para<-find_journal_domaine_para(journal_data = test$`refered journal`,journa
 
 
 dom[1,]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#---------------------------------------------
+
+
+
+
+
+
+dom=foreach(x=1:length(journal_data),.combine="c") %dopar% {}
+
+parallel::stopCluster(cl)
+  
 mb <- microbenchmark(find_journal_domaine(journal_data = test$`refered journal`,journal_table_ref = journal_table_ref,issn = test$`refered issn`,source =rep("JCR.Abbreviated.Title",dim(test)[1]),nbcpu = 8 ), 
                      find_journal_domaine(journal_data = test$`refered journal`,journal_table_ref = journal_table_ref,issn = test$`refered issn`,source =rep("JCR.Abbreviated.Title",dim(test)[1]),nbcpu = 3 ),
                      find_journal_domaine(journal_data = test$`refered journal`,journal_table_ref = journal_table_ref,issn = test$`refered issn`,source =rep("JCR.Abbreviated.Title",dim(test)[1]),nbcpu = 2 ), times=120)
 plot(mb)
 View(mb)
+
+
+
+
+
+
+
+
+
+compaire_title_para<-function(ti_trouver,ti_data){
+  #' compaire_title
+  #'Cette fonction compare les titre trouvé et les titre demandés, renvoi le score maximal  , elle indique aussi l'indexe du premier titre qui a le score correspondant 
+  #
+  #' @param ti_trouver vecteur comparer  
+  #' @param ti_data vecteur comparant 
+  #'
+  #' @return liste avec le taux de omparaison et le numéro du plus proche element trouver pour chaque element du vecteur 
+  
+  Unaccent <- function(text) {
+    #remouve accent of text
+    text <- gsub("['`^~\"]", " ", text)
+    text <- iconv(text, to="ASCII//TRANSLIT//IGNORE")
+    text <- gsub("['`^~\"]", "", text)
+    return(text)
+  }
+  
+  Ncpus <- (parallel::detectCores() - 1)/2
+  Ncpus<-floor(Ncpus)
+  if(Ncpus>1){
+    print("passage in para")
+    cl <- parallel::makeCluster(Ncpus)
+    doParallel::registerDoParallel(cl)
+  
+    res<-foreach(x=1:length(ti_trouver),.combine="c") %dopar% {
+      
+      
+      courant=ti_trouver[x]
+      print(x/length(ti_trouver)*100)
+      max_apply<-sapply(1:length(ti_data),FUN=function(y){
+        
+        
+        return(max(nchar(courant),max(nchar(ti_data[y]))))
+      })
+      tp<-max(1-(adist(Unaccent(ti_trouver[x]),Unaccent(ti_data),ignore.case = TRUE)/max_apply),na.rm = TRUE)
+      tw<-which((1-(adist(Unaccent(ti_trouver[x]),Unaccent(ti_data),ignore.case = TRUE)/max_apply))==tp)[1]
+      #print("inside indic")
+      #print(ti_trouver[x])
+      
+      # print(adist(Unaccent(ti_trouver[x]),Unaccent(ti_data),ignore.case = TRUE))
+      return(list(tp,tw))
+    }
+    parallel::stopCluster(cl)
+  }
+}
+
+

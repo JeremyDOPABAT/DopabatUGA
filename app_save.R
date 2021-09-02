@@ -8,7 +8,7 @@
 ##reset("title_selection")
 # source de code et libraries 
 
-source("global.R",encoding = "UTF-8")
+#source("global.R",encoding = "UTF-8")
 
 
 library(shiny)
