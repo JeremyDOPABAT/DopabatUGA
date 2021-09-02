@@ -576,9 +576,11 @@ server <- function(input, output, session) {
     states_cit=list(source = c("plot_article_cit", "plot_total_cit"), value = c(-99,-99), changed = c(FALSE,FALSE),key=NULL),
     pct_ref=c(NULL,NULL),#caclule pourcentage exactitude sur les citation 
     pct_cit=c(NULL,NULL),
+
     transfer_done=list(ads=NULL,arxiv=NULL,pumed=NULL,lense=NULL), #liste de boulllean pour l'état  
     cal_temp=NULL,
     show_pumed_box=TRUE,# when lens is selected pubmed desapear 
+
     show_arxiv_abilities=FALSE #temps que arxiv n'a pas un moyen de fonctionner cela restera a faux 
     
   )  
@@ -1728,9 +1730,11 @@ We ask all the users to   cite the different souces they use to make the graphic
         length(reactive_values$res_arxiv$res_citation_accept$`cited identifier`)+
         length(reactive_values$res_arxiv$res_reference_accept$`refering identifier`)+
         length(reactive_values$res_pumed$dataframe_citation_accept$`cited identifier`)+
+
         length(reactive_values$res_pumed$dataframe_ref_accept$`refering identifier`)+
         length(reactive_values$res_lens$dataframe_citation_accept$`cited identifier`)+
         length(reactive_values$res_lens$dataframe_ref_accept$`refering identifier`)
+
       if(reactive_values$cal_temp>=1){
         showModal(modalDialog(
           title = "research ended",
@@ -1842,12 +1846,13 @@ We ask all the users to   cite the different souces they use to make the graphic
     c(input$ads_ask,
       reactive_values$transfer_done$ads)}
     ,{
-      
+
      if(input$ads_ask!=0){ # le boutons na pas été apuillez cela previen du notre bd 
       print("on rentre ads")
         reactive_values$table_to_show_ref=reactive_values$res_ads$dataframe_publi_found[(reactive_values$res_ads$dataframe_publi_found$check_title_pct<reactive_values$value_same_min_accept) &(reactive_values$res_ads$dataframe_publi_found$check_title_pct>=reactive_values$value_same_min_ask),]
         if(dim(reactive_values$table_to_show_ref)[1]>0) rownames(reactive_values$table_to_show_ref)<-1:nrow(reactive_values$table_to_show_ref)
       print(dim(reactive_values$table_to_show_ref))  
+
         if(!is.null(reactive_values$transfer_done$ads)){ 
           
           ind_temp=reactive_values$table_to_show_ref$bibcode%in%reactive_values$transfer_done$ads
@@ -1906,7 +1911,7 @@ We ask all the users to   cite the different souces they use to make the graphic
         if(length(ind_ref_2)==0)if(!is.null(dim(reactive_values$res_ads$dataframe_ref_ask[ind_ref_1,])[1]))  if(dim(reactive_values$res_ads$dataframe_ref_ask[ind_ref_1,])[1]>0)reactive_values$res_ads$dataframe_ref_accept=rbind(reactive_values$res_ads$dataframe_ref_accept,reactive_values$res_ads$dataframe_ref_ask[ind_ref_1,])
       }
       reactive_values$transfer_done$ads=c(reactive_values$transfer_done$ads,reactive_values$table_to_show_ref$bibcode[[selectedRow]])  
-          
+
     }
     
     if(reactive_values$active_source=="ARXIV"){
@@ -1940,6 +1945,7 @@ We ask all the users to   cite the different souces they use to make the graphic
       reactive_values$transfer_done$pumed=c(reactive_values$transfer_done$pumed,reactive_values$table_to_show_ref$id[[selectedRow]])   
     }
     
+
     if(reactive_values$active_source=="LENS"){
       if(input$type=="cit"||input$type=="all"){
         ind=which(reactive_values$table_to_show_ref$id[[selectedRow]]==unlist(reactive_values$res_pumed$dataframe_citation_ask$`cited identifier`))
@@ -1953,6 +1959,7 @@ We ask all the users to   cite the different souces they use to make the graphic
       }
       reactive_values$transfer_done$lens=c(reactive_values$transfer_done$lens,reactive_values$table_to_show_ref$id[[selectedRow]])   
     }  
+
   })
   
   
@@ -2021,6 +2028,7 @@ We ask all the users to   cite the different souces they use to make the graphic
       reactive_values$transfer_done$arxiv
     )},{
       if(input$arxiv_ask!=0){
+
         reactive_values$table_to_show_ref=reactive_values$res_arxiv$res_publi_foundt[(reactive_values$res_arxiv$res_publi_foundt$check_pct<reactive_values$value_same_min_accept),]
         
         
@@ -2188,9 +2196,11 @@ We ask all the users to   cite the different souces they use to make the graphic
   #-- lens table __________________________________________________________________________________
   observeEvent(input$lens_ref_accept,{
     output$table_data_ref5 <- renderDataTable({
+
        validate(
          need(dim(reactive_values$res_lens$dataframe_ref_accept)[1]>0, "No references founded sorry, check errors")
        )
+
       #test=df_flatten(res_arxiv$res_citation_accept)
       table_data=datatable(df_flatten(reactive_values$res_lens$dataframe_ref_accept), options = list(scrollX = TRUE, columnDefs = list(list(
         targets = c(1,2,4,5,6) ,render = JS(
@@ -2265,10 +2275,12 @@ We ask all the users to   cite the different souces they use to make the graphic
     c(input$lens_ask,
       reactive_values$transfer_done$lens)
   },{
+
     if(input$lens_ask!=0){ # le boutons na pas été apuillez cela previen du notre bd   
     print("on rentre lens")
       print(reactive_values$transfer_done$lens)
       reactive_values$table_to_show_ref=(reactive_values$res_lens$dataframe_publi_found[(reactive_values$res_lens$dataframe_publi_found$check_title_pct<reactive_values$value_same_min_accept) & (reactive_values$res_lens$dataframe_publi_found$check_title_pct>=reactive_values$value_same_min_ask),])
+
       
      
       if(dim(reactive_values$table_to_show_ref)[1]>0) rownames(reactive_values$table_to_show_ref)<-1:nrow(reactive_values$table_to_show_ref)
@@ -2316,6 +2328,7 @@ We ask all the users to   cite the different souces they use to make the graphic
   
   
   
+
   #partie interdiciplinarité ----
   
   
