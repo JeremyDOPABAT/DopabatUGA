@@ -15,6 +15,11 @@ library(bibliometrix)
 library(V8)
 library(bib2df)
 library(plotly)
+library(microbenchmark)
+library(parallel)
+library(foreach)
+library(doParallel)
+
 jsResetCode <- "shinyjs.reset = function() {history.go(0)}" # Define the js method that resets the page
 
 #library(rlang)
@@ -2217,7 +2222,7 @@ interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd
             matrice_prop=rbind(matrice_prop,line)
             line=rep(list(0),length(list_categ))
             matrice_contribution=rbind(matrice_contribution,line)
-            col_identifier=c(col_identifier,data_gl[[identifier]][[i]])
+            col_identifier=c(col_identifier,paste0(substr(data_gl[[title]][[i]],1,35),"..//",data_gl[[identifier]][[i]]))
             col_title=c(col_title,data_gl[[title]][[i]]) #paste0(str_sub(string = data_gl[[title]][[i]],start = 1,end = 20),"..."))
           }
           
@@ -2372,12 +2377,12 @@ merge_result_data_base<-function(ads,arxiv,pumed,wos,lens,col_journal=c(NULL,NUL
   return(data_merge) 
 }
 
-combine_analyse_data<-function(df_global,journal_table_ref,type){
+combine_analyse_data<-function(cit_ref_df_global,journal_table_ref,type){
   #' 
   #'#cette fonction est une fonction interne permettant de retrouuver les journaux a partir des nom, abreviation ou issn.
   #cette fonction s'adapte à la demande : ref cit et a type de donnees 
   
-  #' @param df_global table de donnees   
+  #' @param cit_ref_cit_ref_df_global table de donnees   
   #' @param journal_table_ref table de donnees de journal  
   #' @param type type of analyse, reference or citation  
   #'
@@ -2391,24 +2396,24 @@ combine_analyse_data<-function(df_global,journal_table_ref,type){
   if(type=="ref"){# si type=ref 
     # si il y a des donnees wos dans la table de donnees on doit passe par les abreviation
     withProgress(message = "Doing reference  journal matching that could take several minutes",value = 0.90,{
-      dom<-find_journal_domaine(journal_data = df_global$`refered journal`,journal_table_ref = journal_table_ref,issn = df_global$`refered issn`,source =df_global$source )
+      dom<-find_journal_domaine(journal_data = cit_ref_df_global$`refered journal`,journal_table_ref = journal_table_ref,issn = cit_ref_df_global$`refered issn`,col_journal =cit_ref_df_global$source )
     
-      df_global$refered_journal_domaine=dom[1,]
-      df_global$refered_global_dicipline=dom[2,]
-      df_global$refered_indice_pct_found=dom[3,]
+      cit_ref_df_global$refered_journal_domaine=dom[1,]
+      cit_ref_df_global$refered_global_dicipline=dom[2,]
+      cit_ref_df_global$refered_indice_pct_found=dom[3,]
     })
     
   }else{#pour les citation il n'y a pas de patricularite dans le wos
     withProgress(message = "Doing citation  journal matching that could take several minutes",value = 0.90,{
       
-    dom<-find_journal_domaine(journal_data = df_global$`citing journal`,journal_table_ref = journal_table_ref,issn = df_global$`citing issn`,source =df_global$source )
-    df_global$citing_journal_domaine=dom[1,]
-    df_global$citing_global_dicipline=dom[2,]
-    df_global$citing_indice_pct_found=dom[3,]
+    dom<-find_journal_domaine(journal_data = cit_ref_df_global$`citing journal`,journal_table_ref = journal_table_ref,issn = cit_ref_df_global$`citing issn`,col_journal =cit_ref_df_global$source )
+    cit_ref_df_global$citing_journal_domaine=dom[1,]
+    cit_ref_df_global$citing_global_dicipline=dom[2,]
+    cit_ref_df_global$citing_indice_pct_found=dom[3,]
     })
   }
   
-  return(df_global)  
+  return(cit_ref_df_global)  
 }
 
 
@@ -3365,11 +3370,13 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,doi_name,pas=8,value_s
   err2=c() 
   reject1=reject2=c()
   if(source_name!="" && (type=="ref" || type=="all")){
+    
     data_wos=data_pub[data_pub[source_name]=="WOS",]
     if(dim(data_wos)[1]!=0) {
       if(length(sep_vector_in_data)==1) if(sep_vector_in_data=="") sep="" else sep=data_wos[sep_vector_in_data][[1]]
       if(length(position_vector_in_data)==1) if(position_vector_in_data=="") position_name=rep(1,dim(data_wos)[1]) else position_name=data_wos[position_vector_in_data][[1]]
       res_wos_all=pumed_get_publi(data_wos[au_name][[1]],data_wos[ti_name][[1]],data_wos[doi_name][[1]],data_wos$position_name,pas,value_same_min_ask,value_same_min_accept,data_wos$sep)
+      
       res_wos=res_wos_all$res# les resulta
       err1=res_wos_all$error# les erreurs 
       reject1=res_wos_all$reject # les titre rejeter 
@@ -3381,6 +3388,7 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,doi_name,pas=8,value_s
       reject1=NULL
       
     }
+    
     
     data_rest=data_pub[data_pub[source_name]!="WOS",]#non wos 
     if(dim(data_rest)[1]!=0) {
@@ -3424,9 +3432,9 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,doi_name,pas=8,value_s
   
   if(type!="cit"){# on prend soit les citation soit "all soit uniquement les reference 
     
-    if(source_name!="") res_new=res_rest 
+     
     
-    id_list_ref=as.character(unlist(res_new$ref_pmid))# on recupere les references de notre resultat precedent 
+    id_list_ref=as.character(unlist(res_rest$ref_pmid))# on recupere les references de notre resultat precedent 
     if(length(id_list_ref)>0){
       pas=40# le pas peut etre plus grand car les identifiant sont petit 
       inter=ceiling(length(id_list_ref)[1]/pas)
@@ -3459,7 +3467,7 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,doi_name,pas=8,value_s
       
       
       ind_id<-sapply(res_ref$id_ref,function(x){# on associe les bon id au bon article pour le mettre avec lmes publis, cela nous sert aussi d'identifiant 
-        return(grep(x,(res_new$ref_pmid)))
+        return(grep(x,(res_rest$ref_pmid)))
       })
       
       
@@ -3468,9 +3476,9 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,doi_name,pas=8,value_s
         #browser()
         for(j in 1:length(ind_id)){
           
-          res_ref_final=rbind(res_ref_final,(cbind(res_new$id[(ind_id[[j]])],res_new$titre[ind_id[[j]]],  res_new$auteur[(ind_id[[j]])],res_new$date[(ind_id[[j]])],res_new$journal[ind_id[[j]]],res_new$issn[ind_id[[j]]],res_new$essn[ind_id[[j]]],
+          res_ref_final=rbind(res_ref_final,(cbind(res_rest$id[(ind_id[[j]])],res_rest$titre[ind_id[[j]]],  res_rest$auteur[(ind_id[[j]])],res_rest$date[(ind_id[[j]])],res_rest$journal[ind_id[[j]]],res_rest$issn[ind_id[[j]]],res_rest$essn[ind_id[[j]]],
                                                    res_ref$id_ref[j], res_ref$titre_ref[j], res_ref$auteur_ref[j], res_ref$date_ref[j], res_ref$journal_ref[j],
-                                                   res_ref$essn_ref[j], res_ref$issn_ref[j],res_new$check_title_pct[(ind_id[[j]])],res_new$check_title_ind[(ind_id[[j]])])))
+                                                   res_ref$essn_ref[j], res_ref$issn_ref[j],res_rest$check_title_pct[(ind_id[[j]])],res_rest$check_title_ind[(ind_id[[j]])])))
           
         }  
         
@@ -3503,7 +3511,7 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,doi_name,pas=8,value_s
   
   
   #travaile sur les citation_______________________________________________
-  if(type!="ref"){
+  if(type!="ref"){#on cherche les citation 
     #recuperation des identifiaant de citation ________________________________
     id_list=(unlist(res_new$id))
     
@@ -3575,13 +3583,15 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,doi_name,pas=8,value_s
       
     }
     })#end with progress
+    
+    
     print("deuxieme partie ")
     
     #  
     if(length(id_raw)!=dim(res_new)[1] && !is.null(res_new)) id_raw<-c(id_raw,rep(NA,dim(res_new)[1]-length(id_raw)))# permet d'ajoute la colone id raw ensuite 
     res_new$citation<-id_raw
     
-    #on parcourt les differente sitation (identifiant) pour extraire les info 
+    #on parcourt les differente citation (identifiant) pour extraire les info 
     if(length(id_list_citation_final)>0){
       inter=ceiling(length(id_list_citation_final)/pas)
       res_cit=c()
@@ -3595,7 +3605,7 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,doi_name,pas=8,value_s
         id_list_citation=id_list_citation_final[first:last]
         id_element=pumed_get_element_id(id_list_citation,type)
         res_cit<-rbind(res_cit,t(id_element$temp))
-        incProgress(amount = 1/inter,detail = paste("pubmed ",dim(res_cit)[1]," citation(s) founded")) # augmentation de la barre de chargement
+        #incProgress(amount = 1/inter,detail = paste("pubmed ",dim(res_cit)[1]," citation(s) founded")) # augmentation de la barre de chargement
         
         error_querry_cit<-rbind(error_querry_cit,id_element$error)
         error_querry=c(error_querry,id_element$error)
@@ -3652,11 +3662,11 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,doi_name,pas=8,value_s
     error_querry<-as.data.frame(cbind(NA,NA,NA,NA))
     names(error_querry)=c("Publication title","Status error","Message error", "Data impact")}
   
-  if(is.null(dim(res_new))) {
-    res_new=data.frame(matrix(rep("",9),ncol = 9),stringsAsFactors = FALSE)
-    names(resdt)<-c("id", "auteur","titre","date", "journal","ref_pmid","h_ref","issn","essn")
-    
-      }
+  # if(is.null(dim(res_new))) {
+  #   res_new=data.frame(matrix(rep("",9),ncol = 9),stringsAsFactors = FALSE)
+  #   names(res_new)<-c("id", "auteur","titre","date", "journal","ref_pmid","h_ref","issn","essn")
+  #   
+  #     }
   return(
     list(dataframe_citation_accept=res_cit_accept,error_querry_publi=error_querry,error_querry_citation=error_querry_cit,title_vector=ti_data,author_vector=au_data,dataframe_citation_ask=res_cit_ask,
          reject_analyse=reject,dataframe_publi_found=res_new,dataframe_ref_accept=res_ref_accept,error_querry_ref=error_querry_ref,dataframe_ref_ask=res_ref_ask))
@@ -3864,6 +3874,7 @@ pumed_get_publi<-function(au_data,ti_data,doi_data="",position_name,pas,value_sa
           withProgress(message = "Verifing the publication finded ",value = 0.90,{
             
             indic_compaire_title<-compaire_title(Unaccent(title_to_analyse),Unaccent(ti_data))
+            
           })
         }
         
@@ -3911,7 +3922,7 @@ pumed_get_publi<-function(au_data,ti_data,doi_data="",position_name,pas,value_sa
 #' @param source colonne contenant les nom de journal 
 #'
 #' @return les domaine 
-find_journal_domaine<-function(journal_data,journal_table_ref,issn="",essn="",source=""){
+find_journal_domaine<-function(journal_data,journal_table_ref,issn="",essn="",col_journal=""){
   
   #input
   #journal_data : vecteur nom de journaux 
@@ -3922,7 +3933,7 @@ find_journal_domaine<-function(journal_data,journal_table_ref,issn="",essn="",so
   
   
   
-  col_journal=source
+  
   journal_table_ref$Abreviation[journal_table_ref$Abreviation==""]=NA
   ab=c()
   cat=c()
@@ -3934,11 +3945,7 @@ find_journal_domaine<-function(journal_data,journal_table_ref,issn="",essn="",so
   #   message("CPU NOT ENNOF")
   #   res=NULL
   # }
-  library(microbenchmark)
-  library(parallel)
-  library(foreach)
-  library(doParallel)
-  library(shiny)
+  
   
   # if(Ncpus>1){
   #   print(Ncpus)
@@ -3974,7 +3981,7 @@ find_journal_domaine<-function(journal_data,journal_table_ref,issn="",essn="",so
                 ab=c(journal_courant$Abreviation[ind])
                 cat=c(journal_courant$Discipline.Scientifique.OST[ind])
                 trouver=TRUE
-                cat_trouver=c(1)
+                
               } 
             }}
             if(length(essn)!=0 && trouver==FALSE){ 
@@ -3983,7 +3990,6 @@ find_journal_domaine<-function(journal_data,journal_table_ref,issn="",essn="",so
                 if(length(ind)>0) {
                   ab=c(journal_courant$Abreviation[ind])
                   cat=c(journal_courant$Discipline.Scientifique.OST[ind])
-                  cat_trouver=1
                   trouver=TRUE
                 }
               }
@@ -3998,7 +4004,7 @@ find_journal_domaine<-function(journal_data,journal_table_ref,issn="",essn="",so
                 trouver=TRUE
                 ab=journal_courant$Abreviation[tp]
                 cat=journal_courant$Discipline.Scientifique.OST[tp]
-                cat_trouver=1
+               
               } 
             }
             
@@ -4010,6 +4016,8 @@ find_journal_domaine<-function(journal_data,journal_table_ref,issn="",essn="",so
             ab=NA
             cat=NA
             cat_trouver=0
+          }else {
+            cat_trouver=1
           }
           return(list(ab=ab,cat=cat,trouver=cat_trouver))
         #})
@@ -4050,7 +4058,7 @@ find_journal_domaine<-function(journal_data,journal_table_ref,issn="",essn="",so
                   ab=c(ab,journal_courant$Abreviation[ind])
                   cat=c(cat,journal_courant$Discipline.Scientifique.OST[ind])
                   trouver=TRUE
-                  cat_trouver=c(cat_trouver,1)
+                 
                 } 
               }}
               if(length(essn)!=0 && trouver==FALSE){ 
@@ -4059,7 +4067,7 @@ find_journal_domaine<-function(journal_data,journal_table_ref,issn="",essn="",so
                   if(length(ind)>0) {
                     ab=c(ab,journal_courant$Abreviation[ind])
                     cat=c(cat,journal_courant$Discipline.Scientifique.OST[ind])
-                    cat_trouver=c(cat_trouver,1)
+                    
                     trouver=TRUE
                   }
                 }
@@ -4074,7 +4082,7 @@ find_journal_domaine<-function(journal_data,journal_table_ref,issn="",essn="",so
                   trouver=TRUE
                   ab=c(ab,journal_courant$Abreviation[tp])
                   cat=c(cat,journal_courant$Discipline.Scientifique.OST[tp])
-                  cat_trouver=c(cat_trouver,1)
+                  
                 } 
               }
               #   # on cherche une correspondance de reference qui commence par le debut
@@ -4098,6 +4106,8 @@ find_journal_domaine<-function(journal_data,journal_table_ref,issn="",essn="",so
             ab=c(ab,NA)
             cat=c(cat,NA)
             cat_trouver=c(cat_trouver,0)
+          }else{
+            cat_trouver=c(cat_trouver,1)
           }
         })
       return(list(ab=ab,cat=cat,trouver=cat_trouver))

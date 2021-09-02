@@ -31,10 +31,10 @@ library(lubridate)
 library(plotly)
 library(shinycssloaders)
 library(DT)
-
+library(shinycookie)
 # l'ui c'est toute la partie qui définie l'exterieur de l'interface, les boutons et les boite. 
-ui <-dashboardPage(skin = "red",
-                   #menu
+ui<-dashboardPage(skin = "red",
+                                      #menu
                    dashboardHeader(title = "DOPABAT"),
                    dashboardSidebar( sidebarMenu(
                      menuItem("Home", tabName = "home", icon = icon("house-user")),
@@ -53,6 +53,8 @@ ui <-dashboardPage(skin = "red",
                      #-------------------------------------------------------------------  
                    )),
                    dashboardBody(
+                     initShinyCookie("cookies"), # initialisation de l'utilisation de cookie 
+                     
                      tabItems(
                        tabItem(tabName = "home",
                          titlePanel("Welcome to the DOPABAT app!"),
@@ -264,7 +266,8 @@ ui <-dashboardPage(skin = "red",
                                       textOutput("list_file"),
                                       useShinyjs(),                                           # Include shinyjs in the UI
                                       extendShinyjs(text = jsResetCode,functions = "reset"),        # Add the js code to the page
-                                      actionButton("reset_button", "Reset Page")
+                                      actionButton("reset_button", "Reset Page"),
+                                      actionButton("remove_cookies", "Remove tokens cookies")
                               ),
                               
                               tabItem(tabName = "wordcloud",
@@ -547,7 +550,7 @@ server <- function(input, output, session) {
     show_cit=FALSE,# "        "          "    "          "
     show_ads_res_window=FALSE,# les boutons et dataframe pour les reultat ads 
     show_pumed_res_window=FALSE,# "  "          "         "         "     pubmed 
-    show_lens_res_window=TRUE,#  "   "          "        "          "   lens 
+    show_lens_res_window=FALSE,#  "   "          "        "          "   lens 
     show_arxiv_res_window=FALSE,# "   "           "      "          "    arxiv 
     show_wos_res_window=FALSE, #  "   "            "     "          "   bib et lens 
     res_ads=NULL,#res_data_nasa_ads,#temporaire 
@@ -709,7 +712,7 @@ We ask all the users to   cite the different souces they use to make the graphic
   
   #meme chose pour la rescer interdis 
   output$text_database <- renderText({
-    paste(h4("Help:"),"First you will select a database and do 'process' (exectpte if you only have ref for wos) then you can manage your data as you wich and when it's ok clic on the right button.")
+    paste(h4("Help:"),"First you will select a database and do 'process' (exectpte if you only have ref for wos) then you can manage your data as you wich and when it's ok clic on the right button.","Cookies are used to remember your token(s). You can remouve them by clicking the remouve botton on history tab." )
   })
   
   #text d'aide pour l'onglet bibtext 
@@ -919,15 +922,15 @@ We ask all the users to   cite the different souces they use to make the graphic
     
     reactive_values$df_global[["year"]]<-as.factor(year)
     if(max(year,na.rm = TRUE)-min(year,na.rm = TRUE)!=0){# on met a jour les parametre des graphiques 
-      updateSelectInput(session, inputId = "intervalyear",choices =c("Full year",1:(max(year,na.rm = TRUE)-min(year,na.rm = TRUE))))
-      updateSelectInput(session, inputId = "networkintervalyear",choices =c("Full year",1:(max(year,na.rm = TRUE)-min(year,na.rm = TRUE))))
+      updateSelectInput(session, inputId = "intervalyear",choices =c("Full years",1:(max(year,na.rm = TRUE)-min(year,na.rm = TRUE))))
+      updateSelectInput(session, inputId = "networkintervalyear",choices =c("Full years",1:(max(year,na.rm = TRUE)-min(year,na.rm = TRUE))))
     }else{
-      updateSelectInput(session, inputId = "intervalyear",choices =c("Full year",1:1))
-      updateSelectInput(session, inputId = "networkintervalyear",choices =c("Full year",1:1))
+      updateSelectInput(session, inputId = "intervalyear",choices =c("Full years",1:1))
+      updateSelectInput(session, inputId = "networkintervalyear",choices =c("Full years",1:1))
     }
     
     
-    keywords_tok<-strsplit(keywords,",",fixed=TRUE)# mise en forme des mot clef , tokanisation
+    keywords_tok<-strsplit(keywords,",",fixed=TRUE)# mise en forme des mot clef , séparation des mot clef 
     
     # lematisation
     keywords_lem<-sapply(1:length(keywords_tok),FUN =function(x,l=lang) {stemDocument(keywords_tok[[x]],language = l)})
@@ -1026,6 +1029,9 @@ We ask all the users to   cite the different souces they use to make the graphic
       }else {
         
         output$plots <- renderUI({
+          validate(
+            need(length(reactive_values$graph)>0,"no graph to produce")
+          )
           plot_output_list <- lapply(1:length(reactive_values$graph), function(i) {
             plotname <- paste("plot", i, sep="")
             visNetworkOutput(plotname, height = "400px")
@@ -1130,6 +1136,9 @@ We ask all the users to   cite the different souces they use to make the graphic
       
       
       output$plot_wordcloud <- renderUI({
+        validate(
+          need(length(reactive_values$numberwordcloud)>0,"no graph to produce")
+        )
         
         plot_output_list <- lapply(1:reactive_values$numberwordcloud, function(j) {
           plotname <- paste("wplot", j, sep="")
@@ -1869,8 +1878,8 @@ We ask all the users to   cite the different souces they use to make the graphic
                                                                         scrollX = TRUE, columnDefs = list(list(
                                                                           targets = c(2,3) ,render = JS(
                                                                             "function(data, type, row, meta) {",
-                                                                            "return type === 'display' && data.length > 50 ?",
-                                                                            "'<span title=\"' + data + '\">' + data.substr(0, 50) + '...</span>' : data;",
+                                                                            "return type === 'display' && data.length > 100 ?",
+                                                                            "'<span title=\"' + data + '\">' + data.substr(0, 100) + '...</span>' : data;",
                                                                             "}")
                                                                         ))))
         })  
@@ -1942,7 +1951,7 @@ We ask all the users to   cite the different souces they use to make the graphic
         ind_ref_2=which(reactive_values$table_to_show_ref$id[[selectedRow]]==unlist(reactive_values$res_lens$dataframe_ref_accept$`refering identifier`))# ligne déja ajouter
         if(length(ind_ref_2)==0) if(dim(reactive_values$res_lens$dataframe_ref_ask[ind_ref_1,])[1])  if(dim(reactive_values$res_lens$dataframe_ref_ask[ind_ref_1,])[1]>0) reactive_values$res_lens$dataframe_ref_accept=rbind(reactive_values$res_lens$dataframe_ref_accept,reactive_values$res_ads$dataframe_ref_ask[ind_ref_1,])
       }
-      reactive_values$transfer_done$pumed=c(reactive_values$transfer_done$pumed,reactive_values$table_to_show_ref$id[[selectedRow]])   
+      reactive_values$transfer_done$lens=c(reactive_values$transfer_done$lens,reactive_values$table_to_show_ref$id[[selectedRow]])   
     }  
   })
   
@@ -2053,11 +2062,10 @@ We ask all the users to   cite the different souces they use to make the graphic
     },ignoreInit = TRUE)
   observeEvent(input$pubmed_ref_accept,{
     output$table_data_ref3 <- renderDataTable({
-      # validate(
-      #   need(reactive_values$data_wos, "No bibtext data"),
-      #   need(!is.null(reactive_values$data_wos), "")
-      # )
-      #test=df_flatten(res_arxiv$res_citation_accept)
+      validate(
+        need(dim(reactive_values$res_pumed$dataframe_ref_accept)[1]>0, "No reference founded")
+        #       #   need(!is.null(reactive_values$data_wos), "")
+      )
       table_data=datatable(df_flatten(reactive_values$res_pumed$dataframe_ref_accept), options = list(scrollX = TRUE, columnDefs = list(list(
         targets = c(1,2,4,5,6) ,render = JS(
           "function(data, type, row, meta) {",
@@ -2072,6 +2080,10 @@ We ask all the users to   cite the different souces they use to make the graphic
   
   observeEvent(input$pubmed_cit_accept,{
     output$table_data_ref3 <- renderDataTable({
+      validate(
+        need(dim(reactive_values$res_pumed$dataframe_citation_accept)[1]>0, "No citation founded")
+        #       #   need(!is.null(reactive_values$data_wos), "")
+      )
       
       table_data=datatable(df_flatten(reactive_values$res_pumed$dataframe_citation_accept), options = list(scrollX = TRUE, columnDefs = list(list(
         targets = c(1,2,4,5,6) ,render = JS(
@@ -2173,7 +2185,7 @@ We ask all the users to   cite the different souces they use to make the graphic
   },ignoreInit = TRUE,ignoreNULL = TRUE)
   
   
-  
+  #-- lens table __________________________________________________________________________________
   observeEvent(input$lens_ref_accept,{
     output$table_data_ref5 <- renderDataTable({
        validate(
@@ -2255,15 +2267,17 @@ We ask all the users to   cite the different souces they use to make the graphic
   },{
     if(input$lens_ask!=0){ # le boutons na pas été apuillez cela previen du notre bd   
     print("on rentre lens")
-      reactive_values$table_to_show_ref=df_flatten(reactive_values$res_lens$dataframe_publi_found[(reactive_values$res_lens$dataframe_publi_found$check_title_pct<reactive_values$value_same_min_accept) & (reactive_values$res_lens$dataframe_publi_found$check_title_pct>=reactive_values$value_same_min_ask),])
+      print(reactive_values$transfer_done$lens)
+      reactive_values$table_to_show_ref=(reactive_values$res_lens$dataframe_publi_found[(reactive_values$res_lens$dataframe_publi_found$check_title_pct<reactive_values$value_same_min_accept) & (reactive_values$res_lens$dataframe_publi_found$check_title_pct>=reactive_values$value_same_min_ask),])
       
-      
+     
       if(dim(reactive_values$table_to_show_ref)[1]>0) rownames(reactive_values$table_to_show_ref)<-1:nrow(reactive_values$table_to_show_ref)
       
       if(!is.null(reactive_values$transfer_done$lens)){ 
         
         ind_temp=reactive_values$table_to_show_ref$id%in%reactive_values$transfer_done$lens
         reactive_values$table_to_show_ref=reactive_values$table_to_show_ref[!ind_temp,]  
+        #browser()
       }
       df <- reactiveValues()  
     
@@ -2335,8 +2349,9 @@ We ask all the users to   cite the different souces they use to make the graphic
       #browser()
       
       error=tryCatch({
-        res_temp<-global_merge_and_cal_interdis(ads=reactive_values$res_ads,arxiv=reactive_values$res_arxiv,pumed=reactive_values$res_pumed,wos=reactive_values$ref_wos,reactive_values$res_lens,journal_table_ref = reactive_values$journal_table_ref,table_categ_gd = reactive_values$table_categ_gd,type = input$type,table_dist =reactive_values$table_dist,col_journal=c(input$col_journal_ads,input$col_journal_arxiv,input$col_journal_pumed,input$col_journal_wos,input$col_journal_lens))  
-        
+        withProgress(message = "Dicipline distance calculation",value = 0.90,{       
+         res_temp<-global_merge_and_cal_interdis(ads=reactive_values$res_ads,arxiv=reactive_values$res_arxiv,pumed=reactive_values$res_pumed,wos=reactive_values$ref_wos,reactive_values$res_lens,journal_table_ref = reactive_values$journal_table_ref,table_categ_gd = reactive_values$table_categ_gd,type = input$type,table_dist =reactive_values$table_dist,col_journal=c(input$col_journal_ads,input$col_journal_arxiv,input$col_journal_pumed,input$col_journal_wos,input$col_journal_lens))  
+        })
       },
       error=function(cond){ 
         print("error in global")  #reactive_values$ok_analyse=FALSE
@@ -2371,10 +2386,14 @@ We ask all the users to   cite the different souces they use to make the graphic
             #     View(reactive_values$matrice_res_ref$res$prop_grande_discipline)   
             #View(reactive_values$matrice_res_ref$res$prop)
             output$plot_article_ref<-renderPlotly({
+              # validate(
+              #   need(!is.na(line),"no data")
+              # )
               error=tryCatch({
                 
                 line=which(reactive_values$matrice_res_ref$res$prop[["IDENTIFIANT"]]%in%input$select_article)
-                # print(paste0("_",input$select_article,"_")%in%unlist(reactive_values$matrice_res_ref$res$prop[["IDENTIFIANT"]]))
+                
+                 # print(paste0("_",input$select_article,"_")%in%unlist(reactive_values$matrice_res_ref$res$prop[["IDENTIFIANT"]]))
                 
                 ind=which(reactive_values$matrice_res_ref$res$prop_grande_discipline[line,]!=0)# secteur selectionner 
                 title_graph=paste0("Main subjects  \n of article ",reactive_values$matrice_res_ref$res$prop[["TITLE"]][[line]])
@@ -2408,10 +2427,14 @@ We ask all the users to   cite the different souces they use to make the graphic
                                                               yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
               #reactive_values$plots_article_ref <- bp + coord_polar("y", start=0)+ggtitle(paste0("Main subjects  \n of article",input$select_article))
               
-              
-              ind_stat=which(reactive_values$matrice_res_ref$data[["refering identifier"]]==input$select_article)
-              reactive_values$pct_ref[1]=mean(unlist(reactive_values$matrice_res_ref$data[ind_stat,]$refered_indice_pct_found))
+              short_id_article=substr(input$select_article,start = `attributes<-`(gregexpr(pattern = "..//",input$select_article)[[1]],NULL)+4,stop = nchar(input$select_article))
+              ind_stat=which(reactive_values$matrice_res_ref$data[["refering identifier"]]==short_id_article)
+              reactive_values$pct_ref[1]=mean(as.numeric(unlist(reactive_values$matrice_res_ref$data[ind_stat,]$refered_indice_pct_found)))
               # View(reactive_values$matrice_res_ref$data[ind_stat,])
+              print(as.numeric(unlist(reactive_values$matrice_res_ref$data[ind_stat,]$refered_indice_pct_found)))
+              print("ind stat")
+              print(ind_stat)
+             
               reactive_values$secteur_is_finish<-TRUE
               return(plot_article_ref)
               
@@ -2448,7 +2471,7 @@ We ask all the users to   cite the different souces they use to make the graphic
               
               
               
-              reactive_values$pct_ref[2]=mean(unlist(reactive_values$matrice_res_ref$data$refered_indice_pct_found))
+              reactive_values$pct_ref[2]=mean(as.numeric(unlist(reactive_values$matrice_res_ref$data$refered_indice_pct_found)))
               
               reactive_values$secteur_is_finish<-TRUE
               
@@ -2562,10 +2585,15 @@ We ask all the users to   cite the different souces they use to make the graphic
             updateSelectInput(session, inputId = "select_article", choices = unique(c(reactive_values$matrice_res_ref$res$prop[["IDENTIFIANT"]],reactive_values$matrice_res_cit$res$prop[["IDENTIFIANT"]])))
             
             output$plot_article_cit<-renderPlotly({
+              # validate(
+              #   need(!is.na(line),"no data")
+              # )
               
               error=tryCatch({
                 line=which(reactive_values$matrice_res_cit$res$prop[["IDENTIFIANT"]]%in%input$select_article)
                 ind=which(reactive_values$matrice_res_cit$res$prop_grande_discipline[line,]!=0)
+                print(ind)
+                print(line)
                 title_graph=paste0("Main subjects  \n of article ",reactive_values$matrice_res_cit$res$prop[["TITLE"]][[line]])
                 df <- data.frame(
                   group = Unaccent(names(reactive_values$matrice_res_cit$res$prop_grande_discipline[line,])[ind]),
@@ -2595,8 +2623,9 @@ We ask all the users to   cite the different souces they use to make the graphic
                                                               legend = list(font = list(size = 9)),
                                                               xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
                                                               yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
-              ind_stat=which(reactive_values$matrice_res_cit$data[["cited identifier"]]==input$select_article)
-              reactive_values$pct_cit[1]=mean(unlist(reactive_values$matrice_res_cit$data[ind_stat,]$citing_indice_pct_found))
+              short_id_article=substr(input$select_article,start = `attributes<-`(gregexpr(pattern = "..//",input$select_article)[[1]],NULL)+4,stop = nchar(input$select_article))
+              ind_stat=which(reactive_values$matrice_res_cit$data[["cited identifier"]]==short_id_article)
+              reactive_values$pct_cit[1]=mean(as.numeric(unlist(reactive_values$matrice_res_cit$data[ind_stat,]$citing_indice_pct_found)))
               
               return(plot_article_cit)
               
@@ -2629,7 +2658,7 @@ We ask all the users to   cite the different souces they use to make the graphic
                                                           xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
                                                           yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
               reactive_values$secteur_is_finish<-TRUE
-              reactive_values$pct_cit[2]=mean(unlist(reactive_values$matrice_res_cit$data$citing_indice_pct_found))
+              reactive_values$pct_cit[2]=mean(as.numeric(unlist(reactive_values$matrice_res_cit$data$citing_indice_pct_found)))
               
               return(plot_total_cit)
               
@@ -2732,8 +2761,34 @@ We ask all the users to   cite the different souces they use to make the graphic
     }
   )
   
+#-- gestion des cookies 
+  
+  observeEvent(input$valid_DB, {
+    updateCookie(session, "cookie_lens_token"=input$token_lens)
+    updateCookie(session, "cookie_ads_token"=input$token_ads)
+    
+    
+  },ignoreInit = TRUE)
   
   
+  observeEvent({c(input$cookies$cookie_ads_token,input$cookies$cookie_lens_token)},{
+    print("passse")
+    if(input$cookies$cookie_ads_token!="") updateTextInput(session,inputId ="token_ads",value =input$cookies$cookie_ads_token  )
+    if(input$cookies$cookie_lens_token!="") updateTextInput(session,inputId ="token_lens",value =input$cookies$cookie_lens_token  )
+  })
+  
+  observeEvent(input$remove_cookies, {
+    removeCookie(name = "cookie_lens_token")
+    removeCookie(name="cookie_ads_token")
+    updateTextInput(session,inputId ="token_ads",value =""  )
+    updateTextInput(session,inputId ="token_lens",value =""  )
+    showModal(modalDialog(
+      title = "Cookies are remouved",
+      "the app succesfuly remouved the cookies",
+      easyClose = TRUE,
+      footer = NULL
+    ))
+  },ignoreInit = TRUE)
   
 }#end serveur 
 
