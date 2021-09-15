@@ -142,7 +142,7 @@ ui<-dashboardPage(skin = "red",
                                                                                                                                          ";"=";",
                                                                                                                                  "saut de ligne"="\n"),
                                                                                                                              selected = ",")),
-                                            textInput("other_sep_author_csv", "other sparateur of author"), 
+                                            textInput("other_sep_author_csv", "other seprator of author"), 
                                             
                                             # permet d'afficher la selection de header après l'import 
                                             conditionalPanel('output.show_header',tags$div(title="Validation of the table start the analysis",actionButton("valid_table", "validate")))# boutton de validation du fichier 
@@ -232,7 +232,7 @@ ui<-dashboardPage(skin = "red",
                                                                                                         multiple = TRUE,
                                                                                                         accept = c(".bib"))),
                                             tags$div(title="If the file is coming from wos database OR if the regular importation dont work ,check this case",
-                                                     checkboxInput("is_wos", "this file is comming from WOS(wos importation methode) ",value = FALSE)),
+                                                     checkboxInput("is_wos", "this file comes from the WOS(wos importation methode) ",value = FALSE)),
                                             
                                             htmlOutput("text_wos"),
                                             tags$hr(),
@@ -308,8 +308,8 @@ ui<-dashboardPage(skin = "red",
                                       htmlOutput("text_network"),
                                       downloadButton("downloadData", "Download acticles data"),
                                       fluidRow(column(width=3,   tags$div(title="show only the bigest nodes with their relations ",selectInput("networktop","number of keywords for top graph",choices =c("None",1:20)))),
-                                               column(width=3, tags$div(title="Supress th nodes taken only one time in the graphic",checkboxInput("supones", "supress keywords taken one time only", value = FALSE)),
-                                                      tags$div(title="Reduce the size of the nodes to root",checkboxInput("root", "passe the weight of nood to roots", value = FALSE))),
+                                               column(width=3, tags$div(title="Supress th nodes taken only one time in the graphic",checkboxInput("supones", "delete the keywords taken only once", value = FALSE)),
+                                                      tags$div(title="Reduce the size of the nodes to root",checkboxInput("root", "pass the weight of nodes to roots", value = FALSE))),
                                                column(width=3,tags$div(title="One graphic per number of year",selectInput("networkintervalyear","number of year per graphics",choices =c("All year",1:20)))),
                                                column(width=3, tags$div(title="switch to domain network",checkboxInput("domain", "show domain study ", value = FALSE)))
                                                
@@ -371,7 +371,7 @@ ui<-dashboardPage(skin = "red",
                                                                                 ),
                                                                                 actionButton("ads_error", "Show error(s)"),
                                                                                 actionButton("ads_ask","Show publications with doute"),
-                                                                                actionButton("ads_res_publi","Show publications founded"),
+                                                                                actionButton("ads_res_publi","Show the found publications"),
                                                                                 dataTableOutput("table_data_ref1"))),
                                                
                                                tabPanel("Pubmed", conditionalPanel('output.show_pumed_res_window',
@@ -658,12 +658,12 @@ server <- function(input, output, session) {
   #ce qui suit est le texte present dans la partie about 
   output$text_home <- renderText({
     paste(h3("DOPABAT, what is it ?"),"\n","DOPABAT (Développement d'outils d'analyse bibliométrique et d'audience des thèses) is a project funded by Collex-Persée.
-           A national infrastructure of technique and sciences which supports French researchers. The objectives are, on the one hand, to know the importance of theses in the scientific production and, on the other hand, to know the importance of the cooperation between laboratories on the themes of Physics and Astronomy. 
-           At first this project was a researcheress request that consisted in the analysis of PHDs coming from two universities. DOPABAT aims to analyse all the bibliometric data, keywords, domains of study, citations, references. You can now, use it too, you can importe cvs files or bibtext files to start the analyse. After importation you can chose wich database you want to analyse!
+            a national research infrastructure. The objectives are, on the one hand, to know the importance of theses in scientific production and, on the other hand, to know the importance of the cooperation between laboratories on the themes of Physics and Astronomy. 
+           DOPABAT aims to analyse all the bibliometric data, keywords, domains, citations, references. You can import cvs files or bibtex files to start the analyse. After importation you can choose which database you want to analyse!
           
            NB: you have to have a token for some.
           
-          If you need exemple or help we invite you to click on",a("user guide",target="_blank",href="User_help_doc.pdf"),"for more details"
+          If you need examples or help we invite you to click on",a("user guide",target="_blank",href="User_help_doc.pdf"),"for more details"
           )
   })
   output$text <- renderText({
@@ -703,26 +703,26 @@ We ask all the users to   cite the different souces they use to make the graphic
   })
   # trst present dans le network pour aider a le comprehension, ces textes sont de l'html  
   output$text_network <- renderText({
-    paste(h4("Help:"), "When you have your network you could click on nodes. In doing so a table will apear under the graph with details of publications concerning that node.")
+    paste(h4("Help:"), "When you have your network you could click on nodes. In doing so a table will appear under the graph with details of publications concerning that node.")
   })
   
   output$text_interdis_graph <- renderText({
-    paste(h4("Help:"), "Here you can see the interdiciplinarity of each article or the copus. If you click on a part of the graph you will have data details on a table below.")
+    paste(h4("Help:"), "Here you can see the interdisciplinarity  of each article or the copus. If you click on a part of the graph you will have data details on a table below.")
   })
   
   #meme chose pour la rescer interdis 
   output$text_database <- renderText({
-    paste(h4("Help:"),"First you will select a database and do 'process' (exectpte if you only have ref for wos) then you can manage your data as you wich and when it's ok clic on the right button.","Cookies are used to remember your token(s). You can remouve them by clicking the remouve botton on history tab." )
+    paste(h4("Help:"),"First select a database and do 'process' (execpt if you only have references from wos) then you can manage your data as you wich and when it's ok clic on the right button.","Cookies are used to remember your token(s). You can remouve them by clicking the remouve botton on history tab." )
   })
   
   #text d'aide pour l'onglet bibtext 
   output$text_wos <- renderText({
-    paste(h4("Help:"), "if the table is stuck on  'Processing' clik on 'this file is comming from WOS' this method works better for some file.
+    paste(h4("Help:"), "if the table is stuck on  'Processing' clik on 'this file comes from WOS' this method works better for some file.
           AU is the author column, TI the title column, PY is the date of publication and CR is the column which contain references")
   })
   # text aide pour historic 
   output$text_history <- renderText({
-    paste(h4("Help:"), "when you valid a file that add their data to the whole analysis and that not delete the privious result. to delete analysis clic on the 'reset' buttons")
+    paste(h4("Help:"), "when you valid a file that add their data to the whole analysis and that not delete the previous result. To delete analysis click on the 'reset' button")
   })
   
   #historique ________________________________________________________
@@ -1731,6 +1731,7 @@ We ask all the users to   cite the different souces they use to make the graphic
         length(reactive_values$res_pumed$dataframe_ref_accept$`refering identifier`)+
         length(reactive_values$res_lens$dataframe_citation_accept$`cited identifier`)+
         length(reactive_values$res_lens$dataframe_ref_accept$`refering identifier`)
+      print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaafter value call")
       if(reactive_values$cal_temp>=1){
         showModal(modalDialog(
           title = "research ended",

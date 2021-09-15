@@ -1274,7 +1274,8 @@ shinyInput <- function(FUN, n, id, ...) {
 
 
 extraction_data_api_nasa_ads<-function(data_pub,ti_name,au_name,doi_name,token,pas=8,value_same_min_accept=0, value_same_min_ask=1,type="all",source_name="",sep_vector_in_data="",position_vector_in_data=""){
-  
+  print("in nasa ads")
+  #browser()
   #' extraction_data_api_nasa_ads
   #'# fonction permetant d'interroger ads sur les reference et les citation d'un corpus de publication placer en entree 
   
@@ -1338,9 +1339,8 @@ extraction_data_api_nasa_ads<-function(data_pub,ti_name,au_name,doi_name,token,p
     data_wos=data_pub[data_pub[source_name]=="WOS",]#separation des source 
     
     if(length(sep_vector_in_data)==1) if(sep_vector_in_data=="") sep="" else sep=data_wos[sep_vector_in_data][[1]]
-    if(length(position_vector_in_data)==1) if(position_vector_in_data=="") position_name=rep(1,dim(data_wos)[1]) else position_name=data_wos[position_vector_in_data][[1]]
     if(dim(data_wos)[1]!=0) {
-      res_wos_all=  ads_get_publi(au_data = data_wos[au_name][[1]],ti_data = data_wos[ti_name][[1]],doi_data = data_wos[doi_name][[1]],position_name[data_pub[source_name]=="WOS"],pas,value_same_min_ask,value_same_min_accept,token,sep)
+      res_wos_all=  ads_get_publi(au_data = data_wos[au_name][[1]],ti_data = data_wos[ti_name][[1]],doi_data = data_wos[doi_name][[1]],data_wos[position_vector_in_data][[1]],pas,value_same_min_ask,value_same_min_accept,token,sep)
       res_wos=res_wos_all$res
       err1=res_wos_all$error
       reject1=res_wos_all$reject
@@ -1357,10 +1357,9 @@ extraction_data_api_nasa_ads<-function(data_pub,ti_name,au_name,doi_name,token,p
     data_rest=data_pub[data_pub[source_name]!="WOS",]
     
     if(length(sep_vector_in_data)==1) if(sep_vector_in_data=="") sep="" else sep=data_rest[sep_vector_in_data][[1]]
-    if(length(position_vector_in_data)==1) if(position_vector_in_data=="") position_name=rep(1,dim(data_rest)[1]) else position_name=data_rest[position_vector_in_data][[1]]
     if(dim(data_rest)[1]!=0) {
       
-      res_rest_all=  ads_get_publi(au_data = data_rest[au_name][[1]],ti_data = data_rest[ti_name][[1]],doi_data = data_rest[doi_name][[1]],position_name[data_pub[source_name]!="WOS"],pas,value_same_min_ask,value_same_min_accept,token,sep)
+      res_rest_all=  ads_get_publi(au_data = data_rest[au_name][[1]],ti_data = data_rest[ti_name][[1]],doi_data = data_rest[doi_name][[1]],data_rest[position_vector_in_data][[1]],pas,value_same_min_ask,value_same_min_accept,token,sep)
       res_rest=res_rest_all$res
       err2=res_rest_all$error
       reject2=res_rest_all$reject
@@ -1381,9 +1380,8 @@ extraction_data_api_nasa_ads<-function(data_pub,ti_name,au_name,doi_name,token,p
   }else {
     
     if(length(sep_vector_in_data)==1) if(sep_vector_in_data=="") sep="" else sep=data_pub[sep_vector_in_data][[1]]
-    if(length(position_vector_in_data)==1) if(position_vector_in_data=="") position_name=rep(1,dim(data_pub)[1]) else position_name=data_pub[position_vector_in_data][[1]]
     if(dim(data_pub)[1]!=0) {
-      resdt_all=  ads_get_publi(au_data = au_data,ti_data = ti_data,doi_data = doi_data,position_name,pas,value_same_min_ask,value_same_min_accept,token,sep = sep)
+      resdt_all=  ads_get_publi(au_data = au_data,ti_data = ti_data,doi_data = doi_data,data_pub[position_vector_in_data][[1]],pas,value_same_min_ask,value_same_min_accept,token,sep = sep)
       error_querry=resdt_all$error
       res=resdt_all$res
       reject=resdt_all$reject
@@ -1543,9 +1541,8 @@ extraction_data_api_arxiv<-function(data_pub,ti_name,au_name,pas=8,value_same_mi
     
     if(dim(data_wos)[1]!=0) {
       if(length(sep_vector_in_data)==1) if(sep_vector_in_data=="") sep="" else sep=data_wos[sep_vector_in_data][[1]]
-      if(length(position_vector_in_data)==1) if(position_vector_in_data=="") position_name=rep(1,dim(data_wos)[1]) else position_name=data_wos[position_vector_in_data][[1]]
-      
-      res_wos_all=arxiv_get_publi(data_wos[au_name][[1]],data_wos[ti_name][[1]],position_name,pas,value_same_min_ask,value_same_min_accept,sep,id_data)
+
+      res_wos_all=arxiv_get_publi(data_wos[au_name][[1]],data_wos[ti_name][[1]],data_wos[position_vector_in_data][[1]],pas,value_same_min_ask,value_same_min_accept,sep,id_data)
       res_wos=res_wos_all$res
       err1=res_wos_all$error
       reject1=res_wos_all$reject
@@ -1562,9 +1559,8 @@ extraction_data_api_arxiv<-function(data_pub,ti_name,au_name,pas=8,value_same_mi
     
     if(dim(data_rest)[1]!=0) {
       if(length(sep_vector_in_data)==1) if(sep_vector_in_data=="") sep="" else sep=data_rest[sep_vector_in_data][[1]]
-      if(length(position_vector_in_data)==1) if(position_vector_in_data=="") position_name=rep(1,dim(data_rest)[1]) else position_name=data_rest[position_vector_in_data][[1]]
-      
-      res_rest_all=arxiv_get_publi(data_rest[au_name][[1]],data_rest[ti_name][[1]],position_name,pas,value_same_min_ask,value_same_min_accept,sep,id_data)
+
+      res_rest_all=arxiv_get_publi(data_rest[au_name][[1]],data_rest[ti_name][[1]],data_rest[position_vector_in_data][[1]],pas,value_same_min_ask,value_same_min_accept,sep,id_data)
       res_rest=res_rest_all$res
       err2=res_rest_all$error
       reject2=res_rest_all$reject
@@ -1581,9 +1577,8 @@ extraction_data_api_arxiv<-function(data_pub,ti_name,au_name,pas=8,value_same_mi
     reject=rbind(reject1,reject2)
   }else {
     if(length(sep_vector_in_data)==1) if(sep_vector_in_data=="") sep="" else sep=data_pub[sep_vector_in_data][[1]]
-    if(length(position_vector_in_data)==1) if(position_vector_in_data=="") position_name=rep(1,dim(data_pub)[1]) else position_name=data_pub[position_vector_in_data][[1]]
-    
-    resdt_all=arxiv_get_publi(au_data = au_data,ti_data,position_name,pas,value_same_min_ask,value_same_min_accept,sep = sep,id_data)
+
+    resdt_all=arxiv_get_publi(au_data = au_data,ti_data,data_pub[position_vector_in_data][[1]],pas,value_same_min_ask,value_same_min_accept,sep = sep,id_data)
     error_querry=resdt_all$error
     reject=resdt_all$reject
     res=resdt_all$res
@@ -2729,7 +2724,7 @@ lens_get_publi<-function(au_data,ti_data,doi_data="",position_reel,pas,value_sam
       au_data=fit_name_position(au_data,position_reel,position_togo =position_togo,sep )
       au_data=sapply(1:length(au_data),FUN = function(x) paste(au_data[[x]],collapse = ";"))
       # nombre d'iteration
-      data_to_use=no_doi=which(is.na(doi_data)| doi_data=="" )#pas de doi = doi vide 
+      data_to_use=no_doi=which(is.na(doi_data)|doi_data=="" )#pas de doi = doi vide 
     }else{#on peu se permet car les élément perturbateur on été supprimer 
       data_to_use=doi=which(doi_data!="" & !is.na(doi_data))
     }
@@ -2913,9 +2908,8 @@ extraction_data_api_lens<-function(data_pub,ti_name,au_name,doi_name,token,pas=1
     data_wos=data_pub[data_pub[source_name]=="WOS",]#separation des source 
     
     if(length(sep_vector_in_data)==1) if(sep_vector_in_data=="") sep="" else sep=data_wos[sep_vector_in_data][[1]]
-    if(length(position_vector_in_data)==1) if(position_vector_in_data=="") position_name=rep(1,dim(data_wos)[1]) else position_name=data_wos[position_vector_in_data][[1]]
     if(dim(data_wos)[1]!=0) {
-      res_wos_all=lens_get_publi(data_wos[au_name][[1]],data_wos[ti_name][[1]],data_wos[doi_name][[1]] ,position_name[data_pub[source_name]=="WOS"],pas,value_same_min_ask,value_same_min_accept,token,sep)
+      res_wos_all=lens_get_publi(data_wos[au_name][[1]],data_wos[ti_name][[1]],data_wos[doi_name][[1]] ,data_wos[position_vector_in_data][[1]],pas,value_same_min_ask,value_same_min_accept,token,sep)
       res_wos=res_wos_all$res
       err1=res_wos_all$error
       reject1=res_wos_all$reject
@@ -2930,10 +2924,9 @@ extraction_data_api_lens<-function(data_pub,ti_name,au_name,doi_name,token,pas=1
     
     data_rest=data_pub[data_pub[source_name]!="WOS",]
     if(length(sep_vector_in_data)==1) if(sep_vector_in_data=="") sep="" else sep=data_rest[sep_vector_in_data][[1]]
-    if(length(position_vector_in_data)==1) if(position_vector_in_data=="") position_name=rep(1,dim(data_rest)[1]) else position_name=data_rest[position_vector_in_data][[1]]
     if(dim(data_rest)[1]!=0) {
       
-      res_rest_all=lens_get_publi(data_rest[au_name][[1]],data_rest[ti_name][[1]],data_rest[doi_name][[1]],position_name[data_pub[source_name]!="WOS"],pas,value_same_min_ask,value_same_min_accept,token,sep)
+      res_rest_all=lens_get_publi(data_rest[au_name][[1]],data_rest[ti_name][[1]],data_rest[doi_name][[1]],data_rest[position_vector_in_data][[1]],pas,value_same_min_ask,value_same_min_accept,token,sep)
       print(dim(res_rest_all$res))
       res_rest=res_rest_all$res
       err2=res_rest_all$error
@@ -2954,9 +2947,8 @@ extraction_data_api_lens<-function(data_pub,ti_name,au_name,doi_name,token,pas=1
   }else {
     
     if(length(sep_vector_in_data)==1) if(sep_vector_in_data=="") sep="" else sep=data_pub[sep_vector_in_data][[1]]
-    if(length(position_vector_in_data)==1) if(position_vector_in_data=="") position_name=rep(1,dim(data_pub)[1]) else position_name=data_pub[position_vector_in_data][[1]]
     if(dim(data_pub)[1]!=0) {
-      resdt_all=lens_get_publi(au_data,ti_data,doi_data,position_name,pas,value_same_min_ask,value_same_min_accept,token,sep = sep)
+      resdt_all=lens_get_publi(au_data,ti_data,doi_data,data_pub[position_vector_in_data][[1]],pas,value_same_min_ask,value_same_min_accept,token,sep = sep)
       error_querry=resdt_all$error
       res=resdt_all$res
       reject=resdt_all$reject
@@ -3027,7 +3019,7 @@ extraction_data_api_lens<-function(data_pub,ti_name,au_name,doi_name,token,pas=1
   return(list(dataframe_citation_accept=total_res,error_querry_publi=error_querry,title_vector=ti_data,author_vector=au_data,dataframe_citation_ask=total_res_ask,
               reject_analyse=reject,dataframe_publi_found=resdt,dataframe_ref_accept=total_res_ref,dataframe_ref_ask=total_res_ref_ask))
   
-  
+print("sortie lens ")  
 }
 
 
@@ -3135,8 +3127,9 @@ ads_get_publi<-function(au_data,ti_data,doi_data="",position_name,pas,value_same
       au_data=fit_name_position(au_data,position_name,position_togo =position_togo,sep )
       au_data=sapply(1:length(au_data),FUN = function(x) paste(au_data[[x]],collapse = ";"))
       # nombre d'iteration
-      data_to_use=no_doi=which(is.na(doi_data)| doi_data=="" )#pas de doi = doi vide 
       
+      data_to_use=no_doi=which(is.na(doi_data)| doi_data=="" )#pas de doi = doi vide 
+      print("end requete type au")
     }else{#on peu se permet car les élément perturbateur on été supprimer 
       data_to_use=doi=which(doi_data!="" & !is.na(doi_data))
     }
@@ -3244,7 +3237,7 @@ ads_get_publi<-function(au_data,ti_data,doi_data="",position_name,pas,value_same
         }
         
         
-        
+        print("end looop")
         if(h==inter) {# fin de loop mise en place des data frame 
           resdt=as.data.frame(res)
           
@@ -3296,6 +3289,7 @@ ads_get_publi<-function(au_data,ti_data,doi_data="",position_name,pas,value_same
        reject=NULL
      }
   #browser()
+  print("sorti ads ")
 return(list(res=resdt,error=error_querry,reject=reject,lastresult=last_good_result,querry_list=querry_list))
   
 }      
@@ -3374,8 +3368,7 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,doi_name,pas=8,value_s
     data_wos=data_pub[data_pub[source_name]=="WOS",]
     if(dim(data_wos)[1]!=0) {
       if(length(sep_vector_in_data)==1) if(sep_vector_in_data=="") sep="" else sep=data_wos[sep_vector_in_data][[1]]
-      if(length(position_vector_in_data)==1) if(position_vector_in_data=="") position_name=rep(1,dim(data_wos)[1]) else position_name=data_wos[position_vector_in_data][[1]]
-      res_wos_all=pumed_get_publi(data_wos[au_name][[1]],data_wos[ti_name][[1]],data_wos[doi_name][[1]],data_wos$position_name,pas,value_same_min_ask,value_same_min_accept,data_wos$sep)
+      res_wos_all=pumed_get_publi(data_wos[au_name][[1]],data_wos[ti_name][[1]],data_wos[doi_name][[1]],data_wos[position_vector_in_data][[1]],pas,value_same_min_ask,value_same_min_accept,data_wos$sep)
       
       res_wos=res_wos_all$res# les resulta
       err1=res_wos_all$error# les erreurs 
@@ -3393,9 +3386,8 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,doi_name,pas=8,value_s
     data_rest=data_pub[data_pub[source_name]!="WOS",]#non wos 
     if(dim(data_rest)[1]!=0) {
       if(length(sep_vector_in_data)==1) if(sep_vector_in_data=="") sep="" else sep=data_rest[sep_vector_in_data][[1]]
-      if(length(position_vector_in_data)==1) if(position_vector_in_data=="") position_name=rep(1,dim(data_rest)[1]) else position_name=data_rest[position_vector_in_data][[1]]
-      
-      res_rest_all=pumed_get_publi(data_rest[au_name][[1]],data_rest[ti_name][[1]],data_rest[doi_name][[1]],data_rest$position_name,pas,value_same_min_ask,value_same_min_accept,data_rest$sep)
+
+      res_rest_all=pumed_get_publi(data_rest[au_name][[1]],data_rest[ti_name][[1]],data_rest[doi_name][[1]],position_name=data_rest[position_vector_in_data][[1]],pas,value_same_min_ask,value_same_min_accept,data_rest$sep)
       res_rest=res_rest_all$res
       err2=res_rest_all$error
       reject2=res_rest_all$reject
@@ -3413,9 +3405,8 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,doi_name,pas=8,value_s
     reject=rbind(reject1,reject2)
   }else {
     if(length(sep_vector_in_data)==1) if(sep_vector_in_data=="") sep="" else sep=data_pub[sep_vector_in_data][[1]]
-    if(length(position_vector_in_data)==1) if(position_vector_in_data=="") position_name=rep(1,dim(data_pub)[1]) else position_name=data_pub[position_vector_in_data][[1]]
-    
-    resdt_all=pumed_get_publi(au_data = au_data,ti_data = ti_data,doi_data,data_pub$position_name,pas,value_same_min_ask,value_same_min_accept,data_pub$sep)
+
+    resdt_all=pumed_get_publi(au_data = au_data,ti_data = ti_data,doi_data,data_pub[position_vector_in_data][[1]],pas,value_same_min_ask,value_same_min_accept,data_pub$sep)
     error_querry=resdt_all$error
     res_new=resdt_all$res
     reject=resdt_all$reject
@@ -3718,7 +3709,7 @@ pumed_get_publi<-function(au_data,ti_data,doi_data="",position_name,pas,value_sa
       au_data=fit_name_position(au_data,position_name,position_togo =position_togo,sep )
       au_data=sapply(1:length(au_data),FUN = function(x) paste(au_data[[x]],collapse = ";"))
       # nombre d'iteration
-      data_to_use=no_doi=which(is.na(doi_data)| doi_data=="" )#pas de doi = doi vide 
+      data_to_use=no_doi=which(is.na(doi_data)|doi_data=="" )#pas de doi = doi vide 
       
     }else{#on peu se permet car les élément perturbateur on été supprimer 
       data_to_use=doi=which(doi_data!="" & !is.na(doi_data))
