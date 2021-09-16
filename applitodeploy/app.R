@@ -46,8 +46,8 @@ ui<-dashboardPage(skin = "red",
                      menuItem("History", tabName = "history", icon = icon("history")),
                      menuItem("Wordcloud graphics", tabName = "wordcloud", icon = icon("cloud")),
                      menuItem("Network graphics", tabName = "network", icon = icon("project-diagram")),
-                     menuItem("interdisciplinarity reasech", tabName = "DB", icon = icon("database")),
-                     menuItem("Interdisciplinarity results", tabName = "calculinterdisciplinarity", icon = icon("chart-pie")),
+                     menuItem("Interdisciplinary research", tabName = "DB", icon = icon("database")),
+                     menuItem("Interdisciplinary  results", tabName = "calculinterdisciplinarity", icon = icon("chart-pie")),
                      menuItem("About us", tabName = "about", icon = icon("address-card"))
                      
                      #-------------------------------------------------------------------  
@@ -538,7 +538,8 @@ server <- function(input, output, session) {
     privious_datapath_pdf=NULL,# "            "      pdf 
     privious_datapath_wos=NULL,#  "            "    wo et bib 
     path_folder=NULL, # path dossier pour pdf 
-    ok_analyse=FALSE, # boulen de validation marquand le debut de l'analyse 
+    ok_analyse=FALSE, # boulen de validation marquand le debut de l'analyse
+    ok_calcule_interdis=FALSE, # bolllen validant l'analyse interdis,  
     graph=NULL,# netwoork 
     plots=NULL,# wordcloud 
     numberwordcloud=1,#nombre de graphique wordcloud par defaut 
@@ -565,19 +566,19 @@ server <- function(input, output, session) {
     active_source=NULL,#permet de savoir sur quel onglet clic
     value_same_min_accept=0.95,# valeur minimal de l'interval de la verification de ttitre 
     value_same_min_ask=0.85,
-    matrice_res_ref=NULL,
-    matrice_res_cit=NULL,
+    matrice_res_ref=NULL,# matrice de calcule des ref 
+    matrice_res_cit=NULL,#matrice de calccule des citation 
     table_categ_gd=NULL,
     wos_data=NULL,
-    plots_article_ref=NULL,
-    data_merge=NULL,
-    secteur_is_finish=FALSE,
+    plots_article_ref=NULL,# initialisation des plot ref 
+    data_merge=NULL,# matrice de merge 
+    secteur_is_finish=FALSE,# indicateur de graphique terminer 
     states=list(source = c("plot_article_ref", "plot_total_ref"), value = c(-99,-99), changed = c(FALSE,FALSE),key=NULL),#permet de savoir sur quel graphic clic l'utilisteur
     states_cit=list(source = c("plot_article_cit", "plot_total_cit"), value = c(-99,-99), changed = c(FALSE,FALSE),key=NULL),
     pct_ref=c(NULL,NULL),#caclule pourcentage exactitude sur les citation 
-    pct_cit=c(NULL,NULL),
+    pct_cit=c(NULL,NULL),# ""      ""             "      "    "   references 
     transfer_done=list(ads=NULL,arxiv=NULL,pumed=NULL,lense=NULL), #liste de boulllean pour l'état  
-    cal_temp=NULL,
+    cal_temp=list(nb_ref=0,nb_cit=0),# calcule du nombre de resultat citation et reférence 
     show_pumed_box=TRUE,# when lens is selected pubmed desapear 
     show_arxiv_abilities=FALSE #temps que arxiv n'a pas un moyen de fonctionner cela restera a faux 
     
@@ -670,10 +671,9 @@ server <- function(input, output, session) {
     paste(h3("DOPABAT,who is it?"),"
   <ul>
   <li>l'Université Grenoble Alpes</li>
-	  -DGD RIV\n
-	  -BAPSO\n
+
 	<li>L'Observatoire de Paris</li> 
-	  -BIbliothèque de l'Observatoire Paris
+L'Observatoire de Paris \n-PSL \n -BIbliothèque
 	<li>l'Inist-CNRS</li>
 </ul>",h3("The Team" ),"<ul>
   <li>Anne-Marie Badolato (INIST-CNRS)</li>
@@ -689,8 +689,8 @@ server <- function(input, output, session) {
             h3("The Blog"), "here is the adress of the blog to see the back ground of the project : <a href='https://dopabat.inist.fr/'> : https://dopabat.inist.fr/ </a>",
             "This blog is describing the problem, the methodes and the steps of the project",h3("Thanks"),"
            
-All the DOPABAT team would like to thank ADS, PUMED and LENS for their disposal and support during all the development phase. We personally thank all the databases that allow the platform to work. 
-We ask all the users to   cite the different souces they use to make the graphics.
+All the DOPABAT team would like to thank ADS, PUBMED and LENS for their disposal and support during all the development phase. We personally thank all the databases that allow the platform to work. 
+We ask all the users to   cite the different sources they use to make the graphics.
 "
             
     )
@@ -712,7 +712,7 @@ We ask all the users to   cite the different souces they use to make the graphic
   
   #meme chose pour la rescer interdis 
   output$text_database <- renderText({
-    paste(h4("Help:"),"First select a database and do 'process' (execpt if you only have references from wos) then you can manage your data as you wich and when it's ok clic on the right button.","Cookies are used to remember your token(s). You can remouve them by clicking the remouve botton on history tab." )
+    paste(h4("Help:"),"First select a database and do 'process' (execpt if you only have references from the Web of science) then you can manage your data as you wich and when it's ok clic on the right button.","Cookies are used to remember your token(s). You can remove them by clicking the remove button on history tab." )
   })
   
   #text d'aide pour l'onglet bibtext 
@@ -1654,6 +1654,9 @@ We ask all the users to   cite the different souces they use to make the graphic
       ))
       reactive_values$ok_analyse=FALSE
     }else {
+      reactive_values$ok_analyse=TRUE
+    }
+    
       if(is.null(reactive_values$df_global)==TRUE){
         showModal(modalDialog(
           title = "Invalid data",
@@ -1661,11 +1664,13 @@ We ask all the users to   cite the different souces they use to make the graphic
           easyClose = TRUE,
           footer = NULL
         ))
+        reactive_values$ok_analyse=FALSE
       }else {
         reactive_values$ok_analyse=TRUE
       }
       
-    }
+          
+    
     
     if(reactive_values$ok_analyse==TRUE){
       
@@ -1722,17 +1727,23 @@ We ask all the users to   cite the different souces they use to make the graphic
         #browser("arret pour verifier ce qui a dans lens ")
       }
     }  
+      #browser()
       #mark3
-      reactive_values$cal_temp=length(reactive_values$res_ads$dataframe_citation_accept$`cited identifier`)+
-        length(reactive_values$res_ads$dataframe_ref_accept$`refering identifier`)+
-        length(reactive_values$res_arxiv$res_citation_accept$`cited identifier`)+
-        length(reactive_values$res_arxiv$res_reference_accept$`refering identifier`)+
-        length(reactive_values$res_pumed$dataframe_citation_accept$`cited identifier`)+
-        length(reactive_values$res_pumed$dataframe_ref_accept$`refering identifier`)+
-        length(reactive_values$res_lens$dataframe_citation_accept$`cited identifier`)+
-        length(reactive_values$res_lens$dataframe_ref_accept$`refering identifier`)
-      print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaafter value call")
-      if(reactive_values$cal_temp>=1){
+      
+      #length car colonne 
+      reactive_values$cal_temp$nb_ref=(length(reactive_values$res_ads$dataframe_ref_accept$`refering identifier`) +
+        length(reactive_values$res_arxiv$res_reference_accept$`refering identifier`) +
+        length(reactive_values$res_pumed$dataframe_ref_accept$`refering identifier`) +
+        length(reactive_values$res_lens$dataframe_ref_accept$`refering identifier`) )
+        
+      reactive_values$cal_temp$nb_cit=(length(reactive_values$res_ads$dataframe_citation_accept$`cited identifier`) +
+        length(reactive_values$res_arxiv$res_citation_accept$`cited identifier`) +
+          length(reactive_values$res_pumed$dataframe_citation_accept$`cited identifier`) +
+          length(reactive_values$res_lens$dataframe_citation_accept$`cited identifier`) )
+          
+      
+      
+      if((reactive_values$cal_temp$nb_cit+reactive_values$cal_temp$nb_ref)>=1){
         showModal(modalDialog(
           title = "research ended",
           "research ended you can press the calcul interdisciplinarity boutton.",
@@ -2326,11 +2337,7 @@ We ask all the users to   cite the different souces they use to make the graphic
   # #plot2
   
   observeEvent({input$valid_data_research}, {
-    
-    
-    
-    
-    
+    reactive_values$ok_calcule_interdis=TRUE
     reactive_values$journal_table_ref=read.csv("data/table_categ_wos.csv", sep = ";",header = TRUE,encoding = "Latin-1",stringsAsFactors = FALSE)
     reactive_values$journal_table_ref=reactive_values$journal_table_ref[order(reactive_values$journal_table_ref[["JCR.Abbreviated.Title"]],reactive_values$journal_table_ref[["Full.Journal.Title"]],na.last = TRUE,decreasing = TRUE),]#on tri par le doi, utile pour l'utilisation des api 
     
@@ -2344,9 +2351,30 @@ We ask all the users to   cite the different souces they use to make the graphic
         easyClose = TRUE,
         footer = NULL
       ))
+      reactive_values$ok_calcule_interdis=FALSE  
+    }
+    
+    if((input$type=="ref" |input$type=="all") && reactive_values$cal_temp$nb_ref==0){
+      showModal(modalDialog(
+        title = "no references in the analysis",
+        "You ask for references interdisciplinary analysis but there is no references in data. Please process the reasearch on data bases or ad data. ",
+        easyClose = TRUE,
+        footer = NULL
+      ))
+      reactive_values$ok_calcule_interdis=FALSE  
+    }
+    
+    if((input$type=="cit"|input$type=="all") && reactive_values$cal_temp$nb_cit==0){
+      showModal(modalDialog(
+        title = "no citations in the analysis",
+        "You ask for citation interdisciplinary analysis but there is no references in data. Please process the reasearch on data bases or ad data. ",
+        easyClose = TRUE,
+        footer = NULL
+      ))
+      reactive_values$ok_calcule_interdis=FALSE  
+    }
       
-      
-    }else{
+    if(reactive_values$ok_calcule_interdis==TRUE){
       #browser()
       
       error=tryCatch({
@@ -2744,7 +2772,7 @@ We ask all the users to   cite the different souces they use to make the graphic
         }
         showModal(modalDialog(
           title = "Result ready",
-          "The calculation is over you can see your result in the interdiciplinarity result page.",
+          "The calculation is over you can see your result in the interdisciplinary  result page.",
           easyClose = TRUE,
           footer = NULL
         ))
