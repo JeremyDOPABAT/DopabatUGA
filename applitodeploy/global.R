@@ -3255,7 +3255,7 @@ ads_get_publi<-function(au_data,ti_data,doi_data="",position_name,pas,value_same
       
       if(type_requetage=="TI_AU" && dim(resdt)[1]>0){
         title_to_analyse=resdt$titre# très imortant que le titre auteur soit fait en premier 
-        withProgress(message = "Verifing the publication finded ",value = 0.90,{
+        withProgress(message = "Verifing the publication founded ",value = 0.90,{
           
           indic_compaire_title<-compaire_title(Unaccent(title_to_analyse),Unaccent(ti_data))
         })  
@@ -3862,7 +3862,7 @@ pumed_get_publi<-function(au_data,ti_data,doi_data="",position_name,pas,value_sa
         if(type_requetage=="TI_AU"){# très imortant que le titre auteur soit fait en premier 
           #   
           title_to_analyse=resdt$titre
-          withProgress(message = "Verifing the publication finded ",value = 0.90,{
+          withProgress(message = "Verifing the publication founded ",value = 0.90,{
             
             indic_compaire_title<-compaire_title(Unaccent(title_to_analyse),Unaccent(ti_data))
             

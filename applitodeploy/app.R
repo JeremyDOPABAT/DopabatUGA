@@ -59,6 +59,9 @@ ui<-dashboardPage(skin = "red",
                        tabItem(tabName = "home",
                          titlePanel("Welcome to the DOPABAT app!"),
                          htmlOutput("text_home"),
+                         tags$div(HTML('<img src="interdis_example.png" hight="450" width="450">'),
+                                  HTML('<img src = "netwoork_example.png" hight="550" width="350">' ),
+                                 )
                          
                          
       #                    
@@ -448,10 +451,11 @@ ui<-dashboardPage(skin = "red",
                                                                #downloadButton("downloadPlot_article_ref", "Download Plot(s)")
                                                         ),
                                                         column(width = 6,
+                                                               downloadButton("downloadref", "Download data references"),
                                                                textOutput("stat_journ_ref_total"),
-                                                               plotlyOutput("plot_total_ref"),
+                                                               plotlyOutput("plot_total_ref")
                                                                #   downloadButton("downloadPlot_total_ref", "Download Plot(s)"),#total ref 
-                                                               downloadButton("downloadref", "Download data references")
+                                                              
                                                         ),
                                                         textOutput("text_ref"),
                                                         dataTableOutput("table_data_ref_interdi")
@@ -463,10 +467,11 @@ ui<-dashboardPage(skin = "red",
                                                                #  downloadButton("downloadPlot_article_cit", "Download Plot(s)")
                                                         ),
                                                         column(width = 6,
+                                                               downloadButton("downloadcit", "Download data citations"),
                                                                textOutput("stat_journ_cit_total"),
-                                                               plotlyOutput("plot_total_cit"),
+                                                               plotlyOutput("plot_total_cit")
                                                                # downloadButton("downloadPlot_total_cit", "Download Plot(s)"),
-                                                               downloadButton("downloadcit", "Download data citation")
+                                                               
                                                         ),
                                                         textOutput("text_cit"),
                                                         dataTableOutput("table_data_cit_interdi")
@@ -489,7 +494,6 @@ ui<-dashboardPage(skin = "red",
                                         
                                         
                                         
-                                        # Show Word Cloud
                                         mainPanel(
                                           htmlOutput("text"),
                                           HTML('<br>'),
@@ -558,7 +562,7 @@ server <- function(input, output, session) {
     res_arxiv=NULL,#res_arxiv, #temporaire
     res_pumed=NULL,##res_pumed, #temporaire 
     res_lens=NULL,
-    ref_wos=c(),
+    ref_wos=NULL,
     table_to_show_ref=NULL,#table de ref(et cit) resultat
     journal_table_ref=NULL,# table d'importation des journaux 
     table_dist=NULL,# table de calcule des distance 
@@ -658,15 +662,18 @@ server <- function(input, output, session) {
   
   #ce qui suit est le texte present dans la partie about 
   output$text_home <- renderText({
-    paste(h3("DOPABAT, what is it ?"),"\n","DOPABAT (Développement d'outils d'analyse bibliométrique et d'audience des thèses) is a project funded by Collex-Persée.
-            a national research infrastructure. The objectives are, on the one hand, to know the importance of theses in scientific production and, on the other hand, to know the importance of the cooperation between laboratories on the themes of Physics and Astronomy. 
-           DOPABAT aims to analyse all the bibliometric data, keywords, domains, citations, references. You can import cvs files or bibtex files to start the analyse. After importation you can choose which database you want to analyse!
+    paste("DOPABAT aims to analyse all the bibliometric data, keywords, domains, citations, references. You can import cvs files or bibtex files to start the analyse. After importation you can choose which database you want to analyse!
+            
+            You have to have a token for some.
           
-           NB: you have to have a token for some.
-          
-          If you need examples or help we invite you to click on",a("user guide",target="_blank",href="User_help_doc.pdf"),"for more details"
+            If you need examples or help we invite you to click on",a("user guide",target="_blank",href="User_help_doc.pdf"),"for more details",h3("DOPABAT, what is it ?"),"\n","DOPABAT (Développement d'outils d'analyse bibliométrique et d'audience des thèses) is a project funded by Collex-Persée.
+            a national research infrastructure \n . 
+           ",h3("Some exemple of what you can do") 
           )
+  
   })
+  
+  
   output$text <- renderText({
     paste(h3("DOPABAT,who is it?"),"
   <ul>
@@ -698,9 +705,7 @@ We ask all the users to   cite the different sources they use to make the graphi
     
     
   })
-  output$results = renderPrint({
-    input$mydata
-  })
+  
   # trst present dans le network pour aider a le comprehension, ces textes sont de l'html  
   output$text_network <- renderText({
     paste(h4("Help:"), "When you have your network you could click on nodes. In doing so a table will appear under the graph with details of publications concerning that node.")
@@ -851,15 +856,39 @@ We ask all the users to   cite the different sources they use to make the graphi
         if(input$doi_selection!="none") col_doi<-reactive_values$df_csv[[input$doi_selection]] else col_doi=NA
         
         # mise en forme de la date
-        col_date<-parse_date_time(x = reactive_values$df_csv[[input$date_selection]],
+        error=tryCatch({
+          col_date<-parse_date_time(x = reactive_values$df_csv[[input$date_selection]],
                                   orders = reactive_values$fmts,
                                   locale =  Sys.getlocale(category = "LC_TIME"))
         
+          if(is.infinite(min(col_date,na.rm = TRUE))|is.infinite(max(col_date,na.rm = TRUE))) {
+            warning("The date data are corupted")
+            res=NA
+            
+            
+          }else{
+            res=200
+          } 
+          
+
+        })
         
         
-        col_title<-reactive_values$df_csv[[input$title_selection]]
-        col_auth<-reactive_values$df_csv[[input$author_selection]]
-        if(input$id_arxiv_selection!="none") arxiv_col=reactive_values$df_csv[[input$id_arxiv_selection]] else arxiv_col=NA
+        if(is.na(error)){
+          showModal(modalDialog(
+            title = "Import critical error",
+            "error of date during  importation, the datefile data are corrupted ",
+            easyClose = TRUE,
+            footer = NULL
+          ))
+          reactive_values$privious_datapath_csv=reactive_values$privious_datapath_csv[-length(reactive_values$privious_datapath_csv)]
+          
+          
+        }else {
+          col_title<-reactive_values$df_csv[[input$title_selection]]
+          col_auth<-reactive_values$df_csv[[input$author_selection]]  
+        
+         if(input$id_arxiv_selection!="none") arxiv_col=reactive_values$df_csv[[input$id_arxiv_selection]] else arxiv_col=NA
         
         if(is.null(reactive_values$df_global)==TRUE) {# si la table est vide (pas d'autre ficher valider avant, il faut la cree)
           
@@ -886,7 +915,7 @@ We ask all the users to   cite the different sources they use to make the graphi
         }
         reactive_values$valide_csv<-TRUE
         
-        
+        }  
       }
     })
   
@@ -2278,8 +2307,6 @@ We ask all the users to   cite the different sources they use to make the graphi
       reactive_values$transfer_done$lens)
   },{
     if(input$lens_ask!=0){ # le boutons na pas été apuillez cela previen du notre bd   
-    print("on rentre lens")
-      print(reactive_values$transfer_done$lens)
       reactive_values$table_to_show_ref=(reactive_values$res_lens$dataframe_publi_found[(reactive_values$res_lens$dataframe_publi_found$check_title_pct<reactive_values$value_same_min_accept) & (reactive_values$res_lens$dataframe_publi_found$check_title_pct>=reactive_values$value_same_min_ask),])
       
      
@@ -2354,13 +2381,14 @@ We ask all the users to   cite the different sources they use to make the graphi
       reactive_values$ok_calcule_interdis=FALSE  
     }
     
-    if((input$type=="ref" |input$type=="all") && reactive_values$cal_temp$nb_ref==0){
+    if((input$type=="ref" |input$type=="all") && (reactive_values$cal_temp$nb_ref==0 &&is.null(reactive_values$ref_wos))){
       showModal(modalDialog(
         title = "no references in the analysis",
         "You ask for references interdisciplinary analysis but there is no references in data. Please process the reasearch on data bases or ad data. ",
         easyClose = TRUE,
         footer = NULL
       ))
+      
       reactive_values$ok_calcule_interdis=FALSE  
     }
     
