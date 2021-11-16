@@ -111,73 +111,115 @@ server <- function(input, output, session) {# cote r , voici le programme
     
     #---------------------importation des differentes table--------------------
     reactive_values <- reactiveValues(
-        data1 = as.data.frame(data.table::fread("WWW/table1.csv",
-                                                                     header = TRUE,
-                                                                     sep = ";"),stringsAsFactors = FALSE),
-        stat1=as.data.frame(data.table::fread("WWW/stat1.csv",
-                                             header = TRUE,
-                                             sep = ";"),stringsAsFactors = FALSE),
-        data2 = as.data.frame(data.table::fread("WWW/table2.csv",
-                                                header = TRUE,
-                                                sep = ";"),stringsAsFactors = FALSE),
-        stat2=as.data.frame(data.table::fread("WWW/stat2.csv",
-                                              header = TRUE,
-                                              sep = ";"),stringsAsFactors = FALSE),
-        data3 = as.data.frame(data.table::fread("WWW/table3.csv",
-                                                header = TRUE,
-                                                sep = ";"),stringsAsFactors = FALSE),
-        stat3=as.data.frame(data.table::fread("WWW/stat3.csv",
-                                              header = TRUE,
-                                              sep = ";"),stringsAsFactors = FALSE),
-        table_data=NULL
+        data_list=list(),
+        stat_list=list(),
+        
+        
+        table_data=NULL,
+        finish_import=FALSE,
+        file_vector=list.files(path = "WWW"),
+        num_input_periode=NULL
     #__________________________________________________________________________________________    
         
     )
+    observeEvent(reactive_values$file_vector,{
+       print("passe")
+        csv_list <- reactive_values$file_vector[grepl(".csv",reactive_values$file_vector)]# on ne s'occupe que des fichier pdf 
+        print(csv_list)
+        nb_group_file_to_import=grep("stat",csv_list)#cela ne marche que si on respect les nom imposes
+        
+        tryCatch({
+            for(i in 1:length(nb_group_file_to_import)){
+                data_temp=as.data.frame(data.table::fread(paste0("WWW/table",i,".csv"),
+                                                          header = TRUE,
+                                                          sep = ";"),stringsAsFactors = FALSE)
+                stat_temp=as.data.frame(data.table::fread(paste0("WWW/stat",i,".csv"),
+                                                          header = TRUE,
+                                                          sep = ";"),stringsAsFactors = FALSE)
+                reactive_values$data_list=append(reactive_values$data_list,list(data_temp))
+                reactive_values$stat_list=append(reactive_values$stat_list,list(stat_temp))#mettre en liste permet de conserver la data frame intact 
+                
+            }
+            
+            reactive_values$finish_import=TRUE
+        },
+        error=function(cond){
+            return(-400)
+        })
+        
+        
+    })
     
-    observeEvent(reactive_values$stat3,{
+    observeEvent(reactive_values$finish_import,{ 
+        print("obssss")
+        updates_string=c()
+        choice_lab=c()
+        for( i in 1:length(reactive_values$data_list)){
+            
+            updates_string=c(updates_string,paste0(reactive_values$stat_list[[i]][1,"Debut"],":",reactive_values$stat_list[[i]][1,"Fin"]))
+            choice_lab=c(choice_lab,reactive_values$data_list[[i]]$UNITE)
+            #unique(tolower(c(reactive_values[[paste0("data",1)]]$UNITE,reactive_values[[paste0("data",2)]]$UNITE,reactive_values[[paste0("data",3)]]$UNITE)
+        }
+         
         # quand la dernière table est importé on met toutes les variables à jours 
         updateRadioButtons(session,"periode_to_show","choix d'une periode ",choices =
-                               set_names(c(1,2,3),c(paste0(reactive_values[["stat1"]][1,"Debut"],":",reactive_values[["stat1"]][1,"Fin"]),paste0(reactive_values[["stat2"]][1,"Debut"],":",reactive_values[["stat2"]][1,"Fin"]),paste0(reactive_values[["stat3"]][1,"Debut"],":",reactive_values[["stat3"]][1,"Fin"]))),selected = "1" ,inline = TRUE)
+                               set_names(c(1:length(reactive_values$data_list)),c(updates_string)),selected = "1" ,inline = TRUE)
 
-        updateSelectInput(session, inputId = "lab_selection", selected =unique(tolower(reactive_values[[paste0("data",1)]]$UNITE))[1] ,choices =unique(tolower(c(reactive_values[[paste0("data",1)]]$UNITE,reactive_values[[paste0("data",2)]]$UNITE,reactive_values[[paste0("data",3)]]$UNITE))))     
-        # on prend les 5 premier colonnes de chaque table.
-        reactive_values$data1=reactive_values$data1[c("UNITE","NOM JOURNAL OU CONF","NOM ARTICLE","AUTEURS","ADRESSE")]
-        reactive_values$data2=reactive_values$data2[c("UNITE","NOM JOURNAL OU CONF","NOM ARTICLE","AUTEURS","ADRESSE")]
-        reactive_values$data3=reactive_values$data3[c("UNITE","NOM JOURNAL OU CONF","NOM ARTICLE","AUTEURS","ADRESSE")]
         
-     })
+        
+        
+        # updateRadioButtons(session,"periode_to_show","choix d'une periode ",choices =
+        #                        set_names(c(1,2,3),c(paste0(reactive_values[["stat1"]][1,"Debut"],":",reactive_values[["stat1"]][1,"Fin"]),paste0(reactive_values[["stat2"]][1,"Debut"],":",reactive_values[["stat2"]][1,"Fin"]),paste0(reactive_values[["stat3"]][1,"Debut"],":",reactive_values[["stat3"]][1,"Fin"]))),selected = "1" ,inline = TRUE)
+        # 
+        
+        updateSelectInput(session, inputId = "lab_selection", selected =choice_lab[1] ,choices =unique(choice_lab))    
+        # on prend les 5 premier colonnes de chaque table.
+        
+        
+    })
     
-        observeEvent(input$periode_to_show,{
+   observeEvent(input$periode_to_show,{
+       reactive_values$num_input_periode=as.numeric(input$periode_to_show)#evite la repetision de as.numeric
+       
         #names(reactive_values[[paste0("data",input$periode_to_show)]])=tolower(names(reactive_values[[paste0("data",input$periode_to_show)]]))
         #names(reactive_values[[paste0("stat",input$periode_to_show)]])=tolower(names(reactive_values[[paste0("stat",input$periode_to_show)]]))
         
     
-    
-    precedant=reactive_values[[paste0("data",input$periode_to_show)]]$UNITE[1]
-    for(i in 2:dim(reactive_values[[paste0("data",input$periode_to_show)]])[1]){
-        #print(paste0("data",input$periode_to_show))
+             
+    precedant=reactive_values$data_list[[reactive_values$num_input_periode]]$UNITE[1]
+    for(i in 2:dim(reactive_values$data_list[[reactive_values$num_input_periode]])[1]){
+        #print(paste0("data",reactive_values$num_input_periode))
+        reactive_values$data_list[[reactive_values$num_input_periode]]=reactive_values$data_list[[reactive_values$num_input_periode]][c("UNITE","NOM JOURNAL OU CONF","NOM ARTICLE","AUTEURS","ADRESSE")]
         
-        if(reactive_values[[paste0("data",input$periode_to_show)]]$UNITE[i]==""){
-            reactive_values[[paste0("data",input$periode_to_show)]]$UNITE[i]=precedant
+        if(reactive_values$data_list[[reactive_values$num_input_periode]]$UNITE[i]==""){
+            reactive_values$data_list[[reactive_values$num_input_periode]]$UNITE[i]=precedant
             # print(precedant)
         }
         else {
-            precedant=reactive_values[[paste0("data",input$periode_to_show)]]$UNITE[i]}
+            precedant=reactive_values$data_list[[reactive_values$num_input_periode]]$UNITE[i]
         
+        }
+    
     }
-    #output$periode<-renderText({paste("Periode",reactive_values[[paste0("stat",input$periode_to_show)]][1,"Debut"],":",reactive_values[[paste0("stat",input$periode_to_show)]][1,"Fin"])})
+    
+    #output$periode<-renderText({paste("Periode",reactive_values[[paste0("stat",reactive_values$num_input_periode)]][1,"Debut"],":",reactive_values[[paste0("stat",reactive_values$num_input_periode)]][1,"Fin"])})
+    
     
 })
 observeEvent(c(input$lab_selection,input$periode_to_show),{
+    
+    reactive_values$num_input_periode=as.numeric(reactive_values$num_input_periode)
+    #browser()
     #on cherche l'unite dans les differente table 
-    ind=which(tolower(reactive_values[[paste0("data",input$periode_to_show)]]$UNITE)==input$lab_selection)
-    ind2=which(tolower(reactive_values[[paste0("stat",input$periode_to_show)]]$UNITE)==input$lab_selection)
+    ind=which(tolower(reactive_values$data_list[[reactive_values$num_input_periode]]$UNITE)==tolower(input$lab_selection))
+    ind2=which(tolower(reactive_values$stat_list[[reactive_values$num_input_periode]]$UNITE)==tolower(input$lab_selection))
     
     
     #On affiche la bonne table et les bonne info 
     output$table_result <- renderDataTable({
+        
         #test_table<-reactive_values$df_pdf
-        table_data=datatable(df_flatten(reactive_values[[paste0("data",input$periode_to_show)]][ind,]), options = list(sDom  = '<"top">lrt<"bottom">ip',scrollX = TRUE, columnDefs = list(list(
+        table_data=datatable(df_flatten(reactive_values$data_list[[reactive_values$num_input_periode]][ind,]), options = list(sDom  = '<"top">lrt<"bottom">ip',scrollX = TRUE, columnDefs = list(list(
             targets = "_all" ,render = JS(
                 "function(data, type, row, meta) {",
                 "return type === 'display' && data.length > 70 ?",
@@ -186,20 +228,21 @@ observeEvent(c(input$lab_selection,input$periode_to_show),{
         ))))
     })
     # changement des chiffre 
-    output$line_same<-renderText({(paste( "<b>Lignes adresse:</b>",reactive_values[[paste0("stat",input$periode_to_show)]][ind2,"Nombre de lignes d'adresses"]))})
-    output$line_dif<-renderText({(paste("<b>Lignes non UGA:</b>",reactive_values[[paste0("stat",input$periode_to_show)]][ind2,3]))})
-    output$taux_diff<-renderText({(paste("<b>taux d'erreur:</b>",reactive_values[[paste0("stat",input$periode_to_show)]][ind2,4]))})
+    output$line_same<-renderText({(paste( "<b>Lignes adresse:</b>",reactive_values$stat_list[[reactive_values$num_input_periode]][ind2,"Nombre de lignes d'adresses"]))})
+    output$line_dif<-renderText({(paste("<b>Lignes non UGA:</b>",reactive_values$stat_list[[reactive_values$num_input_periode]][ind2,3]))})
+    output$taux_diff<-renderText({(paste("<b>taux d'erreur:</b>",reactive_values$stat_list[[reactive_values$num_input_periode]][ind2,4]))})
+
     output$downloadData <- downloadHandler(#perrmet le donlowd de la table 
         filename = function() {
-            paste(input$lab_selection,"period",input$periode_to_show, ".csv", sep = "")
+            paste(input$lab_selection,"period",reactive_values$num_input_periode, ".csv", sep = "")
         },
         content = function(file) {
-            write.csv2(as.data.frame(df_flatten(reactive_values[[paste0("data",input$periode_to_show)]][ind,])), file, row.names = FALSE)
+            write.csv2(as.data.frame((reactive_values$data_list[[reactive_values$num_input_periode]][ind,])), file, row.names = FALSE)
         }
     )
-    #View(as.data.frame(reactive_values[[paste0("data",input$periode_to_show)]][ind,]))
+    #View(as.data.frame(reactive_values[[paste0("data",reactive_values$num_input_periode)]][ind,]))
 
-})
+},ignoreInit = TRUE)
 
 
 

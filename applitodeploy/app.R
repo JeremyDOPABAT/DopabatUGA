@@ -52,7 +52,10 @@ ui<-dashboardPage(skin = "red",
                     #-------------------------------------------------------------------  
                   )),
                   dashboardBody(
+                    tags$head(includeHTML(("WWW/google_analytics.html"))),
+                    tags$body(includeHTML(("WWW/Google_analytics_tag_management_body.html"))),
                     initShinyCookie("cookies"), # initialisation de l'utilisation de cookie 
+                    
                     
                     tabItems(
                       tabItem(tabName = "home",
@@ -152,7 +155,7 @@ ui<-dashboardPage(skin = "red",
                                     textInput("other_sep_author_csv", "other seprator of author"), 
                                     
                                     # permet d'afficher la selection de header après l'import 
-                                    conditionalPanel('output.show_header',tags$div(title="Validation of the table start the analysis",actionButton("valid_table", "validate")))# boutton de validation du fichier 
+                                    conditionalPanel('output.show_header',tags$div(title="Validation of the table start the analysis",actionButton("valid_table", "validate csv")))# boutton de validation du fichier 
                                     
                                     
                                 ),
@@ -257,7 +260,7 @@ ui<-dashboardPage(skin = "red",
                                                  selected = "head"),
                                     
                                     conditionalPanel('input.is_wos',checkboxInput("sup_wos_for_ref", "this file already countain reference, don't reasearch them",value = FALSE)),# rechercher les ref dans le fichier ou pas 
-                                    conditionalPanel('output.show_wos_valid',actionButton("valid_wos", "validate"))# boutton de valiation 
+                                    conditionalPanel('output.show_wos_valid',actionButton("valid_wos", "validate bibtext"))# boutton de valiation 
                                     #
                                 ),
                                 
@@ -1686,10 +1689,9 @@ We ask all the users to   cite the different sources they use to make the graphi
       }
       reactive_values$show_pumed_box=FALSE
       reactive_values$pubmed<-FALSE# if lens =no pubmed 
-      print(reactive_values$pubmed)
+      
     }else{
       reactive_values$show_token_lens <- FALSE
-      print(reactive_values$pubmed)
       reactive_values$show_pumed_box=TRUE
     }
   })
@@ -1787,7 +1789,6 @@ We ask all the users to   cite the different sources they use to make the graphi
             footer = NULL
           ))
         }else { 
-          print("passe")
           reactive_values$show_lens_res_window=TRUE
           reactive_values$res_lens=extraction_data_api_lens(data_pub=reactive_values$df_global,ti_name="titre",au_name="auteur",doi_name = "doi",pas=8,value_same_min_accept=reactive_values$value_same_min_accept, value_same_min_ask=reactive_values$value_same_min_ask,type = input$type,source_name = "source",sep_vector_in_data ="sep",position_vector_in_data = "position_name",token = input$token_lens)
           #browser("arret pour verifier ce qui a dans lens ")
@@ -1922,16 +1923,13 @@ We ask all the users to   cite the different sources they use to make the graphi
     ,{
       
       if(input$ads_ask!=0){ # le boutons na pas été apuillez cela previen du notre bd 
-        print("on rentre ads")
         reactive_values$table_to_show_ref=reactive_values$res_ads$dataframe_publi_found[(reactive_values$res_ads$dataframe_publi_found$check_title_pct<reactive_values$value_same_min_accept) &(reactive_values$res_ads$dataframe_publi_found$check_title_pct>=reactive_values$value_same_min_ask),]
         if(dim(reactive_values$table_to_show_ref)[1]>0) rownames(reactive_values$table_to_show_ref)<-1:nrow(reactive_values$table_to_show_ref)
-        print(dim(reactive_values$table_to_show_ref))  
         if(!is.null(reactive_values$transfer_done$ads)){ 
           
           ind_temp=reactive_values$table_to_show_ref$bibcode%in%reactive_values$transfer_done$ads
           reactive_values$table_to_show_ref=reactive_values$table_to_show_ref[!ind_temp,]  
         }
-        print(dim(reactive_values$table_to_show_ref))   
         
         df <-reactiveValues(data =cbind(
           Actions = shinyInput( FUN = 
@@ -1966,11 +1964,9 @@ We ask all the users to   cite the different sources they use to make the graphi
     },ignoreInit = TRUE)
   
   observeEvent(input$select_button, {
-    print("clique")
     #browser()
     selectedRow <- as.numeric(strsplit(input$select_button, "_")[[1]][2])
     #browser()
-    print(input$select_button)
     if(reactive_values$active_source=="ADS"){
       if(input$type=="cit"||input$type=="all"){
         ind=which(reactive_values$table_to_show_ref$bibcode[[selectedRow]]==unlist(reactive_values$res_ads$dataframe_citation_ask$`cited identifier`))
@@ -2492,7 +2488,6 @@ We ask all the users to   cite the different sources they use to make the graphi
                 # browser()
                 if(reactive_values$plot_in_englis==FALSE){
                   names(reactive_values$matrice_res_ref$res$prop_grande_discipline)=sapply(1:length(names(reactive_values$matrice_res_ref$res$prop_grande_discipline)),FUN = function(x){
-                    print(x)
                     ind=which(tolower(Unaccent(names(reactive_values$matrice_res_ref$res$prop_grande_discipline)[x]))==tolower(Unaccent(reactive_values$table_of_traduction[,1])))
                     names(reactive_values$matrice_res_ref$res$prop_grande_discipline)[x]=reactive_values$table_of_traduction[ind,2]
 
@@ -2520,10 +2515,10 @@ We ask all the users to   cite the different sources they use to make the graphi
                 
                 error=tryCatch({
        #           browser()
-                  if(input$lang_plot=="en" ) browser()
                   
                   
-                  line=which(reactive_values$matrice_res_ref$res$prop[["IDENTIFIANT"]]%in%input$select_article)
+                  
+                  line=which(reactive_values$matrice_res_ref$res$prop[["IDENTIFIANT"]]%in%input$select_article)#on choisi les données correspondant à l'article 
                   
                   # print(paste0("_",input$select_article,"_")%in%unlist(reactive_values$matrice_res_ref$res$prop[["IDENTIFIANT"]]))
                   
@@ -2531,9 +2526,10 @@ We ask all the users to   cite the different sources they use to make the graphi
                   title_graph=paste0("Main subjects  \n of article ",reactive_values$matrice_res_ref$res$prop[["TITLE"]][line[1]])
                   
                   
+                  
                   df <- data.frame(
-                    group = Unaccent(names(reactive_values$matrice_res_ref$res$prop_grande_discipline[ind,])),
-                    value = colSums(reactive_values$matrice_res_ref$res$prop_grande_discipline[ind,])/sum(reactive_values$matrice_res_ref$res$prop_grande_discipline[line,])
+                    group = Unaccent(names(reactive_values$matrice_res_ref$res$prop_grande_discipline[ind,])),# categories 
+                    value = colSums(reactive_values$matrice_res_ref$res$prop_grande_discipline[ind,])/sum(reactive_values$matrice_res_ref$res$prop_grande_discipline[line,])#valeur de categorie 
                   )
                   
                   
@@ -2548,13 +2544,13 @@ We ask all the users to   cite the different sources they use to make the graphi
                     title_graph="no data"
                     df <- data.frame(
                       group = "no data",
-                      value = 1)
+                      value = 0)
                     
                   }
                 }
-                
-                
-                plot_article_ref <- plot_ly(df, labels = ~group, values = ~value,key=~group, type = 'pie',source = "plot_article_ref")
+                #df$group=factor(df$group,levels = df$group)
+               
+                plot_article_ref <- plot_ly(df, labels = ~group,sort=FALSE, values = ~value,key=~group, type = 'pie',source = "plot_article_ref")
                 plot_article_ref <- plot_article_ref %>% layout(title = title_graph,font=list(size=8),
                                                                 legend = list(font = list(size = 9)),
                                                                 xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
@@ -2563,16 +2559,15 @@ We ask all the users to   cite the different sources they use to make the graphi
                 
                 short_id_article=substr(input$select_article,start = `attributes<-`(gregexpr(pattern = "..//",input$select_article)[[1]],NULL)+4,stop = nchar(input$select_article))
                 ind_stat=which(reactive_values$matrice_res_ref$data[["refering identifier"]]==short_id_article)
-                reactive_values$pct_ref[1]=mean(as.numeric(unlist(reactive_values$matrice_res_ref$data[ind_stat,]$refered_indice_pct_found)))
+                reactive_values$pct_ref[1]=mean(as.numeric(unlist(reactive_values$matrice_res_ref$data[ind_stat,]$refered_indice_pct_found)),na.rm = TRUE)
                 reactive_values$pct_ref[3]=length(unlist(reactive_values$matrice_res_ref$data[ind_stat,]$refered_indice_pct_found))
                 # View(reactive_values$matrice_res_ref$data[ind_stat,])
-                print(as.numeric(unlist(reactive_values$matrice_res_ref$data[ind_stat,]$refered_indice_pct_found)))
                 
                 reactive_values$secteur_is_finish<-TRUE
                 return(plot_article_ref)
                 
               })
-              output$stat_journ_ref_article<-renderText({paste("pourcentage accuracy of graphique aticle",round(reactive_values$pct_ref[1],digits =2),"of",reactive_values$pct_ref[3],"references aticles")})          
+              output$stat_journ_ref_article<-renderText({paste("pourcentage accuracy of graphique aticle",round(reactive_values$pct_ref[1],digits =2)*100,"%","of",reactive_values$pct_ref[3],"references aticles")})          
               # output$downloadPlot_article_ref <- downloadHandler(
               #   filename = function(){paste("test",'.pdf',sep='')},
               #   
@@ -2593,9 +2588,9 @@ We ask all the users to   cite the different sources they use to make the graphi
                   group = Unaccent(names(reactive_values$matrice_res_ref$res$prop_grande_discipline)),
                   value = colSums(reactive_values$matrice_res_ref$res$prop_grande_discipline[dim(reactive_values$matrice_res_ref$res$prop_grande_discipline)[1],])/sum(unlist(reactive_values$matrice_res_ref$res$prop_grande_discipline[dim(reactive_values$matrice_res_ref$res$prop_grande_discipline)[1],]))
                 )
+                #df$group=factor(df$group,levels = df$group) 
                 
-                
-                plot_total_ref <- plot_ly(df, labels = ~group, values = ~value,key=~group, type = 'pie',source = "plot_total_ref")
+                plot_total_ref <- plot_ly(df, labels = ~group,sort=FALSE, values = ~value,key=~group, type = 'pie',source = "plot_total_ref")
                 plot_total_ref <- plot_total_ref %>% layout(title = paste0("Main subjects  \n of the whole corpus"),
                                                             font=list(size=8),
                                                             legend = list(font = list(size = 9)),
@@ -2604,7 +2599,7 @@ We ask all the users to   cite the different sources they use to make the graphi
                 
                 
                 
-                reactive_values$pct_ref[2]=mean(as.numeric(unlist(reactive_values$matrice_res_ref$data$refered_indice_pct_found)))
+                reactive_values$pct_ref[2]=mean(as.numeric(unlist(reactive_values$matrice_res_ref$data$refered_indice_pct_found)),na.rm = TRUE)
                 reactive_values$pct_ref[4]=length(unlist(reactive_values$matrice_res_ref$data$refered_indice_pct_found))
                 
                 reactive_values$secteur_is_finish<-TRUE
@@ -2613,7 +2608,8 @@ We ask all the users to   cite the different sources they use to make the graphi
                 #output$text_ref<-renderText({paste("ID:",round(reactive_values$matrice_res_ref$res$id,2),"DD;",round(reactive_values$matrice_res_ref$res$dd,2),"MD:",round(reactive_values$matrice_res_ref$res$md,2),"DIA:",paste(round(unlist(reactive_values$matrice_res_ref$res$dia[[as.numeric(line)]]),digits = 2),collapse = ","),collapse = "\n")})
                 
               })
-              output$stat_journ_ref_total<-renderText({paste("pourcentage accuracy of graphique total",round(reactive_values$pct_ref[2],digits = 2),"of",reactive_values$pct_ref[4],"references")})  
+              
+              output$stat_journ_ref_total<-renderText({paste("pourcentage accuracy of graphique total",round(reactive_values$pct_ref[2],digits = 2)*100,"%","of",reactive_values$pct_ref[4],"references")})  
               states_2 <- reactiveValues(source =reactive_values$states$source, value = c(-1,-1), changed = c(FALSE,FALSE),key=NULL)
               observeEvent({c(event_data("plotly_click", source =states_2$source[[2]],priority = "event"),event_data("plotly_click", source =states_2$source[[1]],priority = "event") ) },{
                 if(reactive_values$secteur_is_finish==TRUE){
@@ -2728,7 +2724,6 @@ We ask all the users to   cite the different sources they use to make the graphi
                   # browser()
                   if(reactive_values$plot_in_englis==FALSE){
                     names(reactive_values$matrice_res_cit$res$prop_grande_discipline)=sapply(1:length(names(reactive_values$matrice_res_cit$res$prop_grande_discipline)),FUN = function(x){
-                      print(x)
                       ind=which(tolower(Unaccent(names(reactive_values$matrice_res_cit$res$prop_grande_discipline)[x]))==tolower(Unaccent(reactive_values$table_of_traduction[,1])))
                       names(reactive_values$matrice_res_cit$res$prop_grande_discipline)[x]=reactive_values$table_of_traduction[ind,2]
 
@@ -2775,22 +2770,22 @@ We ask all the users to   cite the different sources they use to make the graphi
                     title_graph="no data"
                     df <- data.frame(
                       group = "no data",
-                      value = 1)
+                      value = 0)
                     
                   }
                 } 
                 
                 
                 
-                plot_article_cit <- plot_ly(df, labels = ~group, values = ~value, type = 'pie',key=~group,source ="plot_article_cit")
+                plot_article_cit <- plot_ly(df, labels = ~group, values = ~value,sort=FALSE,type = 'pie',key=~group,source ="plot_article_cit")
                 plot_article_cit <- plot_article_cit %>% layout(title = title_graph,
                                                                 font=list(size=8),
                                                                 legend = list(font = list(size = 9)),
                                                                 xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
                                                                 yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
-                short_id_article=substr(input$select_article,start = `attributes<-`(gregexpr(pattern = "..//",input$select_article)[[1]],NULL)+4,stop = nchar(input$select_article))
+                short_id_article=substr(input$select_article,start = `attributes<-`(gregexpr(pattern = "..//",input$select_article)[[1]],NULL)+4,stop = nchar(input$select_article))# on recupère l'id article 
                 ind_stat=which(reactive_values$matrice_res_cit$data[["cited identifier"]]==short_id_article)
-                reactive_values$pct_cit[1]=mean(as.numeric(unlist(reactive_values$matrice_res_cit$data[ind_stat,]$citing_indice_pct_found)))
+                reactive_values$pct_cit[1]=mean(as.numeric(unlist(reactive_values$matrice_res_cit$data[ind_stat,]$citing_indice_pct_found)),na.rm = TRUE)
                 reactive_values$pct_cit[3]=length(unlist(reactive_values$matrice_res_cit$data[ind_stat,]$citing_indice_pct_found))
                
               
@@ -2798,7 +2793,7 @@ We ask all the users to   cite the different sources they use to make the graphi
                 
               })
               
-              output$stat_journ_cit_article<-renderText({paste("pourcentage accuracy of graphique aticle",round(reactive_values$pct_cit[1],digits = 2),"of",reactive_values$pct_cit[3],"citations article")})
+              output$stat_journ_cit_article<-renderText({paste("pourcentage accuracy of graphique aticle",round(reactive_values$pct_cit[1],digits = 2)*100,"%","of",reactive_values$pct_cit[3],"citations article")})
               
               
               output$downloadPlot_article_cit <- downloadHandler(#telechargement du fichier 
@@ -2818,21 +2813,21 @@ We ask all the users to   cite the different sources they use to make the graphi
                 )
                 
                 
-                plot_total_cit <- plot_ly(df, labels = ~group,key=~group, values = ~value, type = 'pie',source = "plot_total_cit")
+                plot_total_cit <- plot_ly(df, labels = ~group,key=~group,sort=FALSE, values = ~value, type = 'pie',source = "plot_total_cit")
                 plot_total_cit <- plot_total_cit %>% layout(title = paste0("Main subjects  \n of the whole corpus"),
                                                             font=list(size=8),
                                                             legend = list(font = list(size = 9)),
                                                             xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
                                                             yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
                 reactive_values$secteur_is_finish<-TRUE
-                reactive_values$pct_cit[2]=mean(as.numeric(unlist(reactive_values$matrice_res_cit$data$citing_indice_pct_found)))
+                reactive_values$pct_cit[2]=mean(as.numeric(unlist(reactive_values$matrice_res_cit$data$citing_indice_pct_found)),na.rm = TRUE)
                 reactive_values$pct_cit[4]=length(unlist(reactive_values$matrice_res_cit$data$citing_indice_pct_found))
                 return(plot_total_cit)
                 
                 
                 
               })   
-              output$stat_journ_cit_total<-renderText({paste("pourcentage accuracy of graphique total",round(reactive_values$pct_cit[2],digits = 2),"of",reactive_values$pct_cit[4],"citations")})
+              output$stat_journ_cit_total<-renderText({paste("pourcentage accuracy of graphique total",round(reactive_values$pct_cit[2],digits = 2)*100,"%","of",reactive_values$pct_cit[4],"citations")})
               
               
               states_cit_2 <- reactiveValues(source =reactive_values$states_cit$source, value = c(-1,-1), changed = c(FALSE,FALSE),key=NULL)

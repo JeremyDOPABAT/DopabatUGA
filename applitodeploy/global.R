@@ -465,7 +465,7 @@ make_network_graph<-function(keywords,publication_date=0,top_number=0,interval_y
         c_igraph=delete_vertices(c_igraph,ind_sup)
         add_title_sup="found more than ones,"
       }   
-      b=min(year,na.rm = TRUE)+(i)*interval_year
+      b=min(year,na.rm = TRUE)+(i)*interval_year#creation titre avec intervall 
       if(b>max(year,na.rm = TRUE)) b<-max(year,na.rm = TRUE)
       main_title=paste("Graph of ",add_title_domaine,add_title_top,add_title_sup , "year :[",min(year,na.rm = TRUE)+(i-1)*interval_year,":",b,add_brack)
       if(root_weight==TRUE){
@@ -2174,7 +2174,8 @@ conforme_bibtext<-function(data_wos,data_base){
   return(data_wos) 
 }
 
-interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd,type){
+interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd,type,calcul_distance_off=FALSE){
+  
   #' interdis_matrice_creation_and_calcul
   #' donction qui calcule l'interdiciplinarité d'une matrice de citation et ou reference 
   #' Fonction interne 
@@ -2184,7 +2185,6 @@ interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd
   #' @param type type of analyse 
   #'
   #' @return list of result et analyse
-  
   col_identifier=c()
   col_title=c()
   temp=0
@@ -2244,43 +2244,48 @@ interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd
       
       sumrow=rowSums(matrice_prop)
       
-      
-      dia=sapply(1:dim(matrice_prop)[1],FUN = function(x){# calvule des dia par article et du total en derni_re ligne 
-        
-        cal=0
-        matrice_prop[x,]=matrice_prop[x,]/sumrow[[x]]# contingence a pourcentage 
-        
-        lien<-list()
-        
-        for(i in 1:dim(matrice_prop)[2]){# il faut adittionner les couple donc parcourir les colonne deux fois 
-          for(j in 1:dim(matrice_prop)[2]){
-            #print(j)
-            if(matrice_prop[x,i]!=0 && matrice_prop[x,j]!=0){
-              
-              n1=names(matrice_prop)[i]
-              n2=names(matrice_prop)[j]
-              dij=table_dist[n1,n2]
-              lien=append(list(c(n1,n2)),lien)
-              cal=cal+matrice_prop[x,i]*matrice_prop[x,j]*dij
+      if(calcul_distance_off==FALSE){ 
+        dia=sapply(1:dim(matrice_prop)[1],FUN = function(x){# calvule des dia par article et du total en derni_re ligne 
+          
+          cal=0
+          matrice_prop[x,]=matrice_prop[x,]/sumrow[[x]]# contingence a pourcentage 
+          
+          lien<-list()
+          
+          for(i in 1:dim(matrice_prop)[2]){# il faut adittionner les couple donc parcourir les colonne deux fois 
+            for(j in 1:dim(matrice_prop)[2]){
+              #print(j)
+              if(matrice_prop[x,i]!=0 && matrice_prop[x,j]!=0){
+                
+                n1=names(matrice_prop)[i]
+                n2=names(matrice_prop)[j]
+                dij=table_dist[n1,n2]
+                lien=append(list(c(n1,n2)),lien)
+                cal=cal+matrice_prop[x,i]*matrice_prop[x,j]*dij
+              }
             }
           }
-        }
+          
+          
+          
+          return(list(valeur=cal,couple=lien))
+          
+          
+          #return(list(proportion=matrice_prop,distance=table_dist))
+        })
         
+        (DD=unlist(dia["valeur",][length(dia["valeur",])]))
         
+        (ID=mean(unlist(dia["valeur",][-length(dia["valeur",])])))
+        dia=dia[,-dim(dia)[2]] 
         
-        return(list(valeur=cal,couple=lien))
-        
-        
-        #return(list(proportion=matrice_prop,distance=table_dist))
-      })
-      
-      (DD=unlist(dia["valeur",][length(dia["valeur",])]))
-      
-      (ID=mean(unlist(dia["valeur",][-length(dia["valeur",])])))
-      dia=dia[,-dim(dia)[2]] 
-      
-      (MD=DD-ID)
-      
+        (MD=DD-ID)
+      }else{
+        dia=NULL
+        MD=NULL
+        ID=NULL
+        DD=NULL
+      }
       # path_gd="data/categ_wos.csv"
       # 
       # table_categ_gd=read.csv(file=data/categ_wos.csv,header = TRUE,stringsAsFactors = FALSE,sep = ";")
@@ -2320,6 +2325,7 @@ interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd
       
       #matrice_prop[["CONTRIBUTION"]]=col_list_line
       #print(dim(matrice_prop))
+     # browser("in interdice")
       resultat<-list(dia=dia$valeur,md=MD,id=ID,dd=DD,prop=matrice_prop,prop_grande_discipline=new_matrice_prop,contribution=new_matrice_contribution)
     }else{
       resultat=NULL
@@ -2330,6 +2336,13 @@ interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd
   }
   return(resultat)
 }
+
+
+traduction_plot<-function(lang_plot,matrice_res){
+  
+}
+
+
 
 merge_result_data_base<-function(ads,arxiv,pumed,wos,lens,col_journal=c(NULL,NULL,NULL,NULL,NULL),type){
       
@@ -2413,7 +2426,7 @@ combine_analyse_data<-function(cit_ref_df_global,journal_table_ref,type){
 
 
 
-global_merge_and_cal_interdis<-function(ads=NULL,arxiv=NULL,pumed=NULL,wos=NULL,lens=NULL,journal_table_ref,table_dist,table_categ_gd,col_journal=c(NULL,NULL,NULL,NULL,NULL),type){
+global_merge_and_cal_interdis<-function(ads=NULL,arxiv=NULL,pumed=NULL,wos=NULL,lens=NULL,journal_table_ref,table_dist,table_categ_gd,col_journal=c(NULL,NULL,NULL,NULL,NULL),type,calcul_distance_off=FALSE){
   #' Title fct de rassemblement qui permet de caluler l'interdiciplinarite  
   #'avec les citations et reference des differente base. cette fonction est une fonction interne n'ayant pas pour but d'etre appele en dehor de l'appli
   #' @param ads matrice cit/ref venant d'ads 
@@ -2427,13 +2440,12 @@ global_merge_and_cal_interdis<-function(ads=NULL,arxiv=NULL,pumed=NULL,wos=NULL,
   #' @param type type de traitement cit/ref/all (les deux)
   #'
   #' @return list de de list resultat 
-  
   #wos pumed arxiv et ads sont les matrice de citation ou reference 
   if(type=="all"){# qi on veux les reference et les citation 
     merge_data_ref<-merge_result_data_base(ads,arxiv,pumed,wos,lens,type="ref",col_journal = col_journal)# on merge les diferente matrice 
     if(dim(merge_data_ref)[1]>0) {
       merge_data_ref<-combine_analyse_data(merge_data_ref,journal_table_ref,type="ref")# on recupere leurs nom de journal pour les associe au categorie wos 
-      res_matrice_ref=interdis_matrice_creation_and_calcul(data_gl = merge_data_ref,table_dist,table_categ_gd,type = "ref" ) # on  calcule l'interdiciplinarite et les different indicateurs 
+      res_matrice_ref=interdis_matrice_creation_and_calcul(data_gl = merge_data_ref,table_dist,table_categ_gd,type = "ref",calcul_distance_off = calcul_distance_off ) # on  calcule l'interdiciplinarite et les different indicateurs 
     }else {
       res_matrice_ref=NULL
       merge_data_ref=NULL
@@ -2442,7 +2454,7 @@ global_merge_and_cal_interdis<-function(ads=NULL,arxiv=NULL,pumed=NULL,wos=NULL,
     merge_data_cit<-merge_result_data_base(ads,arxiv,pumed,wos,lens,type="cit",col_journal = col_journal)
     if(dim(merge_data_cit)[1]>0) {
       merge_data_cit<-combine_analyse_data(merge_data_cit,journal_table_ref,type="cit" )
-      res_matrice_cit=interdis_matrice_creation_and_calcul(data_gl = merge_data_cit,table_dist,table_categ_gd,type = "cit" )
+      res_matrice_cit=interdis_matrice_creation_and_calcul(data_gl = merge_data_cit,table_dist,table_categ_gd,type = "cit",calcul_distance_off = calcul_distance_off )
     }else {
       res_matrice_cit=NULL
       merge_data_cit=NULL
@@ -2455,7 +2467,7 @@ global_merge_and_cal_interdis<-function(ads=NULL,arxiv=NULL,pumed=NULL,wos=NULL,
     merge_data<-merge_result_data_base(ads,arxiv,pumed,wos,lens,type,col_journal = col_journal)
     if(dim(merge_data)[1]>0) {
       merge_data<-combine_analyse_data(merge_data,journal_table_ref,type)
-      res_matrice=interdis_matrice_creation_and_calcul(data_gl = merge_data,table_dist,table_categ_gd,type=type )
+      res_matrice=interdis_matrice_creation_and_calcul(data_gl = merge_data,table_dist,table_categ_gd,type=type,calcul_distance_off=calcul_distance_off)
     } else res_matrice=NULL
     
     result=list(data=merge_data,res=res_matrice)
@@ -2776,7 +2788,6 @@ lens_get_publi<-function(au_data,ti_data,doi_data="",position_reel,pas,value_sam
           
           
           if(result$total>0){
-            print("ouiiiiiii")
             title=result$data$title
             id=result$data$lens_id
             author=sapply(1:length(result$data$authors),FUN = function(x) return(list(result$data$authors[[x]]$last_name)))
@@ -2927,7 +2938,7 @@ extraction_data_api_lens<-function(data_pub,ti_name,au_name,doi_name,token,pas=1
     if(dim(data_rest)[1]!=0) {
       
       res_rest_all=lens_get_publi(data_rest[au_name][[1]],data_rest[ti_name][[1]],data_rest[doi_name][[1]],data_rest[position_vector_in_data][[1]],pas,value_same_min_ask,value_same_min_accept,token,sep)
-      print(dim(res_rest_all$res))
+     
       res_rest=res_rest_all$res
       err2=res_rest_all$error
       reject2=res_rest_all$reject
