@@ -5,6 +5,6 @@ account: uga-projet
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 2820420
-bundleId: 4347846
+bundleId: 5279286
 url: https://uga-projet.shinyapps.io/lab_data_visualisation/
-when: 1615815918.21479
+when: 1637576497.86386
