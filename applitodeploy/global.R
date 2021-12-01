@@ -710,14 +710,18 @@ compaire_title<-function(ti_trouver,ti_data){
       max_apply<-sapply(1:length(ti_data),FUN=function(y){
       
       
-      return(max(nchar(courant),max(nchar(ti_data[y]))))
+      return(max(nchar(courant),max(nchar(ti_data[y]))))# longueur max entre le titre trouvé et les titre demander 
     })
     tp<-max(1-(adist(Unaccent(ti_trouver[x]),Unaccent(ti_data),ignore.case = TRUE)/max_apply),na.rm = TRUE)
-    tw<-which((1-(adist(Unaccent(ti_trouver[x]),Unaccent(ti_data),ignore.case = TRUE)/max_apply))==tp)[1]
-    #print("inside indic")
-    #print(ti_trouver[x])
-    
-    # print(adist(Unaccent(ti_trouver[x]),Unaccent(ti_data),ignore.case = TRUE))
+    tw<-which((1-(adist(Unaccent(ti_trouver[x]),Unaccent(ti_data),ignore.case = TRUE)/max_apply))==tp)[1]#indice du tire demandé qui correspont le plus au titre trouver 
+    # explication calcul 
+  #   L’indice de ressemblance est donnée de la manière suivante, en comparant le titre obtenu a tous les titre demander : 
+  #     max(1-(vecteur_nombre_différence/max_longueur_couple)) où;
+  #   vecteur_nombre_différence est le nombre de différence attribuer entre le titre obtenu et les titres demander, on a donc un nombre de différence entre 0 et la longueur du titre le plus long. 
+  #   En divisant par la longueur max des deux titre comparés  on obtient un vecteur de chiffre entre 0 et 1 )
+  # 1 étant ici complètement différent et 0 similaire 
+  # En passant ce vecteur en négatif et en lui ajoutant 1, on passe ce vecteur de différence en vecteur de similitude. et en prenant le max on renvoie le titre demandé qui ressemble le plus au titre trouvées. 
+  # 
     return(list(tp,tw))
   })
 }
@@ -760,7 +764,6 @@ querry_warning_message<-function(r){
   
   
 }
-
 
 
 
@@ -974,7 +977,7 @@ get_cit_or_ref_arxiv<-function(resdt,type){
           titre_error["Status error"]=r$status
           titre_error$Message=message_error(r)
           titre_error["Data impact"]=type
-          titre_error$h=ar
+          titre_error$request_number=ar
         })
         incProgress(1/length(link_list))
         if(length(error)>0){
@@ -1193,7 +1196,7 @@ pumed_get_element_id<-function(id_list,type){
     titre_error["Status error"]=r$status
     titre_error$Message=message_error(r)
     titre_error["Data impact"]=type
-    titre_error$h=NA
+    titre_error$request_number=NA
     return(titre_error)
   })
   
@@ -1722,7 +1725,7 @@ arxiv_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,v
         titre_error["Status error"]=r$status
         titre_error$Message=message_error(r)
         titre_error["Data impact"]="ref & cit"
-        titre_error$h=h
+        titre_error$request_number=h
         return(titre_error)
       })
       
@@ -1862,7 +1865,7 @@ arxiv_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,v
             titre_error["Status error"]=r$status
             titre_error$Message=message_error(r)
             titre_error["Data impact"]="ref & cit"
-            titre_error$h=h
+            titre_error$request_number=h
             return(titre_error)
           })
           
@@ -2775,7 +2778,7 @@ lens_get_publi<-function(au_data,ti_data,doi_data="",position_reel,pas,value_sam
           titre_error["Status error"]=data$status
           titre_error$Message=message_error(data)
           titre_error["Data impact"]="ref & cit"
-          titre_error$h=h
+          titre_error$request_number=h
           return(titre_error)
         })
         
@@ -3104,7 +3107,7 @@ ads_get_publi<-function(au_data,ti_data,doi_data="",position_name,pas,value_same
   #'
   #' @return dataframe 
   
-  
+  #préalablement sort par doi 
   
   #browser()  
   last_good_result=NULL
@@ -3129,7 +3132,7 @@ ads_get_publi<-function(au_data,ti_data,doi_data="",position_name,pas,value_same
   doi_data=res_temp[[3]]
   
   #if(doi_data=="none") doi_data=""  
-  for(type_requetage in c("TI_AU","DOI" )){
+  for(type_requetage in c("DOI","TI_AU" )){
     #if(type_requetage=="DOI")    
     print(type_requetage)
     
@@ -3183,9 +3186,9 @@ ads_get_publi<-function(au_data,ti_data,doi_data="",position_name,pas,value_same
           
           
           adress=paste0('author%3A%28',au_querry,'%29AND%20title%3A%28',ti_querry,'%29&fl=reference%20citation%20author%20title%20database%20pubdate%20bibcode%20keyword%20pub%20&sort=date%20desc&rows=500&start=',0)
-          
+          #h23
         }else{
-          doi_querry=paste0(gsub("/","%2F",doi_data[first:last]),collapse = '%20OR%20')
+          doi_querry=paste0(gsub(":","%3A",gsub("/","%2F",doi_data[first:last])),collapse = '%20OR%20')
           adress=paste0('doi%3A',doi_querry,'&fl=reference%20citation%20author%20title%20database%20pubdate%20bibcode%20keyword%20pub%20&sort=date%20desc&rows=500&start=',0)
           #adress="doi%3A10.1103%2FPhysRevE.100.033316%20OR%2010.1117%2F12.2504649"
         }
@@ -3207,11 +3210,12 @@ ads_get_publi<-function(au_data,ti_data,doi_data="",position_name,pas,value_same
           titre_error["Status error"]=r$status
           titre_error$Message=message_error(r)
           titre_error["Data impact"]="ref & cit"
-          titre_error$h=h
+          titre_error$request_number=h
           return(titre_error)
         })
         
         if(length(error)>0){
+          #browser()
           error_querry<-rbind(error_querry,error)
           error=c()
           
@@ -3248,7 +3252,6 @@ ads_get_publi<-function(au_data,ti_data,doi_data="",position_name,pas,value_same
         }
         
         
-        print("end looop")
         if(h==inter) {# fin de loop mise en place des data frame 
           resdt=as.data.frame(res)
           
@@ -3551,7 +3554,7 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,doi_name,pas=8,value_s
         titre_error["Status error"]=r$status
         titre_error$Message=message_error(r)
         titre_error["Data impact"]="cit"
-        titre_error$h=h
+        titre_error$request_number=h
         return(titre_error)
       })
       
@@ -3788,7 +3791,7 @@ pumed_get_publi<-function(au_data,ti_data,doi_data="",position_name,pas,value_sa
           titre_error["Status error"]=r$status
           titre_error$Message=message_error(r)
           titre_error["Data impact"]="ref & cit"
-          titre_error$h=h
+          titre_error$request_number=h
           return(titre_error)
         })
         # 
@@ -3826,7 +3829,7 @@ pumed_get_publi<-function(au_data,ti_data,doi_data="",position_name,pas,value_sa
               titre_error["Status error"]=r$status
               titre_error$Message=message_error(r)
               titre_error["Data impact"]="ref & cit"
-              titre_error$h=h
+              titre_error$request_number=h
               return(titre_error)
             })
             

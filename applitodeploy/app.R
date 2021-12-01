@@ -18,7 +18,7 @@
 # 
 # le ui gere tout l'aspec graphie '
 # le serveur tout l'apec calcule et variable '
-
+#git token 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 
 
 source("global.R",encoding = "UTF-8")
 library(utils)
