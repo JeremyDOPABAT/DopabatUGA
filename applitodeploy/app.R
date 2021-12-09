@@ -1,6 +1,6 @@
 # This is a Shiny web application. You can run the application by clicking
 # the 'Run App' button above.
-# token git hub : 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
+# token git hub : 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
 #Bonjour a toi succeceur, ici tu es au coeur de l'application  DOPABAT ET BIEN QUE CHAQUE FONCTION SOIT DOCUMENTER, JE VAIS TE FAIRE UN PETIT TOPO
 # l'appli permet d'analyse un corpus de métadonne de publication envoyer par bibtext ou csv. une partie du code est cacher de l'appli, il sagit de la pmartie qui traites des fichier pdf en teste brut 
 # car il n'était pas possible de le mettre sur l'application. 
@@ -259,7 +259,7 @@ ui<-dashboardPage(skin = "red",
                                                              All = "all"),
                                                  selected = "head"),
                                     
-                                    conditionalPanel('input.is_wos',checkboxInput("sup_wos_for_ref", "this file already countain reference, don't reasearch them",value = FALSE)),# rechercher les ref dans le fichier ou pas 
+                                    conditionalPanel('input.is_wos',checkboxInput("sup_wos_for_ref", "this file already countain reference, don't research them",value = FALSE)),# rechercher les ref dans le fichier ou pas 
                                     conditionalPanel('output.show_wos_valid',actionButton("valid_wos", "validate bibtext"))# boutton de valiation 
                                     #
                                 ),
@@ -307,7 +307,7 @@ ui<-dashboardPage(skin = "red",
                               
                               
                               ),
-                              tags$div(title="Download all the graphics of page in pdf ",downloadButton("downloadPlot", "Download Plot(s)")),
+                              tags$div(title="Download all the graphics of page in pdf ",downloadButton("downloadPlot_wordclouds", "Download Plot(s)")),
                               fluidRow(
                                 
                                 uiOutput("plot_wordcloud")%>% withSpinner(color="#0dc5c1")
@@ -360,7 +360,7 @@ ui<-dashboardPage(skin = "red",
                                     
                                     
                                     
-                                    actionButton("valid_DB", "Process the reaseach"),
+                                    actionButton("valid_DB", "Process the research"),
                                     br(),
                                     actionButton("valid_data_research", "Calculate interdisiplinarity"),
                                     conditionalPanel('output.show_token_lens',textInput("token_lens",label ="Lens'token" )),
@@ -605,7 +605,8 @@ server <- function(input, output, session) {
     show_pumed_box=TRUE,# when lens is selected pubmed desapear 
     show_arxiv_abilities=FALSE, #temps que arxiv n'a pas un moyen de fonctionner cela restera a faux 
     limit_length_title=55,# nombre de caractère pour les titre des graphique 
-    plot_in_englis=FALSE
+    plot_in_englis=FALSE,#boleeen du changement de langue des plot 
+    plot_wordcloud=c()
   )  
   #copy des variable reactive dans les output pour leurs permetre d'etre invisible 
   output$show_header <- reactive({
@@ -1274,29 +1275,41 @@ We ask all the users to   cite the different sources they use to make the graphi
               t_freq=table(vrac)
               t_word<-t_word[order(factor(t_word, levels=names(t_freq)))]
             }
+            b=min(year,na.rm = TRUE)+(my_i)*as.numeric(input$intervalyear)
+            
             if(length(t_freq)!=0){
-              b=min(year,na.rm = TRUE)+(my_i)*as.numeric(input$intervalyear)
-              if(b>max(year,na.rm = TRUE)) b<-max(year,na.rm = TRUE)
+              
+                if(b>max(year,na.rm = TRUE)) b<-max(year,na.rm = TRUE)
               output[[plotname]] <- renderPlot({
                 
                 if(input$minfreq>max(t_freq)) inputreal=max(t_freq) else inputreal=input$minfreq
-                updateNumericInput(session, inputId = "minfreq",min=1,max=max(t_freq))
-                wordcloud(words = t_word, freq = t_freq, min.freq = inputreal,
-                          max.words=input$maxprint, random.order=FALSE, rot.per=0.35,
-                          colors=brewer.pal(8, "Dark2"),scale = c(1.5, 0.3))
+                wordcloud(
+                  words = t_word, freq = t_freq, min.freq = inputreal,
+                  max.words=input$maxprint, random.order=FALSE, rot.per=0.35,
+                  colors=brewer.pal(8, "Dark2"),scale = c(1.5, 0.3))
                 
-                suppressWarnings(titre<-paste("top",input$maxprint,"keywords",add_title,"year(s) [",min(year,na.rm = TRUE)+(my_i-1)*as.numeric(input$intervalyear),":",b,add_brack,"( minimum frequency:",input$minfreq,")"))
+                suppressWarnings(titre<-paste("top",input$maxprint,"keywords",add_title,"year(s) [",min(year,na.rm = TRUE)+(my_i-1)*as.numeric(input$intervalyear),":",b,add_brack,"( minimum frequency:",inputreal,")"))
                 mtext(titre, side=2)
                 
                 
               })
               
               
-            }
+              }else{
+                output[[plotname]] <- renderPlot({
+                wordcloud(words = "no data for this periode ", freq = 1, min.freq = 1,
+                                     max.words=1, random.order=FALSE, rot.per=0.35,
+                                     colors=brewer.pal(8, "Dark2"),scale = c(1.5, 0.3))
+                  
+                  suppressWarnings(titre<-paste("top",input$maxprint,"keywords",add_title,"year(s) [",min(year,na.rm = TRUE)+(my_i-1)*as.numeric(input$intervalyear),":",b,add_brack,"( minimum frequency:",input$minfreq,")"))
+                  mtext(titre, side=2)
+                })
+                  #mtext(titre,side=2) 
+              }
             
           })
         }
-      }else{
+      }else{# si pas besoin année 
         local({
           print("je passe dans le else wordcloud")
           my_i <- 1
@@ -1331,12 +1344,11 @@ We ask all the users to   cite the different sources they use to make the graphi
             t_word<-t_word[order(factor(t_word, levels=names(t_freq)))]
           }
           if(length(t_freq)!=0){
-            print("je passe dans le else wordcloud2")
+            updateNumericInput(session, inputId = "minfreq",min=1,max=max(t_freq))
+            
             output[[plotname]] <- renderPlot({
-              print("jarrive dans le render plot")
               if(input$minfreq>max(t_freq)) inputreal=max(t_freq) else inputreal=input$minfreq
-              updateSliderInput(session, inputId = "minfreq",min=1,max=max(t_freq),step = 1)
-              wordcloud(words = t_word, freq = t_freq, min.freq = inputreal,
+                      wordcloud(words = t_word, freq = t_freq, min.freq = inputreal,
                         max.words=input$maxprint, random.order=FALSE, rot.per=0.35,
                         colors=brewer.pal(8, "Dark2"),scale = c(1.5, 0.3))
               
@@ -1346,16 +1358,31 @@ We ask all the users to   cite the different sources they use to make the graphi
             })
             
             
+          }else{
+            output[[plotname]] <- renderPlot({
+              
+              wordcloud(words = "no data for the corpus", freq = 1, min.freq = 1,
+                        max.words=1, random.order=FALSE, rot.per=0.35,
+                        colors=brewer.pal(8, "Dark2"),scale = c(1.5, 0.3))
+              
+              suppressWarnings(titre<-paste("top",input$maxprint,"keywords",add_title,",in whole dataset( minimum frequency:",input$minfreq,")"))
+              mtext(titre,side=2)
+              
+            })
           }
+          #browser()
         })
       }
       
-      output$downloadPlot <- downloadHandler(
-        filename = function(){paste(input$dataset, '.pdf', sep = '')},
+        
+      
+      output$downloadPlot_wordclouds <- downloadHandler(
+        
+        filename = function(){paste("yourprettyworclouds", '.pdf', sep = '')},
         
         content = function(file) {
           pdf(file)
-          make_wordcloud(keywords_lem_complet,year,simple_word = input$Simpleword,max_word_print = input$maxprint,interval_year = input$intervalyear,minfreq =input$minfreq  )
+          make_wordcloud(keywords = keywords_lem_complet,publication_date = year,simple_word = input$Simpleword,max_word_print = input$maxprint,interval_year = input$intervalyear,minfreq =input$minfreq)
           dev.off()
         },
         
@@ -1367,7 +1394,7 @@ We ask all the users to   cite the different sources they use to make the graphi
   }
   })
   #_________________________________travail sur pdf_______________________________________________________
-  
+  #
   
   observeEvent(input$pdf_path, {
     reactive_values$path_folder <-  choose.dir(default = "", caption = "Select folder with pdf file you want to add")
@@ -2483,7 +2510,7 @@ We ask all the users to   cite the different sources they use to make the graphi
               #View(reactive_values$matrice_res_ref$res$prop)
               
               observeEvent(input$lang_plot, {
-                print("in the observe ")
+                table_data=c()
               if(input$lang_plot=="en" ){
                 # browser()
                 if(reactive_values$plot_in_englis==FALSE){
@@ -2611,7 +2638,8 @@ We ask all the users to   cite the different sources they use to make the graphi
               
               output$stat_journ_ref_total<-renderText({paste("pourcentage accuracy of graphique total",round(reactive_values$pct_ref[2],digits = 2)*100,"%","of",reactive_values$pct_ref[4],"references")})  
               states_2 <- reactiveValues(source =reactive_values$states$source, value = c(-1,-1), changed = c(FALSE,FALSE),key=NULL)
-              observeEvent({c(event_data("plotly_click", source =states_2$source[[2]],priority = "event"),event_data("plotly_click", source =states_2$source[[1]],priority = "event") ) },{
+              
+              observeEvent({c(event_data("plotly_click", source =states_2$source[[2]],priority = "event"),event_data("plotly_click", source =states_2$source[[1]],priority = "event"),input$lang_plot ) },{
                 if(reactive_values$secteur_is_finish==TRUE){
                   for(src in states_2$source){
                     clicked<-event_data("plotly_click", source = src)
@@ -2648,11 +2676,12 @@ We ask all the users to   cite the different sources they use to make the graphi
                         ind=which(reactive_values$matrice_res_ref$res$prop[["IDENTIFIANT"]]==input$select_article)
                         
                       }
+                     # if(input$lang_plot=="en") browser()
                       id=reactive_values$matrice_res_ref$res$contribution[ind,col]
-                      ind_global=as.numeric(unique(strsplit(gsub(" ","",(id)),split = ",")[[1]]))
+                      if(length(id)>0) ind_global=as.numeric(unique(strsplit(gsub(" ","",(id)),split = ",")[[1]])) else ind_global=NULL
                       #
                       # if(!is.null(ind_global))
-                      table_data=datatable(df_flatten(reactive_values$matrice_res_ref$data[ind_global,]), options = list(scrollX = TRUE, columnDefs = list(list(
+                      table_data=datatable(df_flatten(reactive_values$matrice_res_ref$data[ind_global,]),filter = 'top', options = list(scrollX = TRUE, columnDefs = list(list(
                         targets = "[1,6]" ,render = JS(
                           "function(data, type, row, meta) {",
                           "return type === 'display' && data.length > 70 ?",
@@ -2691,7 +2720,7 @@ We ask all the users to   cite the different sources they use to make the graphi
                   paste("table_ref","period",".csv", sep = "")
                 },
                 content = function(file) {
-                  write.csv2(as.data.frame(df_flatten(reactive_values$matrice_res_ref$data)), file, row.names = FALSE)
+                  write.csv(as.data.frame((reactive_values$matrice_res_ref$data)), file, row.names = FALSE)
                 }
               )
               
@@ -2869,11 +2898,13 @@ We ask all the users to   cite the different sources they use to make the graphi
                       }
                       
                       id=reactive_values$matrice_res_cit$res$contribution[ind,col]
-                      ind_global=as.numeric(unique(strsplit(gsub(" ","",(id)),split = ",")[[1]]))
+                      if(length(id)>0) ind_global=as.numeric(unique(strsplit(gsub(" ","",(id)),split = ",")[[1]])) else ind_global=NULL
+                      
+                      
                       
                       #
                       # if(!is.null(ind_global))
-                      table_data=datatable(df_flatten(reactive_values$matrice_res_cit$data[ind_global,]), options = list(scrollX = TRUE, columnDefs = list(list(
+                      table_data=datatable(df_flatten(reactive_values$matrice_res_cit$data[ind_global,]),filter = 'top', options = list(scrollX = TRUE, columnDefs = list(list(
                         targets = "[1,2,6]" ,render = JS(
                           "function(data, type, row, meta) {",
                           "return type === 'display' && data.length > 70 ?",
@@ -2939,7 +2970,6 @@ We ask all the users to   cite the different sources they use to make the graphi
   
   
   observeEvent({c(input$cookies$cookie_ads_token,input$cookies$cookie_lens_token)},{
-    print("passse")
     if(input$cookies$cookie_ads_token!="") updateTextInput(session,inputId ="token_ads",value =input$cookies$cookie_ads_token  )
     if(input$cookies$cookie_lens_token!="") updateTextInput(session,inputId ="token_lens",value =input$cookies$cookie_lens_token  )
   })

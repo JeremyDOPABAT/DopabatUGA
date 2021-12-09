@@ -56,7 +56,7 @@ make_input_network_graph<-function(keywords) {
     term<-unique(unlist(keywords))# les mot cke unique pour faire les noeud du graph 
     
     
-    if(is_empty(which(names(wei)==""))==FALSE){ 
+    if(is_empty(which(names(wei)==""))==FALSE){ #il peu y avoir des mot clef vide, des espace si telle est le cas on les enleve 
       wei<-wei[-(which(names(wei)==""))]
       term<-term[-(which(term==""))]
     }
@@ -67,7 +67,7 @@ make_input_network_graph<-function(keywords) {
     for(i in(1:length(keywords))){# on parcour chaque ligne de la liste et on associé les mot sur la même ligne 
       if(length(keywords[[i]])>1){
         for(j in(1:length(keywords[[i]]))){
-          if(length(keywords[[i]])>j){
+          if(length(keywords[[i]])>j){#on crée chaque arete from est le mot de départ et to celui d'arriver 
             add_from=rep(keywords[[i]][j],length(keywords[[i]])-j)
             add_to=c(keywords[[i]][(j+1):length(keywords[[i]])])
             from=c(from,add_from)
@@ -90,11 +90,11 @@ make_input_network_graph<-function(keywords) {
     
   } else term=NULL
   
-  if(length(term)!=0){  
+  if(length(term)!=0){  # si il y a des mot 
     edge_list <- tibble(from = from, to = to)
     
     node_list <- tibble(id = term)
-  } else{
+  } else{# si le graphique est vide 
     edge_list <- tibble(from = "no data as been found", to = "no data as been found")
     
     node_list <- tibble(id = "no data as been found")
@@ -250,7 +250,7 @@ make_top_graph<-function(graph_input,wei_table,top_number){
 
 
 make_wordcloud<-function(keywords,publication_date=0,interval_year=0,simple_word=FALSE,max_word_print=20,minfreq=2){
-  set.seed(1234)
+  set.seed(1234)# permet que le nuage tout le temps 
 
   
   
@@ -268,19 +268,20 @@ make_wordcloud<-function(keywords,publication_date=0,interval_year=0,simple_word
   #'
   #' @return les nuages de mots sont ploter 
   
-  
-  by_year=FALSE
-  add_title=""
-  year<-publication_date
-  p_res=c()
+  #initialisation 
+  #fonction utiliser seulment dans le donlowd 
+  add_title=""# titre du graphiqhe 
+  year<-publication_date #année 
+  p_res=c()# variable resultat 
   
   suppressWarnings(if(!is.na(as.numeric(interval_year))) interval_year<-as.numeric(interval_year))
   # par année ou groupe d'annees  
   if(is.numeric(interval_year) & interval_year>0){
     
     diff<-max(year,na.rm=TRUE)-min(year,year,na.rm=TRUE)
-    iter<-ceiling(diff/interval_year)
+    iter<-ceiling(diff/interval_year)#nombre de graphique a crée 
     for (i in 1:iter){
+      
       if(i!=iter){# si on est pas sur la derniere date
         index_year<-((year>=min(year,na.rm=TRUE)+(i-1)*interval_year) &(year<min(year,na.rm=TRUE)+i*interval_year))
         add_brack="["
@@ -288,18 +289,21 @@ make_wordcloud<-function(keywords,publication_date=0,interval_year=0,simple_word
         index_year<-((year>=min(year,na.rm=TRUE)+(i-1)*interval_year) &(year<=min(year,na.rm=TRUE)+i*interval_year))
         add_brack="]"
       }
-      #print(table(year[index_year]))
       key_c<-keywords[index_year]
       
       
       
-      vrac<-unlist(key_c)
+      vrac<-unlist(key_c)#terme du graphique en cours 
       if( length(which(vrac=="")!=0)){
         vrac<-vrac[-( which(vrac==""))]
       }
       
       
+      if( length(which(vrac=="NULL")!=0  )){
+        vrac<-vrac[-( which(vrac=="NULL"))]
+      }  
   # on crée le nuage     
+    
       if(simple_word==TRUE){
         corp <- Corpus(VectorSource(vrac))
         dtm <-TermDocumentMatrix(corp)
@@ -314,18 +318,27 @@ make_wordcloud<-function(keywords,publication_date=0,interval_year=0,simple_word
         t_freq=table(vrac)
         t_word<-t_word[order(factor(t_word, levels=names(t_freq)))]
       }
+      b=min(year,na.rm = TRUE)+(i)*interval_year
       if(length(t_freq)!=0){
-        b=min(year,na.rm = TRUE)+(i)*interval_year
+        
         #print(head(sort(t_freq,decreasing=TRUE),10))
         if(b>max(year,na.rm = TRUE)) b<-max(year,na.rm = TRUE)
+        if(input$minfreq>max(t_freq)) inputreal=max(t_freq) else inputreal=minfreq
         
         p_res[i]=wordcloud(words = t_word, freq = t_freq, min.freq = minfreq,
                            max.words=max_word_print, random.order=FALSE, rot.per=0.35,
                            colors=brewer.pal(8, "Dark2"),scale = c(1.5, 0.3))
-        suppressWarnings(titre<-paste("top",max_word_print,"keywords",add_title,"year(s) [",min(year,na.rm = TRUE)+(i-1)*as.numeric(interval_year),":",b,add_brack,"( minimum frequency:",minfreq,")"))
+        suppressWarnings(titre<-paste("top",max_word_print,"keywords",add_title,"year(s) [",min(year,na.rm = TRUE)+(i-1)*as.numeric(interval_year),":",b,add_brack,"( minimum frequency:",inputreal,")"))
         mtext(titre,side=2)
         
         #print(head(sort(t_freq,decreasing=TRUE),10))
+      }else{
+        p_res[i]=wordcloud(words = "no data for this periode ", freq = 1, min.freq = 1,
+                           max.words=1, random.order=FALSE, rot.per=0.35,
+                           colors=brewer.pal(8, "Dark2"),scale = c(1.5, 0.3))
+        
+        suppressWarnings(titre<-paste("top",max_word_print,"keywords",add_title,"year(s) [",min(year,na.rm = TRUE)+(i-1)*as.numeric(interval_year),":",b,add_brack,"(no data)"))
+        mtext(titre,side=2) 
       }
       
       
@@ -339,6 +352,9 @@ make_wordcloud<-function(keywords,publication_date=0,interval_year=0,simple_word
     }
     
     
+    if( length(which(vrac=="NULL")!=0  )){
+      vrac<-vrac[-( which(vrac=="NULL"))]
+    }
     
     if(simple_word==TRUE){
       corp <- Corpus(VectorSource(vrac))
@@ -363,6 +379,14 @@ make_wordcloud<-function(keywords,publication_date=0,interval_year=0,simple_word
       suppressWarnings(titre<-paste("top",max_word_print,"keywords",add_title,",in whole dataset( minimum frequency:",minfreq,")"))
       
       mtext(titre,side=2)
+    }else{
+      p_res[1]=wordcloud(words = "no data for the corpus ", freq = 1, min.freq = 1,
+                         max.words=1, random.order=FALSE, rot.per=0.35,
+                         colors=brewer.pal(8, "Dark2"),scale = c(1.5, 0.3))
+      suppressWarnings(titre<-paste("top",max_word_print,"keywords",add_title,",in whole dataset( minimum frequency:",minfreq,")"))
+      
+      mtext(titre,side=2)
+      
     }
     
   }  
@@ -3810,7 +3834,6 @@ pumed_get_publi<-function(au_data,ti_data,doi_data="",position_name,pas,value_sa
           
           if(length(id_list)>0){
             h_trouver=c(h_trouver,h)
-            print("oooo")
             id_list_string=paste0(id_list,collapse = ",")
             
             #etourn  les id 
@@ -3911,7 +3934,7 @@ pumed_get_publi<-function(au_data,ti_data,doi_data="",position_name,pas,value_sa
         
       }
     }
-  print("sortie de get_pumed")  
+    
   return(list(res=resdt,error=error_querry,reject=reject))
   
   }#resdt_ask=resdt[res_new$check_title_pct>value_same_min_ask &res_new$check_title_pct<value_same_min_accept,]
