@@ -37,11 +37,11 @@ ui<-dashboardPage(skin = "red",
                   dashboardHeader(title = "DOPABAT"),
                   dashboardSidebar( sidebarMenu(
                     menuItem("Home", tabName = "home", icon = icon("house-user")),
-                    menuItem("Import_csv", tabName = "import_csv", icon = icon(name = "arrow-circle-up")),
+                    menuItem("Import csv", tabName = "import_csv", icon = icon(name = "arrow-circle-up")),
                     
                     #menuItem("Import_PDF", tabName = "import_pdf", icon = icon("file-pdf")),
                     #si le probleme est  regle decommenter laligne du dessous 
-                    menuItem("Import_bibext", tabName = "import_wos", icon = icon("file-export")),
+                    menuItem("Import bibTex", tabName = "import_wos", icon = icon("file-export")),
                     menuItem("History", tabName = "history", icon = icon("history")),
                     menuItem("Wordcloud graphics", tabName = "wordcloud", icon = icon("cloud")),
                     menuItem("Network graphics", tabName = "network", icon = icon("project-diagram")),
@@ -238,7 +238,7 @@ ui<-dashboardPage(skin = "red",
                               fluidRow(
                                 
                                 box(width = 5, title = "Uploading bibtex files", solidHeader = TRUE, status = "danger",# le status "danger" permet la couleur rouge 
-                                    tags$div(title="Choose bibtex file, bibtext only",fileInput("file2", "Choose bibtext File",
+                                    tags$div(title="Choose bibtex file, bibTex only",fileInput("file2", "Choose bibTex File",
                                                                                                 multiple = TRUE,
                                                                                                 accept = c(".bib"))),
                                     tags$div(title="If the file is coming from wos database OR if the regular importation dont work ,check this case",
@@ -260,7 +260,7 @@ ui<-dashboardPage(skin = "red",
                                                  selected = "head"),
                                     
                                     conditionalPanel('input.is_wos',checkboxInput("sup_wos_for_ref", "this file already countain reference, don't research them",value = FALSE)),# rechercher les ref dans le fichier ou pas 
-                                    conditionalPanel('output.show_wos_valid',actionButton("valid_wos", "validate bibtext"))# boutton de valiation 
+                                    conditionalPanel('output.show_wos_valid',actionButton("valid_wos", "validate bibTex"))# boutton de valiation 
                                     #
                                 ),
                                 
@@ -423,7 +423,7 @@ ui<-dashboardPage(skin = "red",
                                                                          dataTableOutput("table_data_ref5"))),
                                        
                                        
-                                       tabPanel("Bibtext files references",conditionalPanel('output.show_wos_res_window',radioButtons("col_journal_wos", "How is the journal names?",inline = TRUE,
+                                       tabPanel("BibTex files references",conditionalPanel('output.show_wos_res_window',radioButtons("col_journal_wos", "How is the journal names?",inline = TRUE,
                                                                                                                                       choices = c("Complet journal name" = "Full.Journal.Title",
                                                                                                                                                   "Abreviation journal name" = "JCR.Abbreviated.Title"
                                                                                                                                       ),
@@ -738,7 +738,7 @@ We ask all the users to   cite the different sources they use to make the graphi
   
   #meme chose pour la rescer interdis 
   output$text_database <- renderText({
-    paste(h4("Help:"),"First select a database and do 'process' (except if you only have references from the Web of science) then you can manage your data as you wich and when it's ok clic on the right button.","Cookies are used to remember your token(s). You can remove them by clicking the remove button on history tab." )
+    paste(h4("Help:"),"First select a database and do 'process' (except if you only have references from the Web of science) then you can manage your data as you wich and when it's ok click on the right button.","Cookies are used to remember your token(s). You can remove them by clicking the remove button on history tab." )
   })
   
   #text d'aide pour l'onglet bibtext 
@@ -758,7 +758,7 @@ We ask all the users to   cite the different sources they use to make the graphi
   }, {  
     
     output$list_file <- renderText({
-      c("CSV:",paste(reactive_values$privious_datapath_csv,collapse ="," ), "Bibtext:",paste(reactive_values$privious_datapath_wos,collapse = ","))
+      c("CSV:",paste(reactive_values$privious_datapath_csv,collapse ="," ), "BibTex:",paste(reactive_values$privious_datapath_wos,collapse = ","))
     })
     
   })
@@ -1606,7 +1606,7 @@ We ask all the users to   cite the different sources they use to make the graphi
           reactive_values$show_wos_res_window=TRUE
           output$table_data_ref4 <- renderDataTable({
             validate(
-              need(dim(reactive_values$ref_wos)[1]>0, "No references bibtext or wos")
+              need(dim(reactive_values$ref_wos)[1]>0, "No references bibTex or wos")
             )
             
             table_data=datatable(df_flatten(reactive_values$ref_wos), options = list(scrollX = TRUE, columnDefs = list(list(
@@ -2450,7 +2450,7 @@ We ask all the users to   cite the different sources they use to make the graphi
       if((input$type=="ref" |input$type=="all") && (reactive_values$cal_temp$nb_ref==0 &&is.null(reactive_values$ref_wos))){
         showModal(modalDialog(
           title = "no references in the analysis",
-          "You ask for references interdisciplinary analysis but there is no references in data. Please process the reasearch on data bases or ad data. ",
+          "You ask for references interdisciplinary analysis but there is no references in data. Please process the research on data bases or ad data. ",
           easyClose = TRUE,
           footer = NULL
         ))
@@ -2461,7 +2461,7 @@ We ask all the users to   cite the different sources they use to make the graphi
       if((input$type=="cit"|input$type=="all") && reactive_values$cal_temp$nb_cit==0){
         showModal(modalDialog(
           title = "no citations in the analysis",
-          "You ask for citation interdisciplinary analysis but there is no references in data. Please process the reasearch on data bases or ad data. ",
+          "You ask for citation interdisciplinary analysis but there is no references in data. Please process the research on data bases or ad data. ",
           easyClose = TRUE,
           footer = NULL
         ))

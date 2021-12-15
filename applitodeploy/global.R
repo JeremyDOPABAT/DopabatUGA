@@ -323,7 +323,7 @@ make_wordcloud<-function(keywords,publication_date=0,interval_year=0,simple_word
         
         #print(head(sort(t_freq,decreasing=TRUE),10))
         if(b>max(year,na.rm = TRUE)) b<-max(year,na.rm = TRUE)
-        if(input$minfreq>max(t_freq)) inputreal=max(t_freq) else inputreal=minfreq
+        if(minfreq>max(t_freq)) inputreal=max(t_freq) else inputreal=minfreq
         
         p_res[i]=wordcloud(words = t_word, freq = t_freq, min.freq = minfreq,
                            max.words=max_word_print, random.order=FALSE, rot.per=0.35,
@@ -1215,7 +1215,7 @@ pumed_get_element_id<-function(id_list,type){
   },
   
   warning=function(cond){# si erreur on met en forme les informations 
-    titre_error=as.data.frame(id_list_string)
+    titre_error=as.data.frame(id_list)
     names(titre_error)=c("Publication title")
     titre_error["Status error"]=r$status
     titre_error$Message=message_error(r)
@@ -3614,7 +3614,7 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,doi_name,pas=8,value_s
     })#end with progress
     
     
-    print("deuxieme partie ")
+    print("deuxieme partie 4llla ")
     
     #  
     if(length(id_raw)!=dim(res_new)[1] && !is.null(res_new)) id_raw<-c(id_raw,rep(NA,dim(res_new)[1]-length(id_raw)))# permet d'ajoute la colone id raw ensuite 
@@ -3625,22 +3625,43 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,doi_name,pas=8,value_s
       inter=ceiling(length(id_list_citation_final)/pas)
       res_cit=c()
       for(h in(1:inter)){
-        
-        
+        erreur=FALSE
+        print(h)  
         first<-(h-1)*pas+1
         last<-h*pas
         if(last>length(id_list_citation_final)) last<-length(id_list_citation_final)
-        
         id_list_citation=id_list_citation_final[first:last]
         id_element=pumed_get_element_id(id_list_citation,type)
-        res_cit<-rbind(res_cit,t(id_element$temp))
+        
+        
+        error_t=tryCatch({#reperage des erreur 
+          res_cit<-rbind(res_cit,t(id_element$temp))
+          
+        },
+        
+        warning=function(cond){# si erreur on met en forme les informations 
+          return(2)
+        },
+        error=function(cond){
+          # print("bisous") # si erreur on met en forme les informations 
+          # titre_error=as.data.frame(id_list_citation_final[first:last])
+          # names(titre_error)=c("Publication title")
+          # titre_error["Status error"]="001"
+          # titre_error$Message="test"
+          # titre_error["Data impact"]=type
+          # titre_error$request_number=h
+          # print("bisous2")
+          print("some citation data are corupted")
+           return(3)
+        })
+        
         #incProgress(amount = 1/inter,detail = paste("pubmed ",dim(res_cit)[1]," citation(s) founded")) # augmentation de la barre de chargement
         
         error_querry_cit<-rbind(error_querry_cit,id_element$error)
-        error_querry=c(error_querry,id_element$error)
+        error_querry=c(error_querry,error_querry_cit)
       }
       
-      
+      print("apres res cit")
       res_cit=as.data.frame(res_cit,stringsAsFactors = FALSE)
       names(res_cit)<-c("id_cit","auteur_cit","titre_cit","date_cit","essn_cit","issn_cit", "journal_cit")
       
@@ -3649,7 +3670,6 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,doi_name,pas=8,value_s
       ind_id<-sapply(res_cit$id_cit,function(x){
         return(grep(x,(res_new$citation)))
       })
-      
       res_cit_final=c()
       if(length(ind_id)>0){
         for(j in 1:length(ind_id)){
@@ -3679,15 +3699,18 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,doi_name,pas=8,value_s
       
       
     }else {#si cit pas demander 
+      print("passage site pas demandé 1") 
       res_cit_accept=res_cit_ask=NULL
       error_querry_cit<-NULL
     } 
   }else {#si cit pas demander 
+    print("passage site pas demandé 2")
     res_cit_accept=res_cit_ask=NULL
     error_querry_cit<-NULL
   }
   
-  if(is.null(dim(error_querry))){ 
+  if(is.null(error_querry)){ 
+    print("passage in error querry null ")
     error_querry<-as.data.frame(cbind(NA,NA,NA,NA))
     names(error_querry)=c("Publication title","Status error","Message error", "Data impact")}
   
@@ -3696,6 +3719,9 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,doi_name,pas=8,value_s
   #   names(res_new)<-c("id", "auteur","titre","date", "journal","ref_pmid","h_ref","issn","essn")
   #   
   #     }
+  error_querry=as.data.frame(error_querry)
+  print(error_querry)
+  
   return(
     list(dataframe_citation_accept=res_cit_accept,error_querry_publi=error_querry,error_querry_citation=error_querry_cit,title_vector=ti_data,author_vector=au_data,dataframe_citation_ask=res_cit_ask,
          reject_analyse=reject,dataframe_publi_found=res_new,dataframe_ref_accept=res_ref_accept,error_querry_ref=error_querry_ref,dataframe_ref_ask=res_ref_ask))
