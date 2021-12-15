@@ -2,14 +2,19 @@ path_data=choose.files(caption = "chosse your data file")# choisir le fichier co
 au_name <- readline(prompt="Nom de Variable 'Nom_auteur': ")#authFullName_s
 ti_name <- readline(prompt="Nom de Variable 'Titre_publication': ")#en_title_s
 date_name <- readline(prompt="Nom de colonne 'date_publication': ")#defenseDate_s producedDate_s
-ths<-read.csv(path_data, sep = ";",header = TRUE,stringsAsFactors = FALSE)
+ths<-read.csv(path_data, sep = ",",header = TRUE,stringsAsFactors = FALSE)
 
 
 
 
+df <- data.table::fread(file=path_data,
+        header = FALSE,na.strings=c(""),
+        sep = ",",quote = '',stringsAsFactors = FALSE)
+      
 
 
-names(ths)
+dim(ths)
+dim(df)
 
 test=ths[,-which(names(ths)=="en_title_s"|names(ths)=="authFullName_s")]
 

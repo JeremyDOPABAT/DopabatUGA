@@ -56,7 +56,7 @@ make_input_network_graph<-function(keywords) {
     term<-unique(unlist(keywords))# les mot cke unique pour faire les noeud du graph 
     
     
-    if(is_empty(which(names(wei)==""))==FALSE){ 
+    if(is_empty(which(names(wei)==""))==FALSE){ #il peu y avoir des mot clef vide, des espace si telle est le cas on les enleve 
       wei<-wei[-(which(names(wei)==""))]
       term<-term[-(which(term==""))]
     }
@@ -67,7 +67,7 @@ make_input_network_graph<-function(keywords) {
     for(i in(1:length(keywords))){# on parcour chaque ligne de la liste et on associé les mot sur la même ligne 
       if(length(keywords[[i]])>1){
         for(j in(1:length(keywords[[i]]))){
-          if(length(keywords[[i]])>j){
+          if(length(keywords[[i]])>j){#on crée chaque arete from est le mot de départ et to celui d'arriver 
             add_from=rep(keywords[[i]][j],length(keywords[[i]])-j)
             add_to=c(keywords[[i]][(j+1):length(keywords[[i]])])
             from=c(from,add_from)
@@ -90,11 +90,11 @@ make_input_network_graph<-function(keywords) {
     
   } else term=NULL
   
-  if(length(term)!=0){  
+  if(length(term)!=0){  # si il y a des mot 
     edge_list <- tibble(from = from, to = to)
     
     node_list <- tibble(id = term)
-  } else{
+  } else{# si le graphique est vide 
     edge_list <- tibble(from = "no data as been found", to = "no data as been found")
     
     node_list <- tibble(id = "no data as been found")
@@ -250,7 +250,7 @@ make_top_graph<-function(graph_input,wei_table,top_number){
 
 
 make_wordcloud<-function(keywords,publication_date=0,interval_year=0,simple_word=FALSE,max_word_print=20,minfreq=2){
-  set.seed(1234)
+  set.seed(1234)# permet que le nuage tout le temps 
 
   
   
@@ -268,19 +268,20 @@ make_wordcloud<-function(keywords,publication_date=0,interval_year=0,simple_word
   #'
   #' @return les nuages de mots sont ploter 
   
-  
-  by_year=FALSE
-  add_title=""
-  year<-publication_date
-  p_res=c()
+  #initialisation 
+  #fonction utiliser seulment dans le donlowd 
+  add_title=""# titre du graphiqhe 
+  year<-publication_date #année 
+  p_res=c()# variable resultat 
   
   suppressWarnings(if(!is.na(as.numeric(interval_year))) interval_year<-as.numeric(interval_year))
   # par année ou groupe d'annees  
   if(is.numeric(interval_year) & interval_year>0){
     
     diff<-max(year,na.rm=TRUE)-min(year,year,na.rm=TRUE)
-    iter<-ceiling(diff/interval_year)
+    iter<-ceiling(diff/interval_year)#nombre de graphique a crée 
     for (i in 1:iter){
+      
       if(i!=iter){# si on est pas sur la derniere date
         index_year<-((year>=min(year,na.rm=TRUE)+(i-1)*interval_year) &(year<min(year,na.rm=TRUE)+i*interval_year))
         add_brack="["
@@ -288,18 +289,21 @@ make_wordcloud<-function(keywords,publication_date=0,interval_year=0,simple_word
         index_year<-((year>=min(year,na.rm=TRUE)+(i-1)*interval_year) &(year<=min(year,na.rm=TRUE)+i*interval_year))
         add_brack="]"
       }
-      #print(table(year[index_year]))
       key_c<-keywords[index_year]
       
       
       
-      vrac<-unlist(key_c)
+      vrac<-unlist(key_c)#terme du graphique en cours 
       if( length(which(vrac=="")!=0)){
         vrac<-vrac[-( which(vrac==""))]
       }
       
       
+      if( length(which(vrac=="NULL")!=0  )){
+        vrac<-vrac[-( which(vrac=="NULL"))]
+      }  
   # on crée le nuage     
+    
       if(simple_word==TRUE){
         corp <- Corpus(VectorSource(vrac))
         dtm <-TermDocumentMatrix(corp)
@@ -314,18 +318,27 @@ make_wordcloud<-function(keywords,publication_date=0,interval_year=0,simple_word
         t_freq=table(vrac)
         t_word<-t_word[order(factor(t_word, levels=names(t_freq)))]
       }
+      b=min(year,na.rm = TRUE)+(i)*interval_year
       if(length(t_freq)!=0){
-        b=min(year,na.rm = TRUE)+(i)*interval_year
+        
         #print(head(sort(t_freq,decreasing=TRUE),10))
         if(b>max(year,na.rm = TRUE)) b<-max(year,na.rm = TRUE)
+        if(minfreq>max(t_freq)) inputreal=max(t_freq) else inputreal=minfreq
         
         p_res[i]=wordcloud(words = t_word, freq = t_freq, min.freq = minfreq,
                            max.words=max_word_print, random.order=FALSE, rot.per=0.35,
                            colors=brewer.pal(8, "Dark2"),scale = c(1.5, 0.3))
-        suppressWarnings(titre<-paste("top",max_word_print,"keywords",add_title,"year(s) [",min(year,na.rm = TRUE)+(i-1)*as.numeric(interval_year),":",b,add_brack,"( minimum frequency:",minfreq,")"))
+        suppressWarnings(titre<-paste("top",max_word_print,"keywords",add_title,"year(s) [",min(year,na.rm = TRUE)+(i-1)*as.numeric(interval_year),":",b,add_brack,"( minimum frequency:",inputreal,")"))
         mtext(titre,side=2)
         
         #print(head(sort(t_freq,decreasing=TRUE),10))
+      }else{
+        p_res[i]=wordcloud(words = "no data for this periode ", freq = 1, min.freq = 1,
+                           max.words=1, random.order=FALSE, rot.per=0.35,
+                           colors=brewer.pal(8, "Dark2"),scale = c(1.5, 0.3))
+        
+        suppressWarnings(titre<-paste("top",max_word_print,"keywords",add_title,"year(s) [",min(year,na.rm = TRUE)+(i-1)*as.numeric(interval_year),":",b,add_brack,"(no data)"))
+        mtext(titre,side=2) 
       }
       
       
@@ -339,6 +352,9 @@ make_wordcloud<-function(keywords,publication_date=0,interval_year=0,simple_word
     }
     
     
+    if( length(which(vrac=="NULL")!=0  )){
+      vrac<-vrac[-( which(vrac=="NULL"))]
+    }
     
     if(simple_word==TRUE){
       corp <- Corpus(VectorSource(vrac))
@@ -363,6 +379,14 @@ make_wordcloud<-function(keywords,publication_date=0,interval_year=0,simple_word
       suppressWarnings(titre<-paste("top",max_word_print,"keywords",add_title,",in whole dataset( minimum frequency:",minfreq,")"))
       
       mtext(titre,side=2)
+    }else{
+      p_res[1]=wordcloud(words = "no data for the corpus ", freq = 1, min.freq = 1,
+                         max.words=1, random.order=FALSE, rot.per=0.35,
+                         colors=brewer.pal(8, "Dark2"),scale = c(1.5, 0.3))
+      suppressWarnings(titre<-paste("top",max_word_print,"keywords",add_title,",in whole dataset( minimum frequency:",minfreq,")"))
+      
+      mtext(titre,side=2)
+      
     }
     
   }  
@@ -465,7 +489,7 @@ make_network_graph<-function(keywords,publication_date=0,top_number=0,interval_y
         c_igraph=delete_vertices(c_igraph,ind_sup)
         add_title_sup="found more than ones,"
       }   
-      b=min(year,na.rm = TRUE)+(i)*interval_year
+      b=min(year,na.rm = TRUE)+(i)*interval_year#creation titre avec intervall 
       if(b>max(year,na.rm = TRUE)) b<-max(year,na.rm = TRUE)
       main_title=paste("Graph of ",add_title_domaine,add_title_top,add_title_sup , "year :[",min(year,na.rm = TRUE)+(i-1)*interval_year,":",b,add_brack)
       if(root_weight==TRUE){
@@ -710,14 +734,18 @@ compaire_title<-function(ti_trouver,ti_data){
       max_apply<-sapply(1:length(ti_data),FUN=function(y){
       
       
-      return(max(nchar(courant),max(nchar(ti_data[y]))))
+      return(max(nchar(courant),max(nchar(ti_data[y]))))# longueur max entre le titre trouvé et les titre demander 
     })
     tp<-max(1-(adist(Unaccent(ti_trouver[x]),Unaccent(ti_data),ignore.case = TRUE)/max_apply),na.rm = TRUE)
-    tw<-which((1-(adist(Unaccent(ti_trouver[x]),Unaccent(ti_data),ignore.case = TRUE)/max_apply))==tp)[1]
-    #print("inside indic")
-    #print(ti_trouver[x])
-    
-    # print(adist(Unaccent(ti_trouver[x]),Unaccent(ti_data),ignore.case = TRUE))
+    tw<-which((1-(adist(Unaccent(ti_trouver[x]),Unaccent(ti_data),ignore.case = TRUE)/max_apply))==tp)[1]#indice du tire demandé qui correspont le plus au titre trouver 
+    # explication calcul 
+  #   L’indice de ressemblance est donnée de la manière suivante, en comparant le titre obtenu a tous les titre demander : 
+  #     max(1-(vecteur_nombre_différence/max_longueur_couple)) où;
+  #   vecteur_nombre_différence est le nombre de différence attribuer entre le titre obtenu et les titres demander, on a donc un nombre de différence entre 0 et la longueur du titre le plus long. 
+  #   En divisant par la longueur max des deux titre comparés  on obtient un vecteur de chiffre entre 0 et 1 )
+  # 1 étant ici complètement différent et 0 similaire 
+  # En passant ce vecteur en négatif et en lui ajoutant 1, on passe ce vecteur de différence en vecteur de similitude. et en prenant le max on renvoie le titre demandé qui ressemble le plus au titre trouvées. 
+  # 
     return(list(tp,tw))
   })
 }
@@ -760,7 +788,6 @@ querry_warning_message<-function(r){
   
   
 }
-
 
 
 
@@ -974,7 +1001,7 @@ get_cit_or_ref_arxiv<-function(resdt,type){
           titre_error["Status error"]=r$status
           titre_error$Message=message_error(r)
           titre_error["Data impact"]=type
-          titre_error$h=ar
+          titre_error$request_number=ar
         })
         incProgress(1/length(link_list))
         if(length(error)>0){
@@ -1188,12 +1215,12 @@ pumed_get_element_id<-function(id_list,type){
   },
   
   warning=function(cond){# si erreur on met en forme les informations 
-    titre_error=as.data.frame(id_list_string)
+    titre_error=as.data.frame(id_list)
     names(titre_error)=c("Publication title")
     titre_error["Status error"]=r$status
     titre_error$Message=message_error(r)
     titre_error["Data impact"]=type
-    titre_error$h=NA
+    titre_error$request_number=NA
     return(titre_error)
   })
   
@@ -1274,7 +1301,8 @@ shinyInput <- function(FUN, n, id, ...) {
 
 
 extraction_data_api_nasa_ads<-function(data_pub,ti_name,au_name,doi_name,token,pas=8,value_same_min_accept=0, value_same_min_ask=1,type="all",source_name="",sep_vector_in_data="",position_vector_in_data=""){
-  
+  print("in nasa ads")
+  #browser()
   #' extraction_data_api_nasa_ads
   #'# fonction permetant d'interroger ads sur les reference et les citation d'un corpus de publication placer en entree 
   
@@ -1338,9 +1366,8 @@ extraction_data_api_nasa_ads<-function(data_pub,ti_name,au_name,doi_name,token,p
     data_wos=data_pub[data_pub[source_name]=="WOS",]#separation des source 
     
     if(length(sep_vector_in_data)==1) if(sep_vector_in_data=="") sep="" else sep=data_wos[sep_vector_in_data][[1]]
-    if(length(position_vector_in_data)==1) if(position_vector_in_data=="") position_name=rep(1,dim(data_wos)[1]) else position_name=data_wos[position_vector_in_data][[1]]
     if(dim(data_wos)[1]!=0) {
-      res_wos_all=  ads_get_publi(au_data = data_wos[au_name][[1]],ti_data = data_wos[ti_name][[1]],doi_data = data_wos[doi_name][[1]],position_name[data_pub[source_name]=="WOS"],pas,value_same_min_ask,value_same_min_accept,token,sep)
+      res_wos_all=  ads_get_publi(au_data = data_wos[au_name][[1]],ti_data = data_wos[ti_name][[1]],doi_data = data_wos[doi_name][[1]],data_wos[position_vector_in_data][[1]],pas,value_same_min_ask,value_same_min_accept,token,sep)
       res_wos=res_wos_all$res
       err1=res_wos_all$error
       reject1=res_wos_all$reject
@@ -1357,10 +1384,9 @@ extraction_data_api_nasa_ads<-function(data_pub,ti_name,au_name,doi_name,token,p
     data_rest=data_pub[data_pub[source_name]!="WOS",]
     
     if(length(sep_vector_in_data)==1) if(sep_vector_in_data=="") sep="" else sep=data_rest[sep_vector_in_data][[1]]
-    if(length(position_vector_in_data)==1) if(position_vector_in_data=="") position_name=rep(1,dim(data_rest)[1]) else position_name=data_rest[position_vector_in_data][[1]]
     if(dim(data_rest)[1]!=0) {
       
-      res_rest_all=  ads_get_publi(au_data = data_rest[au_name][[1]],ti_data = data_rest[ti_name][[1]],doi_data = data_rest[doi_name][[1]],position_name[data_pub[source_name]!="WOS"],pas,value_same_min_ask,value_same_min_accept,token,sep)
+      res_rest_all=  ads_get_publi(au_data = data_rest[au_name][[1]],ti_data = data_rest[ti_name][[1]],doi_data = data_rest[doi_name][[1]],data_rest[position_vector_in_data][[1]],pas,value_same_min_ask,value_same_min_accept,token,sep)
       res_rest=res_rest_all$res
       err2=res_rest_all$error
       reject2=res_rest_all$reject
@@ -1381,9 +1407,8 @@ extraction_data_api_nasa_ads<-function(data_pub,ti_name,au_name,doi_name,token,p
   }else {
     
     if(length(sep_vector_in_data)==1) if(sep_vector_in_data=="") sep="" else sep=data_pub[sep_vector_in_data][[1]]
-    if(length(position_vector_in_data)==1) if(position_vector_in_data=="") position_name=rep(1,dim(data_pub)[1]) else position_name=data_pub[position_vector_in_data][[1]]
     if(dim(data_pub)[1]!=0) {
-      resdt_all=  ads_get_publi(au_data = au_data,ti_data = ti_data,doi_data = doi_data,position_name,pas,value_same_min_ask,value_same_min_accept,token,sep = sep)
+      resdt_all=  ads_get_publi(au_data = au_data,ti_data = ti_data,doi_data = doi_data,data_pub[position_vector_in_data][[1]],pas,value_same_min_ask,value_same_min_accept,token,sep = sep)
       error_querry=resdt_all$error
       res=resdt_all$res
       reject=resdt_all$reject
@@ -1543,9 +1568,8 @@ extraction_data_api_arxiv<-function(data_pub,ti_name,au_name,pas=8,value_same_mi
     
     if(dim(data_wos)[1]!=0) {
       if(length(sep_vector_in_data)==1) if(sep_vector_in_data=="") sep="" else sep=data_wos[sep_vector_in_data][[1]]
-      if(length(position_vector_in_data)==1) if(position_vector_in_data=="") position_name=rep(1,dim(data_wos)[1]) else position_name=data_wos[position_vector_in_data][[1]]
-      
-      res_wos_all=arxiv_get_publi(data_wos[au_name][[1]],data_wos[ti_name][[1]],position_name,pas,value_same_min_ask,value_same_min_accept,sep,id_data)
+
+      res_wos_all=arxiv_get_publi(data_wos[au_name][[1]],data_wos[ti_name][[1]],data_wos[position_vector_in_data][[1]],pas,value_same_min_ask,value_same_min_accept,sep,id_data)
       res_wos=res_wos_all$res
       err1=res_wos_all$error
       reject1=res_wos_all$reject
@@ -1562,9 +1586,8 @@ extraction_data_api_arxiv<-function(data_pub,ti_name,au_name,pas=8,value_same_mi
     
     if(dim(data_rest)[1]!=0) {
       if(length(sep_vector_in_data)==1) if(sep_vector_in_data=="") sep="" else sep=data_rest[sep_vector_in_data][[1]]
-      if(length(position_vector_in_data)==1) if(position_vector_in_data=="") position_name=rep(1,dim(data_rest)[1]) else position_name=data_rest[position_vector_in_data][[1]]
-      
-      res_rest_all=arxiv_get_publi(data_rest[au_name][[1]],data_rest[ti_name][[1]],position_name,pas,value_same_min_ask,value_same_min_accept,sep,id_data)
+
+      res_rest_all=arxiv_get_publi(data_rest[au_name][[1]],data_rest[ti_name][[1]],data_rest[position_vector_in_data][[1]],pas,value_same_min_ask,value_same_min_accept,sep,id_data)
       res_rest=res_rest_all$res
       err2=res_rest_all$error
       reject2=res_rest_all$reject
@@ -1581,9 +1604,8 @@ extraction_data_api_arxiv<-function(data_pub,ti_name,au_name,pas=8,value_same_mi
     reject=rbind(reject1,reject2)
   }else {
     if(length(sep_vector_in_data)==1) if(sep_vector_in_data=="") sep="" else sep=data_pub[sep_vector_in_data][[1]]
-    if(length(position_vector_in_data)==1) if(position_vector_in_data=="") position_name=rep(1,dim(data_pub)[1]) else position_name=data_pub[position_vector_in_data][[1]]
-    
-    resdt_all=arxiv_get_publi(au_data = au_data,ti_data,position_name,pas,value_same_min_ask,value_same_min_accept,sep = sep,id_data)
+
+    resdt_all=arxiv_get_publi(au_data = au_data,ti_data,data_pub[position_vector_in_data][[1]],pas,value_same_min_ask,value_same_min_accept,sep = sep,id_data)
     error_querry=resdt_all$error
     reject=resdt_all$reject
     res=resdt_all$res
@@ -1727,7 +1749,7 @@ arxiv_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,v
         titre_error["Status error"]=r$status
         titre_error$Message=message_error(r)
         titre_error["Data impact"]="ref & cit"
-        titre_error$h=h
+        titre_error$request_number=h
         return(titre_error)
       })
       
@@ -1867,7 +1889,7 @@ arxiv_get_publi<-function(au_data,ti_data,position_name,pas,value_same_min_ask,v
             titre_error["Status error"]=r$status
             titre_error$Message=message_error(r)
             titre_error["Data impact"]="ref & cit"
-            titre_error$h=h
+            titre_error$request_number=h
             return(titre_error)
           })
           
@@ -2179,7 +2201,8 @@ conforme_bibtext<-function(data_wos,data_base){
   return(data_wos) 
 }
 
-interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd,type){
+interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd,type,calcul_distance_off=FALSE){
+  
   #' interdis_matrice_creation_and_calcul
   #' donction qui calcule l'interdiciplinarité d'une matrice de citation et ou reference 
   #' Fonction interne 
@@ -2189,7 +2212,6 @@ interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd
   #' @param type type of analyse 
   #'
   #' @return list of result et analyse
-  
   col_identifier=c()
   col_title=c()
   temp=0
@@ -2249,43 +2271,48 @@ interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd
       
       sumrow=rowSums(matrice_prop)
       
-      
-      dia=sapply(1:dim(matrice_prop)[1],FUN = function(x){# calvule des dia par article et du total en derni_re ligne 
-        
-        cal=0
-        matrice_prop[x,]=matrice_prop[x,]/sumrow[[x]]# contingence a pourcentage 
-        
-        lien<-list()
-        
-        for(i in 1:dim(matrice_prop)[2]){# il faut adittionner les couple donc parcourir les colonne deux fois 
-          for(j in 1:dim(matrice_prop)[2]){
-            #print(j)
-            if(matrice_prop[x,i]!=0 && matrice_prop[x,j]!=0){
-              
-              n1=names(matrice_prop)[i]
-              n2=names(matrice_prop)[j]
-              dij=table_dist[n1,n2]
-              lien=append(list(c(n1,n2)),lien)
-              cal=cal+matrice_prop[x,i]*matrice_prop[x,j]*dij
+      if(calcul_distance_off==FALSE){ 
+        dia=sapply(1:dim(matrice_prop)[1],FUN = function(x){# calvule des dia par article et du total en derni_re ligne 
+          
+          cal=0
+          matrice_prop[x,]=matrice_prop[x,]/sumrow[[x]]# contingence a pourcentage 
+          
+          lien<-list()
+          
+          for(i in 1:dim(matrice_prop)[2]){# il faut adittionner les couple donc parcourir les colonne deux fois 
+            for(j in 1:dim(matrice_prop)[2]){
+              #print(j)
+              if(matrice_prop[x,i]!=0 && matrice_prop[x,j]!=0){
+                
+                n1=names(matrice_prop)[i]
+                n2=names(matrice_prop)[j]
+                dij=table_dist[n1,n2]
+                lien=append(list(c(n1,n2)),lien)
+                cal=cal+matrice_prop[x,i]*matrice_prop[x,j]*dij
+              }
             }
           }
-        }
+          
+          
+          
+          return(list(valeur=cal,couple=lien))
+          
+          
+          #return(list(proportion=matrice_prop,distance=table_dist))
+        })
         
+        (DD=unlist(dia["valeur",][length(dia["valeur",])]))
         
+        (ID=mean(unlist(dia["valeur",][-length(dia["valeur",])])))
+        dia=dia[,-dim(dia)[2]] 
         
-        return(list(valeur=cal,couple=lien))
-        
-        
-        #return(list(proportion=matrice_prop,distance=table_dist))
-      })
-      
-      (DD=unlist(dia["valeur",][length(dia["valeur",])]))
-      
-      (ID=mean(unlist(dia["valeur",][-length(dia["valeur",])])))
-      dia=dia[,-dim(dia)[2]] 
-      
-      (MD=DD-ID)
-      
+        (MD=DD-ID)
+      }else{
+        dia=NULL
+        MD=NULL
+        ID=NULL
+        DD=NULL
+      }
       # path_gd="data/categ_wos.csv"
       # 
       # table_categ_gd=read.csv(file=data/categ_wos.csv,header = TRUE,stringsAsFactors = FALSE,sep = ";")
@@ -2325,6 +2352,7 @@ interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd
       
       #matrice_prop[["CONTRIBUTION"]]=col_list_line
       #print(dim(matrice_prop))
+     # browser("in interdice")
       resultat<-list(dia=dia$valeur,md=MD,id=ID,dd=DD,prop=matrice_prop,prop_grande_discipline=new_matrice_prop,contribution=new_matrice_contribution)
     }else{
       resultat=NULL
@@ -2335,6 +2363,13 @@ interdis_matrice_creation_and_calcul<-function(data_gl,table_dist,table_categ_gd
   }
   return(resultat)
 }
+
+
+traduction_plot<-function(lang_plot,matrice_res){
+  
+}
+
+
 
 merge_result_data_base<-function(ads,arxiv,pumed,wos,lens,col_journal=c(NULL,NULL,NULL,NULL,NULL),type){
       
@@ -2418,7 +2453,7 @@ combine_analyse_data<-function(cit_ref_df_global,journal_table_ref,type){
 
 
 
-global_merge_and_cal_interdis<-function(ads=NULL,arxiv=NULL,pumed=NULL,wos=NULL,lens=NULL,journal_table_ref,table_dist,table_categ_gd,col_journal=c(NULL,NULL,NULL,NULL,NULL),type){
+global_merge_and_cal_interdis<-function(ads=NULL,arxiv=NULL,pumed=NULL,wos=NULL,lens=NULL,journal_table_ref,table_dist,table_categ_gd,col_journal=c(NULL,NULL,NULL,NULL,NULL),type,calcul_distance_off=FALSE){
   #' Title fct de rassemblement qui permet de caluler l'interdiciplinarite  
   #'avec les citations et reference des differente base. cette fonction est une fonction interne n'ayant pas pour but d'etre appele en dehor de l'appli
   #' @param ads matrice cit/ref venant d'ads 
@@ -2432,13 +2467,12 @@ global_merge_and_cal_interdis<-function(ads=NULL,arxiv=NULL,pumed=NULL,wos=NULL,
   #' @param type type de traitement cit/ref/all (les deux)
   #'
   #' @return list de de list resultat 
-  
   #wos pumed arxiv et ads sont les matrice de citation ou reference 
   if(type=="all"){# qi on veux les reference et les citation 
     merge_data_ref<-merge_result_data_base(ads,arxiv,pumed,wos,lens,type="ref",col_journal = col_journal)# on merge les diferente matrice 
     if(dim(merge_data_ref)[1]>0) {
       merge_data_ref<-combine_analyse_data(merge_data_ref,journal_table_ref,type="ref")# on recupere leurs nom de journal pour les associe au categorie wos 
-      res_matrice_ref=interdis_matrice_creation_and_calcul(data_gl = merge_data_ref,table_dist,table_categ_gd,type = "ref" ) # on  calcule l'interdiciplinarite et les different indicateurs 
+      res_matrice_ref=interdis_matrice_creation_and_calcul(data_gl = merge_data_ref,table_dist,table_categ_gd,type = "ref",calcul_distance_off = calcul_distance_off ) # on  calcule l'interdiciplinarite et les different indicateurs 
     }else {
       res_matrice_ref=NULL
       merge_data_ref=NULL
@@ -2447,7 +2481,7 @@ global_merge_and_cal_interdis<-function(ads=NULL,arxiv=NULL,pumed=NULL,wos=NULL,
     merge_data_cit<-merge_result_data_base(ads,arxiv,pumed,wos,lens,type="cit",col_journal = col_journal)
     if(dim(merge_data_cit)[1]>0) {
       merge_data_cit<-combine_analyse_data(merge_data_cit,journal_table_ref,type="cit" )
-      res_matrice_cit=interdis_matrice_creation_and_calcul(data_gl = merge_data_cit,table_dist,table_categ_gd,type = "cit" )
+      res_matrice_cit=interdis_matrice_creation_and_calcul(data_gl = merge_data_cit,table_dist,table_categ_gd,type = "cit",calcul_distance_off = calcul_distance_off )
     }else {
       res_matrice_cit=NULL
       merge_data_cit=NULL
@@ -2460,7 +2494,7 @@ global_merge_and_cal_interdis<-function(ads=NULL,arxiv=NULL,pumed=NULL,wos=NULL,
     merge_data<-merge_result_data_base(ads,arxiv,pumed,wos,lens,type,col_journal = col_journal)
     if(dim(merge_data)[1]>0) {
       merge_data<-combine_analyse_data(merge_data,journal_table_ref,type)
-      res_matrice=interdis_matrice_creation_and_calcul(data_gl = merge_data,table_dist,table_categ_gd,type=type )
+      res_matrice=interdis_matrice_creation_and_calcul(data_gl = merge_data,table_dist,table_categ_gd,type=type,calcul_distance_off=calcul_distance_off)
     } else res_matrice=NULL
     
     result=list(data=merge_data,res=res_matrice)
@@ -2729,7 +2763,7 @@ lens_get_publi<-function(au_data,ti_data,doi_data="",position_reel,pas,value_sam
       au_data=fit_name_position(au_data,position_reel,position_togo =position_togo,sep )
       au_data=sapply(1:length(au_data),FUN = function(x) paste(au_data[[x]],collapse = ";"))
       # nombre d'iteration
-      data_to_use=no_doi=which(is.na(doi_data)| doi_data=="" )#pas de doi = doi vide 
+      data_to_use=no_doi=which(is.na(doi_data)|doi_data=="" )#pas de doi = doi vide 
     }else{#on peu se permet car les élément perturbateur on été supprimer 
       data_to_use=doi=which(doi_data!="" & !is.na(doi_data))
     }
@@ -2768,7 +2802,7 @@ lens_get_publi<-function(au_data,ti_data,doi_data="",position_reel,pas,value_sam
           titre_error["Status error"]=data$status
           titre_error$Message=message_error(data)
           titre_error["Data impact"]="ref & cit"
-          titre_error$h=h
+          titre_error$request_number=h
           return(titre_error)
         })
         
@@ -2781,7 +2815,6 @@ lens_get_publi<-function(au_data,ti_data,doi_data="",position_reel,pas,value_sam
           
           
           if(result$total>0){
-            print("ouiiiiiii")
             title=result$data$title
             id=result$data$lens_id
             author=sapply(1:length(result$data$authors),FUN = function(x) return(list(result$data$authors[[x]]$last_name)))
@@ -2913,9 +2946,8 @@ extraction_data_api_lens<-function(data_pub,ti_name,au_name,doi_name,token,pas=1
     data_wos=data_pub[data_pub[source_name]=="WOS",]#separation des source 
     
     if(length(sep_vector_in_data)==1) if(sep_vector_in_data=="") sep="" else sep=data_wos[sep_vector_in_data][[1]]
-    if(length(position_vector_in_data)==1) if(position_vector_in_data=="") position_name=rep(1,dim(data_wos)[1]) else position_name=data_wos[position_vector_in_data][[1]]
     if(dim(data_wos)[1]!=0) {
-      res_wos_all=lens_get_publi(data_wos[au_name][[1]],data_wos[ti_name][[1]],data_wos[doi_name][[1]] ,position_name[data_pub[source_name]=="WOS"],pas,value_same_min_ask,value_same_min_accept,token,sep)
+      res_wos_all=lens_get_publi(data_wos[au_name][[1]],data_wos[ti_name][[1]],data_wos[doi_name][[1]] ,data_wos[position_vector_in_data][[1]],pas,value_same_min_ask,value_same_min_accept,token,sep)
       res_wos=res_wos_all$res
       err1=res_wos_all$error
       reject1=res_wos_all$reject
@@ -2930,11 +2962,10 @@ extraction_data_api_lens<-function(data_pub,ti_name,au_name,doi_name,token,pas=1
     
     data_rest=data_pub[data_pub[source_name]!="WOS",]
     if(length(sep_vector_in_data)==1) if(sep_vector_in_data=="") sep="" else sep=data_rest[sep_vector_in_data][[1]]
-    if(length(position_vector_in_data)==1) if(position_vector_in_data=="") position_name=rep(1,dim(data_rest)[1]) else position_name=data_rest[position_vector_in_data][[1]]
     if(dim(data_rest)[1]!=0) {
       
-      res_rest_all=lens_get_publi(data_rest[au_name][[1]],data_rest[ti_name][[1]],data_rest[doi_name][[1]],position_name[data_pub[source_name]!="WOS"],pas,value_same_min_ask,value_same_min_accept,token,sep)
-      print(dim(res_rest_all$res))
+      res_rest_all=lens_get_publi(data_rest[au_name][[1]],data_rest[ti_name][[1]],data_rest[doi_name][[1]],data_rest[position_vector_in_data][[1]],pas,value_same_min_ask,value_same_min_accept,token,sep)
+     
       res_rest=res_rest_all$res
       err2=res_rest_all$error
       reject2=res_rest_all$reject
@@ -2954,9 +2985,8 @@ extraction_data_api_lens<-function(data_pub,ti_name,au_name,doi_name,token,pas=1
   }else {
     
     if(length(sep_vector_in_data)==1) if(sep_vector_in_data=="") sep="" else sep=data_pub[sep_vector_in_data][[1]]
-    if(length(position_vector_in_data)==1) if(position_vector_in_data=="") position_name=rep(1,dim(data_pub)[1]) else position_name=data_pub[position_vector_in_data][[1]]
     if(dim(data_pub)[1]!=0) {
-      resdt_all=lens_get_publi(au_data,ti_data,doi_data,position_name,pas,value_same_min_ask,value_same_min_accept,token,sep = sep)
+      resdt_all=lens_get_publi(au_data,ti_data,doi_data,data_pub[position_vector_in_data][[1]],pas,value_same_min_ask,value_same_min_accept,token,sep = sep)
       error_querry=resdt_all$error
       res=resdt_all$res
       reject=resdt_all$reject
@@ -3027,7 +3057,7 @@ extraction_data_api_lens<-function(data_pub,ti_name,au_name,doi_name,token,pas=1
   return(list(dataframe_citation_accept=total_res,error_querry_publi=error_querry,title_vector=ti_data,author_vector=au_data,dataframe_citation_ask=total_res_ask,
               reject_analyse=reject,dataframe_publi_found=resdt,dataframe_ref_accept=total_res_ref,dataframe_ref_ask=total_res_ref_ask))
   
-  
+print("sortie lens ")  
 }
 
 
@@ -3101,7 +3131,7 @@ ads_get_publi<-function(au_data,ti_data,doi_data="",position_name,pas,value_same
   #'
   #' @return dataframe 
   
-  
+  #préalablement sort par doi 
   
   #browser()  
   last_good_result=NULL
@@ -3126,7 +3156,7 @@ ads_get_publi<-function(au_data,ti_data,doi_data="",position_name,pas,value_same
   doi_data=res_temp[[3]]
   
   #if(doi_data=="none") doi_data=""  
-  for(type_requetage in c("TI_AU","DOI" )){
+  for(type_requetage in c("DOI","TI_AU" )){
     #if(type_requetage=="DOI")    
     print(type_requetage)
     
@@ -3135,8 +3165,9 @@ ads_get_publi<-function(au_data,ti_data,doi_data="",position_name,pas,value_same
       au_data=fit_name_position(au_data,position_name,position_togo =position_togo,sep )
       au_data=sapply(1:length(au_data),FUN = function(x) paste(au_data[[x]],collapse = ";"))
       # nombre d'iteration
-      data_to_use=no_doi=which(is.na(doi_data)| doi_data=="" )#pas de doi = doi vide 
       
+      data_to_use=no_doi=which(is.na(doi_data)| doi_data=="" )#pas de doi = doi vide 
+      print("end requete type au")
     }else{#on peu se permet car les élément perturbateur on été supprimer 
       data_to_use=doi=which(doi_data!="" & !is.na(doi_data))
     }
@@ -3179,9 +3210,9 @@ ads_get_publi<-function(au_data,ti_data,doi_data="",position_name,pas,value_same
           
           
           adress=paste0('author%3A%28',au_querry,'%29AND%20title%3A%28',ti_querry,'%29&fl=reference%20citation%20author%20title%20database%20pubdate%20bibcode%20keyword%20pub%20&sort=date%20desc&rows=500&start=',0)
-          
+          #h23
         }else{
-          doi_querry=paste0(gsub("/","%2F",doi_data[first:last]),collapse = '%20OR%20')
+          doi_querry=paste0(gsub(":","%3A",gsub("/","%2F",doi_data[first:last])),collapse = '%20OR%20')
           adress=paste0('doi%3A',doi_querry,'&fl=reference%20citation%20author%20title%20database%20pubdate%20bibcode%20keyword%20pub%20&sort=date%20desc&rows=500&start=',0)
           #adress="doi%3A10.1103%2FPhysRevE.100.033316%20OR%2010.1117%2F12.2504649"
         }
@@ -3203,11 +3234,12 @@ ads_get_publi<-function(au_data,ti_data,doi_data="",position_name,pas,value_same
           titre_error["Status error"]=r$status
           titre_error$Message=message_error(r)
           titre_error["Data impact"]="ref & cit"
-          titre_error$h=h
+          titre_error$request_number=h
           return(titre_error)
         })
         
         if(length(error)>0){
+          #browser()
           error_querry<-rbind(error_querry,error)
           error=c()
           
@@ -3244,7 +3276,6 @@ ads_get_publi<-function(au_data,ti_data,doi_data="",position_name,pas,value_same
         }
         
         
-        
         if(h==inter) {# fin de loop mise en place des data frame 
           resdt=as.data.frame(res)
           
@@ -3262,7 +3293,7 @@ ads_get_publi<-function(au_data,ti_data,doi_data="",position_name,pas,value_same
       
       if(type_requetage=="TI_AU" && dim(resdt)[1]>0){
         title_to_analyse=resdt$titre# très imortant que le titre auteur soit fait en premier 
-        withProgress(message = "Verifing the publication finded ",value = 0.90,{
+        withProgress(message = "Verifing the publication founded ",value = 0.90,{
           
           indic_compaire_title<-compaire_title(Unaccent(title_to_analyse),Unaccent(ti_data))
         })  
@@ -3296,6 +3327,7 @@ ads_get_publi<-function(au_data,ti_data,doi_data="",position_name,pas,value_same
        reject=NULL
      }
   #browser()
+  print("sorti ads ")
 return(list(res=resdt,error=error_querry,reject=reject,lastresult=last_good_result,querry_list=querry_list))
   
 }      
@@ -3374,8 +3406,7 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,doi_name,pas=8,value_s
     data_wos=data_pub[data_pub[source_name]=="WOS",]
     if(dim(data_wos)[1]!=0) {
       if(length(sep_vector_in_data)==1) if(sep_vector_in_data=="") sep="" else sep=data_wos[sep_vector_in_data][[1]]
-      if(length(position_vector_in_data)==1) if(position_vector_in_data=="") position_name=rep(1,dim(data_wos)[1]) else position_name=data_wos[position_vector_in_data][[1]]
-      res_wos_all=pumed_get_publi(data_wos[au_name][[1]],data_wos[ti_name][[1]],data_wos[doi_name][[1]],data_wos$position_name,pas,value_same_min_ask,value_same_min_accept,data_wos$sep)
+      res_wos_all=pumed_get_publi(data_wos[au_name][[1]],data_wos[ti_name][[1]],data_wos[doi_name][[1]],data_wos[position_vector_in_data][[1]],pas,value_same_min_ask,value_same_min_accept,data_wos$sep)
       
       res_wos=res_wos_all$res# les resulta
       err1=res_wos_all$error# les erreurs 
@@ -3393,9 +3424,8 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,doi_name,pas=8,value_s
     data_rest=data_pub[data_pub[source_name]!="WOS",]#non wos 
     if(dim(data_rest)[1]!=0) {
       if(length(sep_vector_in_data)==1) if(sep_vector_in_data=="") sep="" else sep=data_rest[sep_vector_in_data][[1]]
-      if(length(position_vector_in_data)==1) if(position_vector_in_data=="") position_name=rep(1,dim(data_rest)[1]) else position_name=data_rest[position_vector_in_data][[1]]
-      
-      res_rest_all=pumed_get_publi(data_rest[au_name][[1]],data_rest[ti_name][[1]],data_rest[doi_name][[1]],data_rest$position_name,pas,value_same_min_ask,value_same_min_accept,data_rest$sep)
+
+      res_rest_all=pumed_get_publi(data_rest[au_name][[1]],data_rest[ti_name][[1]],data_rest[doi_name][[1]],position_name=data_rest[position_vector_in_data][[1]],pas,value_same_min_ask,value_same_min_accept,data_rest$sep)
       res_rest=res_rest_all$res
       err2=res_rest_all$error
       reject2=res_rest_all$reject
@@ -3413,9 +3443,8 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,doi_name,pas=8,value_s
     reject=rbind(reject1,reject2)
   }else {
     if(length(sep_vector_in_data)==1) if(sep_vector_in_data=="") sep="" else sep=data_pub[sep_vector_in_data][[1]]
-    if(length(position_vector_in_data)==1) if(position_vector_in_data=="") position_name=rep(1,dim(data_pub)[1]) else position_name=data_pub[position_vector_in_data][[1]]
-    
-    resdt_all=pumed_get_publi(au_data = au_data,ti_data = ti_data,doi_data,data_pub$position_name,pas,value_same_min_ask,value_same_min_accept,data_pub$sep)
+
+    resdt_all=pumed_get_publi(au_data = au_data,ti_data = ti_data,doi_data,data_pub[position_vector_in_data][[1]],pas,value_same_min_ask,value_same_min_accept,data_pub$sep)
     error_querry=resdt_all$error
     res_new=resdt_all$res
     reject=resdt_all$reject
@@ -3549,7 +3578,7 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,doi_name,pas=8,value_s
         titre_error["Status error"]=r$status
         titre_error$Message=message_error(r)
         titre_error["Data impact"]="cit"
-        titre_error$h=h
+        titre_error$request_number=h
         return(titre_error)
       })
       
@@ -3585,7 +3614,7 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,doi_name,pas=8,value_s
     })#end with progress
     
     
-    print("deuxieme partie ")
+    print("deuxieme partie 4llla ")
     
     #  
     if(length(id_raw)!=dim(res_new)[1] && !is.null(res_new)) id_raw<-c(id_raw,rep(NA,dim(res_new)[1]-length(id_raw)))# permet d'ajoute la colone id raw ensuite 
@@ -3596,22 +3625,43 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,doi_name,pas=8,value_s
       inter=ceiling(length(id_list_citation_final)/pas)
       res_cit=c()
       for(h in(1:inter)){
-        
-        
+        erreur=FALSE
+        print(h)  
         first<-(h-1)*pas+1
         last<-h*pas
         if(last>length(id_list_citation_final)) last<-length(id_list_citation_final)
-        
         id_list_citation=id_list_citation_final[first:last]
         id_element=pumed_get_element_id(id_list_citation,type)
-        res_cit<-rbind(res_cit,t(id_element$temp))
+        
+        
+        error_t=tryCatch({#reperage des erreur 
+          res_cit<-rbind(res_cit,t(id_element$temp))
+          
+        },
+        
+        warning=function(cond){# si erreur on met en forme les informations 
+          return(2)
+        },
+        error=function(cond){
+          # print("bisous") # si erreur on met en forme les informations 
+          # titre_error=as.data.frame(id_list_citation_final[first:last])
+          # names(titre_error)=c("Publication title")
+          # titre_error["Status error"]="001"
+          # titre_error$Message="test"
+          # titre_error["Data impact"]=type
+          # titre_error$request_number=h
+          # print("bisous2")
+          print("some citation data are corupted")
+           return(3)
+        })
+        
         #incProgress(amount = 1/inter,detail = paste("pubmed ",dim(res_cit)[1]," citation(s) founded")) # augmentation de la barre de chargement
         
         error_querry_cit<-rbind(error_querry_cit,id_element$error)
-        error_querry=c(error_querry,id_element$error)
+        error_querry=c(error_querry,error_querry_cit)
       }
       
-      
+      print("apres res cit")
       res_cit=as.data.frame(res_cit,stringsAsFactors = FALSE)
       names(res_cit)<-c("id_cit","auteur_cit","titre_cit","date_cit","essn_cit","issn_cit", "journal_cit")
       
@@ -3620,7 +3670,6 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,doi_name,pas=8,value_s
       ind_id<-sapply(res_cit$id_cit,function(x){
         return(grep(x,(res_new$citation)))
       })
-      
       res_cit_final=c()
       if(length(ind_id)>0){
         for(j in 1:length(ind_id)){
@@ -3650,15 +3699,18 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,doi_name,pas=8,value_s
       
       
     }else {#si cit pas demander 
+      print("passage site pas demandé 1") 
       res_cit_accept=res_cit_ask=NULL
       error_querry_cit<-NULL
     } 
   }else {#si cit pas demander 
+    print("passage site pas demandé 2")
     res_cit_accept=res_cit_ask=NULL
     error_querry_cit<-NULL
   }
   
-  if(is.null(dim(error_querry))){ 
+  if(is.null(error_querry)){ 
+    print("passage in error querry null ")
     error_querry<-as.data.frame(cbind(NA,NA,NA,NA))
     names(error_querry)=c("Publication title","Status error","Message error", "Data impact")}
   
@@ -3667,6 +3719,9 @@ extract_data_api_pumed<-function(data_pub,ti_name,au_name,doi_name,pas=8,value_s
   #   names(res_new)<-c("id", "auteur","titre","date", "journal","ref_pmid","h_ref","issn","essn")
   #   
   #     }
+  error_querry=as.data.frame(error_querry)
+  print(error_querry)
+  
   return(
     list(dataframe_citation_accept=res_cit_accept,error_querry_publi=error_querry,error_querry_citation=error_querry_cit,title_vector=ti_data,author_vector=au_data,dataframe_citation_ask=res_cit_ask,
          reject_analyse=reject,dataframe_publi_found=res_new,dataframe_ref_accept=res_ref_accept,error_querry_ref=error_querry_ref,dataframe_ref_ask=res_ref_ask))
@@ -3718,7 +3773,7 @@ pumed_get_publi<-function(au_data,ti_data,doi_data="",position_name,pas,value_sa
       au_data=fit_name_position(au_data,position_name,position_togo =position_togo,sep )
       au_data=sapply(1:length(au_data),FUN = function(x) paste(au_data[[x]],collapse = ";"))
       # nombre d'iteration
-      data_to_use=no_doi=which(is.na(doi_data)| doi_data=="" )#pas de doi = doi vide 
+      data_to_use=no_doi=which(is.na(doi_data)|doi_data=="" )#pas de doi = doi vide 
       
     }else{#on peu se permet car les élément perturbateur on été supprimer 
       data_to_use=doi=which(doi_data!="" & !is.na(doi_data))
@@ -3786,7 +3841,7 @@ pumed_get_publi<-function(au_data,ti_data,doi_data="",position_name,pas,value_sa
           titre_error["Status error"]=r$status
           titre_error$Message=message_error(r)
           titre_error["Data impact"]="ref & cit"
-          titre_error$h=h
+          titre_error$request_number=h
           return(titre_error)
         })
         # 
@@ -3805,7 +3860,6 @@ pumed_get_publi<-function(au_data,ti_data,doi_data="",position_name,pas,value_sa
           
           if(length(id_list)>0){
             h_trouver=c(h_trouver,h)
-            print("oooo")
             id_list_string=paste0(id_list,collapse = ",")
             
             #etourn  les id 
@@ -3824,7 +3878,7 @@ pumed_get_publi<-function(au_data,ti_data,doi_data="",position_name,pas,value_sa
               titre_error["Status error"]=r$status
               titre_error$Message=message_error(r)
               titre_error["Data impact"]="ref & cit"
-              titre_error$h=h
+              titre_error$request_number=h
               return(titre_error)
             })
             
@@ -3871,7 +3925,7 @@ pumed_get_publi<-function(au_data,ti_data,doi_data="",position_name,pas,value_sa
         if(type_requetage=="TI_AU"){# très imortant que le titre auteur soit fait en premier 
           #   
           title_to_analyse=resdt$titre
-          withProgress(message = "Verifing the publication finded ",value = 0.90,{
+          withProgress(message = "Verifing the publication founded ",value = 0.90,{
             
             indic_compaire_title<-compaire_title(Unaccent(title_to_analyse),Unaccent(ti_data))
             
@@ -3906,7 +3960,7 @@ pumed_get_publi<-function(au_data,ti_data,doi_data="",position_name,pas,value_sa
         
       }
     }
-  print("sortie de get_pumed")  
+    
   return(list(res=resdt,error=error_querry,reject=reject))
   
   }#resdt_ask=resdt[res_new$check_title_pct>value_same_min_ask &res_new$check_title_pct<value_same_min_accept,]
