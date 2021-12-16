@@ -1,6 +1,6 @@
 # This is a Shiny web application. You can run the application by clicking
 # the 'Run App' button above.
-# token git hub : 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
+# token git hub : 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
 #Bonjour a toi succeceur, ici tu es au coeur de l'application  DOPABAT ET BIEN QUE CHAQUE FONCTION SOIT DOCUMENTER, JE VAIS TE FAIRE UN PETIT TOPO
 # l'appli permet d'analyse un corpus de métadonne de publication envoyer par bibtext ou csv. une partie du code est cacher de l'appli, il sagit de la pmartie qui traites des fichier pdf en teste brut 
 # car il n'était pas possible de le mettre sur l'application. 
@@ -63,9 +63,18 @@ ui<-dashboardPage(skin = "red",
                               htmlOutput("text_home"),
                               tags$div(HTML('<img src="interdis_example.png" hight="450" width="450">'),
                                        HTML('<img src = "netwoork_example.png" hight="550" width="350">' ),
+                              ),
+                              h3("Come and see our tutorial videos on YOUTUBE!"),
+                              tags$div(tags$iframe(width="400", height="200", src="https://www.youtube.com/embed/Ll5DHGVoYRM", frameborder="0", allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture", allowfullscreen=TRUE),
+                                       tags$iframe(width="400", height="200", src="https://www.youtube.com/embed/7nZ7390_0LY", frameborder="0", allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture", allowfullscreen=TRUE),
+                                       
+                              ),
+                              tags$div(tags$iframe(width="400", height="200", src="https://www.youtube.com/embed/RyYfqkpOctY", frameborder="0", allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture", allowfullscreen=TRUE),
+                                       tags$iframe(width="400", height="200", src="https://www.youtube.com/embed/KNJlS7I4NtM", frameborder="0", allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture", allowfullscreen=TRUE),
+                                       
                               )
                               
-                              
+                            
                               #                    
                               #                    tags$head(tags$script(src="js.cookie.js")),
                               #                    
@@ -2207,7 +2216,7 @@ We ask all the users to   cite the different sources they use to make the graphi
         #       #   need(!is.null(reactive_values$data_wos), "")
       )
       #
-      table_data=datatable(df_flatten(reactive_values$res_pumed$dataframe_publi_found), options = list(scrollX = TRUE, columnDefs = list(list(
+      table_data=datatable(df_flatten(reactive_values$res_pumed$dataframe_publi_found[,-which(names(reactive_values$res_pumed$dataframe_publi_found)=="reference"|names(reactive_values$res_pumed$dataframe_publi_found)=="citation")]), options = list(scrollX = TRUE, columnDefs = list(list(
         targets = c(1,2,3) ,render = JS(
           "function(data, type, row, meta) {",
           "return type === 'display' && data.length > 70 ?",
